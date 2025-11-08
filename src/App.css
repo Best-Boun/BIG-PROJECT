@@ -1,0 +1,23 @@
+.app {
+  display: flex;
+  height: 100vh;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: "Inter", sans-serif;
+}
+
+.main {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  margin-left: 255px; /* เท่ากับ width ของ sidebar */
+  padding: 30px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+

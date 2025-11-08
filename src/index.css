@@ -1,0 +1,31 @@
+/* src/index.css */
+
+:root {
+    --theme-color: #C20000; 
+    --secondary-color: #333333; 
+    --main-font-family: 'IBM Plex Sans Thai', sans-serif;
+    --profile-border-radius: 2px; 
+    --text-color: #333; 
+    --bg-color: #f8f8f8; 
+    
+    --main-padding: 10px; 
+    --font-scale: 0.9rem; 
+}
+
+body {
+    font-family: var(--main-font-family); 
+    color: var(--text-color); 
+    background-color: var(--bg-color); 
+    margin: 0;
+    padding: 0;
+    line-height: 1.4; 
+    font-size: var(--font-scale); 
+    transition: all 0.3s ease-in-out; 
+}
+
+#root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}

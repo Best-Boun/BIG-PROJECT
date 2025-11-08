@@ -1,0 +1,132 @@
+/* src/App.css (โค้ดปรับปรุงใหม่: เน้นการจัดเรียงในบรรทัดเดียว) */
+
+.settings-container {
+    padding: var(--main-padding); 
+    max-width: 500px; 
+    background-color: #ffffff; 
+    border: 1px solid #e0e0e0; 
+    border-radius: 4px; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); 
+}
+
+h1 {
+    color: var(--theme-color); 
+    margin-top: 0;
+    margin-bottom: 20px; 
+    text-align: left; 
+    font-size: 1.4rem; 
+    font-weight: 600;
+    border-bottom: 1px solid var(--secondary-color); 
+    padding-bottom: 6px; 
+}
+
+.setting-group {
+    margin-bottom: 10px; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* จัดให้ label และ control อยู่คนละด้าน */
+    padding: 4px 0; 
+    border-bottom: 1px dashed #f5f5f5; 
+    font-size: var(--font-scale);
+}
+
+.setting-group label {
+    flex-shrink: 0; /* ป้องกัน label หด */
+    flex-basis: 140px; 
+    font-weight: 500;
+    color: #444;
+}
+
+/* -------------------------------------- */
+/* *** ส่วนที่ทำให้ Input/Select อยู่ในบรรทัดเดียว *** */
+/* -------------------------------------- */
+
+/* สำหรับ Select (รูปแบบฟอนต์, โปรไฟล์, ความหนาแน่น) */
+.setting-group select {
+    flex-grow: 1; 
+    max-width: 250px;
+    padding: 4px; 
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: var(--font-scale);
+}
+
+/* สำหรับ Color Picker (สีหลัก/สีรอง) */
+.input-control {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* ระยะห่างระหว่าง color picker กับ hex code */
+}
+
+.input-control input[type="color"] {
+    width: 60px; /* กำหนดความกว้างคงที่ */
+    height: 25px;
+    padding: 0;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.input-control span {
+  font-size: 0.85em;
+  font-weight: bold;
+  min-width: 65px;
+  text-align: right;
+  flex-shrink: 0; /* ป้องกัน hex code หด */
+}
+
+
+/* --- สไตล์ทั่วไป --- */
+.profile-preview {
+    padding-top: 15px; 
+    text-align: center;
+}
+
+.profile-preview h2 {
+    color: #666;
+    font-size: 1.0rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.profile-avatar {
+    width: 60px; 
+    height: 60px;
+    margin: 10px auto 12px; 
+    background-color: var(--theme-color); 
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: var(--profile-border-radius); 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); 
+    transition: all 0.3s;
+}
+
+.profile-name {
+    color: var(--theme-color); 
+    font-family: var(--main-font-family); 
+    margin-top: 2px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+button {
+    padding: 8px 18px; 
+    margin-top: 20px;
+    border: none;
+    color: white;
+    border-radius: 3px; 
+    cursor: pointer;
+    background-color: var(--theme-color); 
+    font-weight: 500; 
+    font-size: 0.95rem;
+    transition: background-color 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    opacity: 0.9;
+}

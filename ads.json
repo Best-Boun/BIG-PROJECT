@@ -1,0 +1,46 @@
+{
+  "adsList": [
+    {
+      "id": "1",
+      "name": "AI Resume Booster",
+      "platform": "Instagram",
+      "date": "2025-10-30",
+      "active": false
+    },
+    {
+      "id": "2",
+      "name": "Smart Job Connect",
+      "platform": "YouTube",
+      "date": "2025-10-25",
+      "active": true
+    },
+    {
+      "id": "3",
+      "name": "Portfolio Builder",
+      "platform": "LinkedIn",
+      "date": "2025-10-22",
+      "active": true
+    },
+    {
+      "id": "4",
+      "name": "AI Matching System",
+      "platform": "TikTok",
+      "date": "2025-10-20",
+      "active": false
+    },
+    {
+      "id": "d820",
+      "name": "AI Resume Booster",
+      "platform": "Instagram",
+      "date": "2025-10-30",
+      "active": false
+    },
+    {
+      "id": "decf",
+      "name": "tle",
+      "platform": "Indeed",
+      "date": "2025-11-07",
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+.Login-con {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 30vh;
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid;
+  border-radius: 5%;
+  margin: 20px;
+  padding: 20px;
+}
+/* .btn{
+  color: aqua;
+  background-color: blue;
+  border: 1px solid;
+  border-radius: 5px;
+  margin: 10px;
+  padding: 10px;
+
+} */

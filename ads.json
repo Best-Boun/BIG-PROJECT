@@ -1,45 +1,80 @@
 {
   "adsList": [
     {
-      "id": "1",
-      "name": "AI Resume Booster",
-      "platform": "Instagram",
-      "date": "2025-10-30",
-      "active": false
-    },
-    {
-      "id": "2",
-      "name": "Smart Job Connect",
-      "platform": "YouTube",
-      "date": "2025-10-25",
+      "id": "d721",
+      "name": "New Ad Campaign",
+      "platform": "Pinterest",
+      "date": "2025-11-08",
       "active": true
     },
     {
-      "id": "3",
-      "name": "Portfolio Builder",
+      "id": "8c37",
+      "name": "New Ad Campaign",
+      "platform": "Twitter(X)",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "1b1e",
+      "name": "New Ad Campaign",
+      "platform": "GitHub",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "7adf",
+      "name": "New Ad Campaign",
       "platform": "LinkedIn",
-      "date": "2025-10-22",
+      "date": "2025-11-08",
       "active": true
     },
     {
-      "id": "4",
-      "name": "AI Matching System",
-      "platform": "TikTok",
-      "date": "2025-10-20",
-      "active": false
+      "id": "2095",
+      "name": "New Ad Campaign",
+      "platform": "YouTube",
+      "date": "2025-11-08",
+      "active": true
     },
     {
-      "id": "d820",
-      "name": "AI Resume Booster",
-      "platform": "Instagram",
-      "date": "2025-10-30",
-      "active": false
+      "id": "15c4",
+      "name": "New Ad Campaign",
+      "platform": "YouTube",
+      "date": "2025-11-08",
+      "active": true
     },
     {
-      "id": "decf",
-      "name": "tle",
+      "id": "50c3",
+      "name": "New Ad Campaign",
+      "platform": "Twitter(X)",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "1aea",
+      "name": "New Ad Campaign",
+      "platform": "Medium",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "4d31",
+      "name": "New Ad Campaign",
       "platform": "Indeed",
-      "date": "2025-11-07",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "9fdf",
+      "name": "New Ad Campaign",
+      "platform": "Pinterest",
+      "date": "2025-11-08",
+      "active": true
+    },
+    {
+      "id": "30a0",
+      "name": "New Ad Campaign",
+      "platform": "Instagram",
+      "date": "2025-11-08",
       "active": true
     }
   ]

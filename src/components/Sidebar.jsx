@@ -7,6 +7,8 @@ import OpenAiBot from '../components/OpenAiBot';
 import BrowserLLMBot from '../components/BrowserLlmBot';
 import HelloWorldBot from '../components/HelloWorldBot';
 
+
+
 const bots = {
   helloworldbot: HelloWorldBot,
   faqbot: FaqBot,
@@ -15,10 +17,16 @@ const bots = {
   browserllmbot: BrowserLLMBot,
 };
 
+
 function Sidebar() {
 
     const [selected, setSelected] = useState('browserllmbot');
     const Bot = selected ? bots[selected] : BrowserLLMBot;
+
+  
+  
+
+
 
   return (
     <aside className="sidebar">
@@ -68,6 +76,23 @@ function Sidebar() {
       </select>
       {Bot ? <Bot /> : null}
     </div>
+ {/* ปุ่มออกจากระบบ */}
+      <button
+        onClick={() => {
+          localStorage.removeItem("role");
+          window.location.href = "/login";
+        }}
+        className="btn btn-logout"
+        style={{ marginTop: "30px" }}
+      >
+        ออกจากระบบ
+      </button>
+
+      
+
+
+
+
     </aside>
 
     

@@ -3,16 +3,14 @@ import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
 import FaqBot from "../components/FaqBot";
-import GeminiBot from "../components/GeminiBot";
-import OpenAiBot from "../components/OpenAiBot";
+
 import BrowserLLMBot from "../components/BrowserLlmBot";
-import HelloWorldBot from "../components/HelloWorldBot";
+
 
 const bots = {
-  helloworldbot: HelloWorldBot,
+  
   faqbot: FaqBot,
-  openaibot: OpenAiBot,
-  geminibot: GeminiBot,
+  
   browserllmbot: BrowserLLMBot,
 };
 

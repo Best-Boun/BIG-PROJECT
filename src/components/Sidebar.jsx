@@ -2,18 +2,15 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 import FaqBot from '../components/FaqBot';
-import GeminiBot from '../components/GeminiBot';
-import OpenAiBot from '../components/OpenAiBot';
 import BrowserLLMBot from '../components/BrowserLlmBot';
-import HelloWorldBot from '../components/HelloWorldBot';
+
 
 
 
 const bots = {
-  helloworldbot: HelloWorldBot,
+  
   faqbot: FaqBot,
-  openaibot: OpenAiBot,
-  geminibot: GeminiBot,
+  
   browserllmbot: BrowserLLMBot,
 };
 
@@ -68,10 +65,7 @@ function Sidebar() {
           cursor: 'pointer',
         }}
       >
-        <option value="helloworldbot">Hello World Bot</option>
         <option value="faqbot">FAQ Bot</option>
-        <option value="openaibot">OpenAI Bot</option>
-        <option value="geminibot">Gemini Bot</option>
         <option value="browserllmbot">Browser LLM Bot</option>
       </select>
       {Bot ? <Bot /> : null}

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "./Access.css";
 
 function AdminManagement() {
-  const navigate = useNavigate();
 
   const [adminUsers, setAdminUsers] = useState([]);
   const [normalUsers, setNormalUsers] = useState([]);

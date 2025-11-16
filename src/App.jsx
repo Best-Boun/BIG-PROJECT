@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
 import Login from "./Pages/Login";
 import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";

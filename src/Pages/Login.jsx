@@ -2,12 +2,13 @@ import { useRef } from 'react';
 import Form from 'react-bootstrap/Form';
 import { verifyUser } from '../data/user';
 import './Login.css';
+import { useNavigate } from 'react-router-dom';
 
 function Login( {setToken, setRole}) {
 
   const userRef = useRef()
   const passRef = useRef()
-
+  const navigate = useNavigate();   // 👈 ใช้ navigate
 
   return (
     <div className="Login-con">
@@ -19,13 +20,14 @@ function Login( {setToken, setRole}) {
         ref={userRef}
       />
 
-       <Form.Label htmlFor="Password">Password</Form.Label>
+      <Form.Label htmlFor="Password">Password</Form.Label>
       <Form.Control
         type="Password"
         id="Password"
         placeholder='Password'
         ref={passRef}
       />
+
       <button className='btn btn-secondary' onClick={() => {
         const user = userRef.current.value.trim()
         const pass = passRef.current.value.trim()
@@ -33,12 +35,15 @@ function Login( {setToken, setRole}) {
         passRef.current.value = ''
 
         const userInfo = verifyUser(user, pass)
+
         if(userInfo === null){
           alert('Wrong username or password')
           userRef.current.focus()
-        }else{
+        } else {
           setToken(userInfo.token)
           setRole(userInfo.role)
+
+          navigate('/chart')    // ⭐ ไปหน้า dashboard
         }
 
       }}>Login</button>

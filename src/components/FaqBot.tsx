@@ -8,7 +8,7 @@ const FaqBot = () => {
     // default start block (entry point)
     start: {
       message: 'Hi! What would you like to know about React ChatBotify?',
-      options: ['About', 'Features', 'Support'],
+      options: ['About', 'Features', 'Support', 'I have more questions'],
       path: 'handle_faq',
     },
     // handle faq responses

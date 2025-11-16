@@ -1,294 +1,267 @@
-import React from "react";
-import { useState, useEffect, useCallback} from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import "./Access.css";
 
+const API_URL = "http://localhost:3002/adsList";
+
+const PLATFORMS = [
+  "Facebook", "Twitter (X)", "LinkedIn", "YouTube", "GitHub",
+  "Medium", "Pinterest", "Indeed"
+];
+
+/* 🎨 ไอคอน + สีสำหรับ platform */
+const platformMeta = {
+  "Facebook": { color: "#1877f2", icon: "📘" },
+  "Twitter (X)": { color: "#000000", icon: "🐦" },
+  "LinkedIn": { color: "#0a66c2", icon: "💼" },
+  "YouTube": { color: "#ff0000", icon: "▶️" },
+  "GitHub": { color: "#333", icon: "🐙" },
+  "Medium": { color: "#00ab6c", icon: "✍️" },
+  "Pinterest": { color: "#bd081c", icon: "📌" },
+  "Indeed": { color: "#2164f3", icon: "💼" },
+};
+
 function AdsManagement() {
-  const navigate = useNavigate();
-  const API_URL = "http://localhost:3001/adsList";
-
-  const platforms = [
-    "Facebook", "Instagram", "Twitter(X)", "YouTube", "TikTok", "LinkedIn",
-    "Pinterest", "Threads", "JobThai", "Indeed", "GitHub", "Medium"
-  ];
-
   const [ads, setAds] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState("");
-  const [editPlatform, setEditPlatform] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
+  const [editData, setEditData] = useState({ name: "", platform: "" });
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-  // ✅ ฟังก์ชัน popup แจ้งเตือน
-  const showPopup = (message, type = "info") => {
-    setPopup({ show: true, message, type });
-    setTimeout(() => setPopup({ show: false, message: "", type: "" }), 2000);
-  };
-
-  // ✅ โหลดข้อมูลจาก json-server (แก้ warning เหลือง)
-  const loadAds = useCallback(async () => {
+  /* ============================
+        LOAD DATA
+  ============================ */
+  const fetchAds = async () => {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
       setAds(data);
-    } catch (err) {
-      console.error("❌ โหลดข้อมูลไม่สำเร็จ:", err);
-      showPopup("❌ โหลดข้อมูลไม่สำเร็จ", "error");
-    }
-  }, [API_URL]);
-
-  useEffect(() => {
-    loadAds();
-  }, [loadAds]); // ✅ ไม่มี warning อีกต่อไป
-
-  // ✅ เพิ่ม Ad ใหม่
-  const addAd = async () => {
-    const newAd = {
-      name: "New Ad Campaign",
-      platform: platforms[Math.floor(Math.random() * platforms.length)],
-      date: new Date().toISOString().split("T")[0],
-      active: true,
-    };
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newAd),
-      });
-
-      const addedAd = await res.json();
-      setAds((prev) => [...prev, addedAd]);
-      showPopup("📝 เพิ่ม Ad สำเร็จ!", "success");
-    } catch (err) {
-      console.error("❌ เพิ่มข้อมูลไม่สำเร็จ:", err);
-      showPopup("❌ เพิ่มไม่สำเร็จ", "error");
-    }
-  };
-
-  // ✅ ลบ Ad
-  const deleteAd = async (id) => {
-    try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      setAds((prev) => prev.filter((ad) => ad.id !== id));
-      showPopup("🗑️ ลบข้อมูลสำเร็จ", "success");
-    } catch (err) {
-      console.error("❌ ลบไม่สำเร็จ:", err);
-      showPopup("❌ ลบไม่สำเร็จ", "error");
-    }
-  };
-
-  // ✅ เริ่มแก้ไข
-  const startEdit = (ad) => {
-    setEditingId(ad.id);
-    setEditName(ad.name);
-    setEditPlatform(ad.platform);
-  };
-
-  // ✅ บันทึกการแก้ไข
-  const saveEdit = async (id) => {
-    try {
-      const updatedAd = { name: editName, platform: editPlatform };
-      await fetch(`${API_URL}/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedAd),
-      });
-
-      setAds((prev) =>
-        prev.map((ad) => (ad.id === id ? { ...ad, ...updatedAd } : ad))
-      );
-      setEditingId(null);
-      showPopup("💾 แก้ไขสำเร็จ!", "success");
-    } catch (err) {
-      console.error("❌ แก้ไขไม่สำเร็จ:", err);
-      showPopup("❌ แก้ไขไม่สำเร็จ", "error");
-    }
-  };
-
-  // ✅ สลับสถานะ Active/Paused
-  const toggleActive = async (id) => {
-    const ad = ads.find((a) => a.id === id);
-    if (!ad) return;
-
-    try {
-      const updated = { active: !ad.active };
-      await fetch(`${API_URL}/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-
-      setAds((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, ...updated } : a))
-      );
-      showPopup(ad.active ? "🚫 ปิดการทำงานแล้ว" : "✅ เปิดใช้งานแล้ว", "info");
-    } catch (err) {
-      console.error("❌ เปลี่ยนสถานะไม่สำเร็จ:", err);
-      showPopup("❌ เปลี่ยนสถานะไม่สำเร็จ", "error");
-    }
-  };
-
-  // ✅ Save All
-  const saveAllToServer = async () => {
-    if (!window.confirm("แน่ใจมั้ยว่าจะบันทึกข้อมูลทั้งหมดอีกครั้ง?")) return;
-
-    setLoading(true);
-    try {
-      const existing = await fetch(API_URL).then((r) => r.json());
-      const existingMap = new Map(existing.map((ad) => [ad.id, ad]));
-
-      for (const ad of ads) {
-        const { id, ...rest } = ad;
-        if (existingMap.has(id)) {
-          await fetch(`${API_URL}/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(rest),
-          });
-        } else {
-          await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(rest),
-          });
-        }
-      }
-
-      await loadAds();
-      showPopup("💾 บันทึกทั้งหมดเรียบร้อย!", "success");
-    } catch (err) {
-      console.error("❌ Save All ไม่สำเร็จ:", err);
-      showPopup("❌ Save All ไม่สำเร็จ", "error");
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchAds();
+  }, []);
 
-  const filteredAds = ads.filter((ad) =>
-    ad.name.toLowerCase().includes(search.toLowerCase())
+  /* ============================
+        POPUP
+  ============================ */
+  const showPopup = (text, type = "info") => {
+    const el = document.createElement("div");
+    el.className = `popup ${type}`;
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add("fade"), 10);
+    setTimeout(() => el.remove(), 2000);
+  };
+
+  /* ============================
+        SAVE ALL
+  ============================ */
+  const saveAll = async () => {
+    try {
+      await Promise.all(
+        ads.map((item) =>
+          fetch(`${API_URL}/${item.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          })
+        )
+      );
+      setUnsavedChanges(false);
+      showPopup("💾 เซฟข้อมูลเรียบร้อย!", "success");
+    } catch {
+      showPopup("❌ เซฟไม่สำเร็จ!", "error");
+    }
+  };
+
+  /* ============================
+        ADD NEW
+  ============================ */
+  const addAd = async () => {
+    const newAd = {
+      id: crypto.randomUUID(),
+      name: "New Ad Campaign",
+      platform: PLATFORMS[Math.floor(Math.random() * PLATFORMS.length)],
+      date: new Date().toISOString().split("T")[0],
+      active: true,
+    };
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newAd),
+    });
+
+    const created = await res.json();
+    setAds([...ads, created]);
+    setUnsavedChanges(true);
+    showPopup("เพิ่มโฆษณาแล้ว!", "success");
+  };
+
+  /* ============================
+        DELETE
+  ============================ */
+  const deleteAd = async (id) => {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    setAds(ads.filter((a) => a.id !== id));
+    setUnsavedChanges(true);
+    showPopup("ลบรายการแล้ว!", "info");
+  };
+
+  /* ============================
+        TOGGLE ACTIVE
+  ============================ */
+  const toggleActive = async (id) => {
+    const target = ads.find((a) => a.id === id);
+    const updated = { ...target, active: !target.active };
+
+    await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated),
+    });
+
+    setAds(ads.map((a) => (a.id === id ? updated : a)));
+    setUnsavedChanges(true);
+  };
+
+  /* ============================
+        EDIT MODE
+  ============================ */
+  const startEdit = (ad) => {
+    setEditingId(ad.id);
+    setEditData(ad);
+  };
+
+  const saveEdit = async (id) => {
+    await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editData),
+    });
+
+    setAds(ads.map((a) => (a.id === id ? { ...editData } : a)));
+    setEditingId(null);
+    setUnsavedChanges(true);
+    showPopup("แก้ไขแล้ว!", "success");
+  };
+
+  const filteredAds = ads.filter(
+    (ad) =>
+      ad.name.toLowerCase().includes(search.toLowerCase()) ||
+      ad.platform.toLowerCase().includes(search.toLowerCase())
   );
 
+  /* ============================
+        RENDER
+  ============================ */
   return (
-    <div className="page-container">
-      <div className="header">
+    <motion.div className="page-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+
+      {/* HEADER */}
+      <div className="header-box">
         <h2>📢 SmartPersona Ad Management</h2>
-        <div>
-          <button onClick={addAd} className="btn btn-add">+ Add Ad</button>
-          <button
-            onClick={saveAllToServer}
-            className="btn btn-add"
-            disabled={loading}
-          >
-            {loading ? "⏳ Saving..." : "💾 Save All"}
-          </button>
-          <button
-            onClick={() => navigate("/admin")}
-            className="btn btn-manage"
-          >
-            ⚙️ Admin Setting
-          </button>
+        <div className="actions">
+          <button className="btn btn-add" onClick={addAd}>+ Add Ad</button>
+          <button className="btn btn-save" disabled={!unsavedChanges} onClick={saveAll}>💾 Save All</button>
         </div>
       </div>
 
+      {/* SEARCH */}
       <input
-        type="text"
-        placeholder="Search ads..."
+        className="search-box"
+        placeholder="🔎 ค้นหาโฆษณา..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px",
-          borderRadius: "8px",
-          marginBottom: "15px",
-          border: "1px solid #ccc",
-        }}
       />
 
-      <div className="table-container">
-        {filteredAds.length === 0 ? (
-          <p>📭 No Ads Found</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Platform</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Manage</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAds.map((ad) => (
-                <tr key={ad.id}>
-                  <td>
-                    {editingId === ad.id ? (
-                      <input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                      />
-                    ) : (
-                      ad.name
-                    )}
-                  </td>
-                  <td>
-                    {editingId === ad.id ? (
-                      <select
-                        value={editPlatform}
-                        onChange={(e) => setEditPlatform(e.target.value)}
-                      >
-                        {platforms.map((p) => (
-                          <option key={p}>{p}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      ad.platform
-                    )}
-                  </td>
-                  <td>{ad.date}</td>
-                  <td>
-                    <button
-                      onClick={() => toggleActive(ad.id)}
-                      className={`btn ${ad.active ? "btn-add" : "btn-delete"}`}
-                    >
-                      {ad.active ? "✅ Active" : "🚫 Paused"}
-                    </button>
-                  </td>
-                  <td>
-                    {editingId === ad.id ? (
-                      <button onClick={() => saveEdit(ad.id)} className="btn btn-add">
-                        💾 Save
-                      </button>
-                    ) : (
-                      <button onClick={() => startEdit(ad)} className="btn btn-manage">
-                        ✏️ Edit
-                      </button>
-                    )}
-                    <button
-                      onClick={() => deleteAd(ad.id)}
-                      className="btn btn-delete"
-                      style={{ marginLeft: "10px" }}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {/* LIST */}
+      <div className="list-header">
+        <div>ชื่อโฆษณา</div>
+        <div>แพลตฟอร์ม</div>
+        <div>สถานะ</div>
+        <div>จัดการ</div>
       </div>
 
-      {/* ✅ Popup แจ้งเตือนล่างขวา */}
-      {popup.show && (
-        <div className={`popup ${popup.type}`}>
-          {popup.message}
-        </div>
-      )}
-    </div>
+      <ul className="ads-list-vertical">
+        <AnimatePresence>
+          {filteredAds.map((ad) => (
+            <motion.li key={ad.id} className="ad-row" layout>
+
+              {/* NAME */}
+              <div>
+                {editingId === ad.id ? (
+                  <input
+                    value={editData.name}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  />
+                ) : (
+                  <b>{ad.name}</b>
+                )}
+              </div>
+
+              {/* PLATFORM (with icon & color) */}
+              <div>
+                {editingId === ad.id ? (
+                  <select
+                    value={editData.platform}
+                    onChange={(e) =>
+                      setEditData({ ...editData, platform: e.target.value })
+                    }
+                  >
+                    {PLATFORMS.map((p) => (
+                      <option key={p}>{p}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span
+                    className="platform-badge"
+                    style={{
+                      background: platformMeta[ad.platform]?.color + "22",
+                      color: platformMeta[ad.platform]?.color || "#000",
+                      borderColor: platformMeta[ad.platform]?.color,
+                    }}
+                  >
+                    {platformMeta[ad.platform]?.icon} {ad.platform}
+                  </span>
+                )}
+              </div>
+
+              {/* ACTIVE */}
+              <div>
+                <button
+                  className={`status-btn ${ad.active ? "active" : "inactive"}`}
+                  onClick={() => toggleActive(ad.id)}
+                >
+                  {ad.active ? "Active ✔" : "Inactive ✖"}
+                </button>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="col col-actions">
+                {editingId === ad.id ? (
+                  <button className="btn btn-save" onClick={() => saveEdit(ad.id)}>
+                    Save
+                  </button>
+                ) : (
+                  <button className="btn btn-manage" onClick={() => startEdit(ad)}>
+                    Edit
+                  </button>
+                )}
+                <button className="btn btn-delete" onClick={() => deleteAd(ad.id)}>
+                  Delete
+                </button>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
+      </ul>
+    </motion.div>
   );
-};
+}
 
 export default AdsManagement;

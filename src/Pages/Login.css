@@ -1,21 +1,124 @@
-.Login-con {
+/* 🌌 LOGIN + REGISTER – Luxury Dark Purple Theme */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
+
+.login-bg-animated {
+  height: 100vh;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 30vh;
-  font-family: 'Poppins', sans-serif;
-  border: 1px solid;
-  border-radius: 5%;
-  margin: 20px;
-  padding: 20px;
+  background: linear-gradient(135deg, #1a0033, #4b0082, #9d4edd);
+  background-size: 300% 300%;
+  animation: gradientFlow 10s ease infinite;
+  font-family: "Poppins", sans-serif;
 }
-/* .btn{
-  color: aqua;
-  background-color: blue;
-  border: 1px solid;
-  border-radius: 5px;
-  margin: 10px;
-  padding: 10px;
 
-} */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 🟣 Card */
+.login-card.luxury {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  padding: 40px;
+  width: 400px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  animation: floatUp 0.8s ease forwards;
+  color: white;
+  text-align: center;
+}
+
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ✨ Logo */
+.login-logo {
+  font-size: 34px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+.login-logo span {
+  color: #c77dff;
+}
+
+/* 📋 Form */
+.login-form label {
+  font-weight: 500;
+  color: #fff;
+  margin-top: 10px;
+}
+
+.login-form input {
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  margin-top: 5px;
+}
+
+/* 🌈 Button */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-btn.glow {
+  background: linear-gradient(90deg, #7209b7, #b5179e);
+  color: white;
+  box-shadow: 0 0 10px #7209b7;
+}
+.login-btn.glow:hover {
+  background: linear-gradient(90deg, #560bad, #9d4edd);
+  transform: scale(1.03);
+  box-shadow: 0 0 20px #b5179e;
+}
+
+.login-btn.secondary {
+  background: transparent;
+  border: 2px solid #b5179e;
+  color: #fff;
+}
+.login-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 💬 Popup Toast */
+.popup {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 15px;
+  animation: fadeIn 0.3s ease;
+  z-index: 9999;
+}
+.popup.success { background: #28a745; }
+.popup.error { background: #dc3545; }
+.popup.info { background: #007bff; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-out { animation: fadeOut 0.4s forwards; }
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(20px); }
+}

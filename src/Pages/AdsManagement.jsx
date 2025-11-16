@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import "./Access.css";
 
@@ -24,6 +25,7 @@ const platformMeta = {
 function AdsManagement() {
   const [ads, setAds] = useState([]);
   const [search, setSearch] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({ name: "", platform: "" });

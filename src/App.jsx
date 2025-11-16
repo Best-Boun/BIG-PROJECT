@@ -1,15 +1,11 @@
-<<<<<<< HEAD
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-=======
 // ✅ src/App.js
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
->>>>>>> 8c116ca5b57435ab809605536d78003f1cbcf955
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Sidebar from "./components/Sidebar";
-import ChartPage from "./Pages/ChartPage";
+import ChartPage from "./pages/ChartPage";
 import AdsManagement from "./Pages/AdsManagement";
 import AdminManagement from "./Pages/AdminManagement";
 import UserDashboard from "./Pages/UserDashboard";

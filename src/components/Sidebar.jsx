@@ -1,19 +1,11 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
-<<<<<<< HEAD
-import FaqBot from '../components/FaqBot';
-import BrowserLLMBot from '../components/BrowserLlmBot';
-
-
-=======
->>>>>>> 8c116ca5b57435ab809605536d78003f1cbcf955
 
 import FaqBot from "../components/FaqBot";
-import GeminiBot from "../components/GeminiBot";
-import OpenAiBot from "../components/OpenAiBot";
+
 import BrowserLLMBot from "../components/BrowserLlmBot";
-import HelloWorldBot from "../components/HelloWorldBot";
+
 
 const bots = {
   
@@ -61,31 +53,6 @@ function Sidebar({ role, onLogout }) {
           </li>
         </ul>
       </nav>
-<<<<<<< HEAD
-       <div style={{ padding: 16, fontFamily: 'Arial, sans-serif' }}>
-      <label htmlFor="bot-select" style={{ marginRight: 8, fontWeight: 'bold' }} className="AI">
-        Choose an AI:
-      </label>
-      <select
-        id="bot-select"
-        value={selected}
-        onChange={(e) => setSelected(e.target.value)}
-        style={{
-          padding: '8px 12px',
-          fontSize: '16px',
-          borderRadius: '4px',
-          border: '1px solid #ccc',
-          backgroundColor: '#f8f8f8',
-          cursor: 'pointer',
-        }}
-      >
-        <option value="faqbot">FAQ Bot</option>
-        <option value="browserllmbot">Browser LLM Bot</option>
-      </select>
-      {Bot ? <Bot /> : null}
-    </div>
- {/* ปุ่มออกจากระบบ */}
-=======
 
       {/* 🔹 ส่วนเลือก Bot */}
       <div style={{ padding: 16, fontFamily: "Arial, sans-serif" }}>
@@ -119,7 +86,6 @@ function Sidebar({ role, onLogout }) {
       </div>
 
       {/* 🔹 ปุ่มออกจากระบบ */}
->>>>>>> 8c116ca5b57435ab809605536d78003f1cbcf955
       <button
         onClick={onLogout}
         className="btn btn-logout"

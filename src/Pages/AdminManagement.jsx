@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from "react";
-import "./Access.css";
-
-function AdminManagement() {
-=======
 import React, { useEffect, useMemo, useState } from "react";
 import "./Access.css";
 
 const API_USERS = "http://localhost:3001/users";
 const API_LOGS = "http://localhost:3003/logs";
 const MAIN_ADMIN_ID = "1";
->>>>>>> 8c116ca5b57435ab809605536d78003f1cbcf955
 
 /* ============================================================
    ⭐ LOCAL LOG SYSTEM (fallback)

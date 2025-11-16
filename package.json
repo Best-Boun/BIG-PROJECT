@@ -3,13 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+
   "scripts": {
-    "server": "json-server --watch ads.json --port 3001",
+    "server:user": "json-server --watch db.json --port 3001",
+    "server:ads": "json-server --watch ads.json --port 3002",
+    "server:logs": "json-server --watch logs.json --port 3003",
+
     "vite": "vite",
-    "dev": "concurrently -c \"green.bold,cyan.bold\" -n \"[SERVER],[VITE]\" \"npm run server\" \"npm run vite\"",
+
+    "dev": "npm-run-all --parallel server:user server:ads server:logs vite",
+
     "build": "vite build",
     "preview": "vite preview"
   },
+
   "dependencies": {
     "@rcb-plugins/llm-connector": "^0.4.0",
     "bootstrap": "^5.3.8",
@@ -29,6 +36,7 @@
     "recharts": "^3.3.0",
     "xlsx": "^0.18.5"
   },
+
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/react": "^19.1.16",
@@ -40,6 +48,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
+    "json-server": "^1.0.0-beta.3",
+    "npm-run-all": "^4.1.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.16",
     "vite": "^7.1.7"

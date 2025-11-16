@@ -1,80 +1,38 @@
 {
   "adsList": [
     {
-      "id": "d721",
-      "name": "New Ad Campaign",
-      "platform": "Pinterest",
-      "date": "2025-11-08",
+      "id": "2c3e",
+      "name": "SmartPersona – User Signup Campaign",
+      "platform": "Facebook",
+      "date": "2025-11-12",
       "active": true
     },
     {
-      "id": "8c37",
-      "name": "New Ad Campaign",
-      "platform": "Twitter(X)",
-      "date": "2025-11-08",
+      "id": "ee8b",
+      "name": "SmartPersona – AI Resume Promo",
+      "platform": "YouTube",
+      "date": "2025-11-12",
       "active": true
     },
     {
-      "id": "1b1e",
-      "name": "New Ad Campaign",
-      "platform": "GitHub",
-      "date": "2025-11-08",
+      "id": "8a09afa8-66c7-4160-9da8-5171aae14f57",
+      "name": "SmartPersona – App Install",
+      "platform": "LinkedIn",
+      "date": "2025-11-14",
       "active": true
     },
     {
-      "id": "7adf",
+      "id": "eab3788c-5a78-40d3-ac42-fab59e30c92b",
       "name": "New Ad Campaign",
       "platform": "LinkedIn",
-      "date": "2025-11-08",
+      "date": "2025-11-16",
       "active": true
     },
     {
-      "id": "2095",
+      "id": "daf528ae-4283-4808-a84c-b8d30e459663",
       "name": "New Ad Campaign",
-      "platform": "YouTube",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "15c4",
-      "name": "New Ad Campaign",
-      "platform": "YouTube",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "50c3",
-      "name": "New Ad Campaign",
-      "platform": "Twitter(X)",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "1aea",
-      "name": "New Ad Campaign",
-      "platform": "Medium",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "4d31",
-      "name": "New Ad Campaign",
-      "platform": "Indeed",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "9fdf",
-      "name": "New Ad Campaign",
-      "platform": "Pinterest",
-      "date": "2025-11-08",
-      "active": true
-    },
-    {
-      "id": "30a0",
-      "name": "New Ad Campaign",
-      "platform": "Instagram",
-      "date": "2025-11-08",
+      "platform": "Facebook",
+      "date": "2025-11-16",
       "active": true
     }
   ]

@@ -3,104 +3,34 @@
     {
       "id": "1",
       "username": "admin",
-      "password": "1234",
-      "name": "System Admin",
-      "email": "admin@smartpersona.com",
-      "role": "admin",
-      "createdAt": "2025-01-10T08:30:00Z"
+      "password": "1",
+      "role": "admin"
     },
     {
       "id": "2",
-      "username": "yhp",
-      "password": "abcd",
-      "name": "Yhp Persona",
-      "email": "yhp@smartpersona.com",
+      "username": "user",
+      "password": "1",
+      "role": "user"
+    },
+    {
+      "id": "dfd4",
+      "username": "san",
+      "email": "san@user",
+      "password": "1",
+      "name": "san",
       "role": "user",
-      "createdAt": "2025-03-12T14:10:00Z"
-    }
-  ],
-  "profiles": [
-    {
-      "id": "1",
-      "userId": 2,
-      "name": "Yhp Persona (Work)",
-      "type": "Work",
-      "summary": "Professional software developer specializing in web applications.",
-      "skills": [
-        "React",
-        "Node.js",
-        "Express",
-        "MongoDB"
-      ],
-      "experience": [
-        {
-          "company": "TechVision Co.",
-          "role": "Frontend Developer",
-          "years": "2023-2025"
-        }
-      ],
-      "education": [
-        {
-          "institution": "Bangkok University",
-          "degree": "B.Sc. in Computer Science",
-          "year": "2023"
-        }
-      ],
-      "cvUrl": "uploads/work_cv.pdf",
-      "themeColor": "#2d89ef",
-      "createdAt": "2025-04-15T10:00:00Z"
+      "oldPassword": null
     },
     {
-      "id": "3f2d",
-      "title": "ฟฟ"
-    },
-    {
-      "id": "62ea",
-      "title": "asd"
+      "id": "08c2",
+      "username": "tle",
+      "email": "tle@fat",
+      "password": "1",
+      "name": "tle",
+      "role": "user",
+      "oldPassword": null
     }
   ],
-  "permissions": [
-    {
-      "id": "1",
-      "userId": 2,
-      "quota": 3,
-      "usedQuota": 1,
-      "sharedLinks": 2,
-      "status": "active"
-    }
-  ],
-  "activities": [
-    {
-      "id": "1",
-      "userId": 2,
-      "action": "Downloaded CV",
-      "profileId": 1,
-      "timestamp": "2025-11-01T10:12:00Z"
-    },
-    {
-      "id": "2",
-      "userId": 2,
-      "action": "Shared Profile Link",
-      "profileId": 2,
-      "timestamp": "2025-11-01T10:15:00Z"
-    }
-  ],
-  "notifications": [
-    {
-      "id": "1",
-      "userId": 2,
-      "title": "Quota Updated",
-      "message": "Your usage quota has been refreshed for this month.",
-      "timestamp": "2025-11-01T12:00:00Z",
-      "status": "unread"
-    },
-    {
-      "id": "2",
-      "userId": 2,
-      "title": "Profile Viewed",
-      "message": "Someone viewed your SmartPersona Work profile.",
-      "timestamp": "2025-11-01T13:25:00Z",
-      "status": "read"
-    }
-  ]
+  "profiles": [],
+  "notifications": []
 }

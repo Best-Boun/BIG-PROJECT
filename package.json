@@ -15,6 +15,17 @@
   "dependencies": {
     "@rcb-plugins/llm-connector": "^0.4.0",
     "bootstrap": "^5.3.8",
+<<<<<<< HEAD
+    "html2canvas": "^1.4.1",
+    "html2pdf": "^0.0.11",
+    "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.3",
+    "react": "^19.1.1",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.1.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.9.4"
+=======
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.5.1",
     "cors": "^2.8.5",
@@ -35,6 +46,7 @@
     "react-router-dom": "^7.9.4",
     "recharts": "^3.3.0",
     "xlsx": "^0.18.5"
+>>>>>>> bcb5ada63ec90dd9f35c8900216e5b80edc2b02c
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -42,14 +54,20 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
+<<<<<<< HEAD
+=======
     "concurrently": "^9.2.1",
+>>>>>>> bcb5ada63ec90dd9f35c8900216e5b80edc2b02c
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
+<<<<<<< HEAD
+=======
     "json-server": "^1.0.0-beta.3",
     "npm-run-all": "^4.1.5",
     "npm-run-all2": "^8.0.4",
+>>>>>>> bcb5ada63ec90dd9f35c8900216e5b80edc2b02c
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.16",
     "vite": "^7.1.7"

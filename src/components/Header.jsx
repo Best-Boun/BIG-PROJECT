@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ==========================================
 // 🎨 HEADER COMPONENT (FIXED)
 // ==========================================
@@ -153,3 +154,29 @@ export default function Header({ user, onLogout }) {
 - ไม่ต้องแก้ Resumepage, JobBrowse, Profilepublic ฯลฯ ✅
 - Active state ตรงกับ path ปัจจุบัน ✅
 */
+=======
+import React from "react";
+import "./Header.css";
+import Apple from "../assets/appleex.png";
+
+function Header() {
+  return (
+    <header className="header">
+      <input type="text" placeholder="Search..." className="search-bar" />
+      <div className="user">
+        <span className="bell">🔔</span>
+        <div className="user-info">
+          <img
+            src={Apple}
+            alt="avatar"
+            className="avatar"
+          />
+          <span>John</span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header;
+>>>>>>> bcb5ada63ec90dd9f35c8900216e5b80edc2b02c

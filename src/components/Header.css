@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* ==========================================
    🎨 HEADER.CSS - Navigation Bar Styling
    ========================================== */
@@ -422,3 +423,44 @@
         transform: translateX(4px);
     }
 }
+=======
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar {
+  width: 280px;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fff;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.bell {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+>>>>>>> bcb5ada63ec90dd9f35c8900216e5b80edc2b02c

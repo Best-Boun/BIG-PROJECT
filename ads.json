@@ -1,0 +1,40 @@
+{
+  "adsList": [
+    {
+      "id": "2c3e",
+      "name": "SmartPersona – User Signup Campaign",
+      "description": "สมัครใช้งาน SmartPersona วันนี้ รับสิทธิพิเศษ",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "customWidth": "",
+      "customHeight": "",
+      "date": "2025-11-18",
+      "active": true
+    },
+    {
+      "id": "ee8b",
+      "name": "SmartPersona – AI Resume Promo",
+      "description": "ลดราคาแพ็กเกจ AI Resume 50%",
+      "image": "",
+      "position": "banner",
+      "sizePreset": "small",
+      "customWidth": "100",
+      "customHeight": "100",
+      "date": "2025-11-18",
+      "active": true
+    },
+    {
+      "id": "1763549710234_g5to",
+      "name": "New Ad",
+      "description": "คำอธิบาย...",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "customWidth": "",
+      "customHeight": "",
+      "date": "2025-11-19",
+      "active": false
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "logs": [
+    {
+      "id": "a215bba2-1da5-4900-953e-7715d15672dd",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น admin",
+      "time": "2025-11-16T11:35:05.662Z"
+    },
+    {
+      "id": "10e4ae9b-47c9-48b7-83cb-8ca59dbd7e24",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น user",
+      "time": "2025-11-16T11:35:31.091Z"
+    },
+    {
+      "id": "6f5e618a-f180-4351-a5ee-4bd29f4f4537",
+      "action": "reset_password",
+      "actor": "admin",
+      "target": "san",
+      "detail": "ตั้งเป็น 1234",
+      "time": "2025-11-16T11:37:18.336Z"
+    },
+    {
+      "id": "5c71e643-ecff-4377-9768-426f4cf4669b",
+      "action": "restore_password",
+      "actor": "admin",
+      "target": "san",
+      "detail": "คืนค่ารหัสผ่านเดิม",
+      "time": "2025-11-16T11:37:19.989Z"
+    },
+    {
+      "id": "b9ee66c0-dc1d-4d0d-99d3-e7db54715e4c",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "tle",
+      "detail": "เป็น admin",
+      "time": "2025-11-16T11:37:41.306Z"
+    },
+    {
+      "id": "604466b7-1b88-430b-8991-7cf80aa71605",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "tle",
+      "detail": "เป็น user",
+      "time": "2025-11-16T11:38:07.676Z"
+    },
+    {
+      "id": "4d310dc1-53b4-4e6e-aabb-0d4d20ef2965",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "tle",
+      "detail": "เป็น admin",
+      "time": "2025-11-17T15:44:26.465Z"
+    },
+    {
+      "id": "0d57ba85-93dd-4260-b0e1-bf5c785f057a",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "tle",
+      "detail": "เป็น user",
+      "time": "2025-11-17T15:44:39.227Z"
+    },
+    {
+      "id": "eae3a461-d2fd-46c0-9c39-927bd3428d08",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "boom",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-18T08:57:48.955Z"
+    },
+    {
+      "id": "1722242a-c42a-4d0b-a796-be7afe144307",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "tus",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-18T09:05:51.199Z"
+    },
+    {
+      "id": "4d0e6796-4265-469a-b961-a82272a85175",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "tle",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-18T09:06:06.246Z"
+    },
+    {
+      "id": "984fb661-a89c-4129-91f2-46b9d0c5a6cb",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "san",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-18T09:07:42.710Z"
+    },
+    {
+      "id": "331f1e7d-5e59-4b19-8548-0efc02e4a156",
+      "action": "edit_ad",
+      "actor": "admin",
+      "target": "SmartPersona – User Signup Campaign",
+      "detail": "platform: Facebook",
+      "time": "2025-11-18T09:51:45.300Z"
+    },
+    {
+      "id": "d90dcf98-a555-4cbb-bbcc-951025a15e29",
+      "action": "toggle_active",
+      "actor": "admin",
+      "target": "SmartPersona – User Signup Campaign",
+      "detail": "active: false",
+      "time": "2025-11-18T09:51:47.392Z"
+    },
+    {
+      "id": "373c8bde-d0c3-45eb-877d-f6a084beb54d",
+      "action": "edit_ad",
+      "actor": "admin",
+      "target": "SmartPersona – User Signup Campaign",
+      "detail": "platform: Facebook",
+      "time": "2025-11-18T09:52:31.768Z"
+    }
+  ]
+}

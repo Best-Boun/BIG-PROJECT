@@ -1,0 +1,472 @@
+/* ==========================================
+   📰 FEED.CSS - Feed Page Styling
+   ========================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.feed-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+
+
+
+/* ========== MAIN CONTENT ========== */
+.feed-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+/* ========== FEED COLUMN ========== */
+.feed-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========== CREATE POST CARD ========== */
+.create-post-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.create-post-header {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.create-post-avatar {
+  font-size: 2rem;
+  min-width: 45px;
+}
+
+.create-post-input {
+  flex: 1;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.create-post-input:focus {
+  outline: none;
+  background: #e8f0ff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.create-post-footer {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
+.create-post-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #666;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.create-post-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.create-post-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.create-post-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ========== POST CARD ========== */
+.post-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.post-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.post-author-info {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+}
+
+.post-avatar {
+  font-size: 2.5rem;
+  min-width: 50px;
+  text-align: center;
+}
+
+.post-details {
+  flex: 1;
+}
+
+.post-author {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 3px;
+}
+
+.post-role {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.post-timestamp {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+}
+
+.post-menu-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: all 0.3s;
+  font-size: 18px;
+}
+
+.post-menu-btn:hover {
+  color: #666;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+/* ========== POST CONTENT ========== */
+.post-content {
+  padding: 0 20px 15px;
+  color: #333;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.post-image {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.post-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========== POST STATS ========== */
+.post-stats {
+  display: flex;
+  gap: 20px;
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.post-stats span {
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.post-stats span:hover {
+  color: #667eea;
+}
+
+/* ========== POST ACTIONS ========== */
+.post-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+.post-action-btn {
+  background: none;
+  border: none;
+  color: #666;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+  border-bottom: 2px solid transparent;
+}
+
+.post-action-btn:hover {
+  color: #667eea;
+  background: #f5f5f5;
+}
+
+.post-action-btn.liked {
+  color: #e74c3c;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========== AD SPACE ========== */
+.ad-space {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.ad-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.ad-content {
+  padding: 30px 20px;
+  color: white;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.ad-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.ad-description {
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+.ad-cta {
+  background: white;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  align-self: center;
+}
+
+.ad-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ========== SIDEBAR FOOTER ========== */
+.sidebar-footer {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+}
+
+.sidebar-footer p {
+  margin: 0;
+}
+
+.sidebar-footer a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.sidebar-footer a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .feed-content {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .ad-space {
+    min-height: auto;
+  }
+
+  .ad-content {
+    min-height: 150px;
+    padding: 20px;
+  }
+
+  .ad-title {
+    font-size: 1rem;
+  }
+
+  .ad-description {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .feed-content {
+    padding: 20px 10px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .post-header {
+    padding: 15px;
+  }
+
+  .post-content {
+    padding: 0 15px 10px;
+  }
+
+  .post-stats {
+    padding: 10px 15px;
+    gap: 10px;
+  }
+
+  .post-action-btn {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .feed-header p {
+    font-size: 0.95rem;
+  }
+
+  .create-post-footer {
+    flex-direction: column;
+  }
+
+  .create-post-btn,
+  .create-post-submit {
+    width: 100%;
+  }
+
+  .post-stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .post-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.post-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/*
+🎨 Design System:
+- Primary Color: #667eea (Purple-blue)
+- Secondary Color: #764ba2 (Purple)
+- Background: #f8f9fa (Light gray)
+- Text: #333 (Dark gray)
+- Accent: #e74c3c (Red for likes)
+
+📱 Responsive:
+- Desktop: 70/30 split
+- Tablet: 1 column, 3 ads side-by-side
+- Mobile: 1 column, ads stacked
+*/

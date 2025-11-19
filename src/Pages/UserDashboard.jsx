@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./Access.css";
 
 function UserDashboard({ handleLogout }) {
@@ -7,19 +7,18 @@ function UserDashboard({ handleLogout }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ ตั้งค่า Theme Dashboard
+  // ตั้งธีมหน้า Dashboard
   useEffect(() => {
     document.body.classList.add("dashboard-page");
     return () => document.body.classList.remove("dashboard-page");
   }, []);
 
-  // ⭐ โหลดข้อมูลผู้ใช้ (เร็วขึ้นแบบทันที)
+  // โหลดข้อมูลผู้ใช้
   useEffect(() => {
     const role = localStorage.getItem("role");
     const token = localStorage.getItem("token");
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-    // ❌ redirect ถ้าไม่มีสิทธิ์
     if (!role || !token || role !== "user") {
       navigate("/");
       return;
@@ -30,15 +29,11 @@ function UserDashboard({ handleLogout }) {
       return;
     }
 
-    // ---------------------------------------------------
-    // ⭐ 1) ใช้ข้อมูล localStorage ก่อน → แสดงหน้าได้ทันที
-    // ---------------------------------------------------
+    // ใช้ข้อมูล localStorage ก่อน
     setUserData(currentUser);
     setLoading(false);
 
-    // ---------------------------------------------------
-    // ⭐ 2) Fetch ข้อมูลจริงจาก Server ทีหลังแบบลับ ๆ
-    // ---------------------------------------------------
+    // ดึงข้อมูลจาก server แบบ background
     const fetchServerData = async () => {
       try {
         const res = await fetch(
@@ -50,7 +45,7 @@ function UserDashboard({ handleLogout }) {
         const data = await res.json();
 
         if (data.length > 0) {
-          setUserData(data[0]); // อัปเดตข้อมูลใหม่ให้ user
+          setUserData(data[0]);
         }
       } catch (err) {
         console.warn("Cannot fetch user data:", err);
@@ -60,7 +55,6 @@ function UserDashboard({ handleLogout }) {
     fetchServerData();
   }, [navigate]);
 
-  // ⭐ Loading UI (จะเห็นแค่ครั้งเดียวตอนเปิดเว็บ)
   if (loading) {
     return (
       <div className="page-container center-content">
@@ -71,7 +65,7 @@ function UserDashboard({ handleLogout }) {
 
   return (
     <div className="user-dashboard-container">
-      {/* ⭐ Sidebar */}
+      {/* Sidebar */}
       <aside className="user-sidebar">
         <h2 className="sidebar-title">👤 User Panel</h2>
         <ul className="sidebar-menu">
@@ -84,23 +78,28 @@ function UserDashboard({ handleLogout }) {
         </ul>
       </aside>
 
-      {/* ⭐ Main */}
+      {/* Main */}
       <main className="user-main">
         <div className="header-box">
           <h2>📌 Welcome back, {userData.username} 👋</h2>
         </div>
 
         <div className="user-content-grid">
-
-          {/* ⭐ Card 1 */}
+          {/* card ข้อมูลส่วนตัว */}
           <div className="user-card profile-card">
             <h3>🧑‍💼 ข้อมูลส่วนตัว</h3>
-            <p><b>ชื่อผู้ใช้:</b> {userData.username}</p>
-            <p><b>อีเมล:</b> {userData.email || "—"}</p>
-            <p><b>สิทธิ์:</b> {userData.role}</p>
+            <p>
+              <b>ชื่อผู้ใช้:</b> {userData.username}
+            </p>
+            <p>
+              <b>อีเมล:</b> {userData.email || "—"}
+            </p>
+            <p>
+              <b>สิทธิ์:</b> {userData.role}
+            </p>
           </div>
 
-          {/* ⭐ Card 2 */}
+          {/* card กิจกรรม */}
           <div className="user-card">
             <h3>📅 กิจกรรมล่าสุด</h3>
             <ul>
@@ -109,13 +108,22 @@ function UserDashboard({ handleLogout }) {
             </ul>
           </div>
 
-          {/* ⭐ Card 3 */}
+          {/* card เคล็ดลับ */}
           <div className="user-card">
             <h3>💡 เคล็ดลับ SmartPersona</h3>
             <p>อัปโหลดเรซูเม่เพื่อรับคำแนะนำอัตโนมัติจาก AI!</p>
             <button className="btn btn-primary">📄 อัปโหลดเรซูเม่</button>
           </div>
 
+          {/* ⭐⭐⭐ card โฆษณาแนะนำ ⭐⭐⭐ */}
+          <div className="user-card">
+            <h3>📢 โฆษณาแนะนำสำหรับคุณ</h3>
+            <p>ดูโฆษณาที่เลือกมาให้โดยเฉพาะจาก SmartPersona</p>
+
+            <Link to="/user-feed">
+              <button className="btn btn-feed">🔍 ดูโฆษณาทั้งหมด</button>
+            </Link>
+          </div>
         </div>
       </main>
     </div>

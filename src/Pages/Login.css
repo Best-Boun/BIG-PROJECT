@@ -1,4 +1,4 @@
-/* 🌌 LOGIN + REGISTER – Luxury Dark Purple Theme */
+/* 🌌 Background */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
 
 .login-bg-animated {
@@ -6,10 +6,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1a0033, #4b0082, #9d4edd);
-  background-size: 300% 300%;
-  animation: gradientFlow 10s ease infinite;
+  background: linear-gradient(135deg, #6a4fff, #705df2, #8b7cff, #9a6cff);
+  background-size: 320% 320%;
+  animation: gradientFlow 11s ease infinite;
   font-family: "Poppins", sans-serif;
+
+  position: relative;
+  overflow: hidden;
 }
 
 @keyframes gradientFlow {
@@ -18,107 +21,226 @@
   100% { background-position: 0% 50%; }
 }
 
-/* 🟣 Card */
-.login-card.luxury {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  padding: 40px;
-  width: 400px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-  animation: floatUp 0.8s ease forwards;
-  color: white;
+/* ---------------------------------------------------------
+   🌟 FLOATING BUBBLES
+--------------------------------------------------------- */
+.bubble {
+  position: absolute;
+  bottom: -160px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  filter: blur(4px);
+  animation: rise 5.5s infinite ease-in-out;
+  box-shadow: 0 0 14px rgba(255,255,255,0.25);
+}
+
+@keyframes rise {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  15%  { opacity: 0.9; }
+  100% { transform: translateY(-160vh) translateX(60px) scale(1.55); opacity: 0; }
+}
+
+.b1 { width: 26px; height: 26px; left: 12%; animation-delay: .2s; }
+.b2 { width: 18px; height: 18px; left: 24%; animation-delay: 1s; }
+.b3 { width: 34px; height: 34px; left: 38%; animation-delay: .4s; }
+.b4 { width: 20px; height: 20px; left: 52%; animation-delay: 2s; }
+.b5 { width: 30px; height: 30px; left: 67%; animation-delay: .7s; }
+.b6 { width: 14px; height: 14px; left: 82%; animation-delay: 2.8s; }
+
+/* ---------------------------------------------------------
+   LOGIN CARD (NEON FRAME)
+--------------------------------------------------------- */
+.login-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(28px);
+  width: 380px;
+  padding: 38px 35px 40px;
   text-align: center;
+  border-radius: 22px;
+
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  transition: 0.35s ease;
+  overflow: visible;
+  
 }
 
-@keyframes floatUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+/* 🌈 NEON BORDER */
+.login-card.glow-frame::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 26px;
+  padding: 3px;
+  background: linear-gradient(
+    130deg,
+    #ff00ea,
+    #9c4eff,
+    #00f2ff,
+    #7e2eff,
+    #ff00ea
+  );
+  
+  background-size: 330% 330%;
+  animation: neonRun 4s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                 linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  z-index: -1;
+   opacity: 0.55;
 }
 
-/* ✨ Logo */
-.login-logo {
-  font-size: 34px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1px;
-  margin-bottom: 15px;
-}
-.login-logo span {
-  color: #c77dff;
+@keyframes neonRun {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 200% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-/* 📋 Form */
-.login-form label {
-  font-weight: 500;
-  color: #fff;
-  margin-top: 10px;
+/* Spotlight under character */
+.login-card::after {
+  content: "";
+  position: absolute;
+  top: 115px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 18px;
+  background: rgba(255,255,255,0.25);
+  filter: blur(18px);
+  border-radius: 50%;
+  z-index: 0;
 }
 
-.login-form input {
-  border-radius: 10px;
-  border: none;
-  padding: 10px;
+/* ---------------------------------------------------------
+   Text + Form
+--------------------------------------------------------- */
+.subtitle {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  color: #e3d0ff;
   font-size: 15px;
-  margin-top: 5px;
 }
 
-/* 🌈 Button */
+.shake {
+  animation: shakeAnim 0.4s;
+}
+@keyframes shakeAnim {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(8px); }
+  75% { transform: translateX(-5px); }
+}
+
+.success {
+  animation: successGlow 0.6s;
+}
+@keyframes successGlow {
+  0% { box-shadow: 0 0 0px #00ffbf; }
+  100% { box-shadow: 0 0 26px #00ffbf; }
+}
+
+/* Inputs */
+.animated-input {
+  transition: 0.25s ease;
+}
+.animated-input:focus {
+  transform: scale(1.012);
+  box-shadow: 0 0 15px rgba(200, 140, 255, 0.8);
+}
+
+/* Username icon */
+.input-with-icon {
+  position: relative;
+}
+.input-with-icon i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b1cc8;
+  z-index: 5;
+}
+.input-with-icon input {
+  padding-left: 42px !important;
+}
+
+/* Password wrapper */
+.password-wrapper {
+  position: relative;
+}
+.password-icon-left {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b1cc8;
+  z-index: 5;
+}
+.password-input {
+  padding-left: 42px !important;
+  padding-right: 45px !important;
+}
+.password-icon-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  color: #6b1cc8;
+  transition: 0.3s ease;
+}
+.password-icon-right.rotate {
+  transform: translateY(-50%) rotate(360deg);
+}
+
+/* Divider */
+.divider {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* Buttons */
 .login-btn {
   width: 100%;
   padding: 12px;
-  margin-top: 12px;
+}
+
+/* Login button */
+.glow {
+  background: linear-gradient(90deg, #8200ff, #d300ff);
   border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: 0.25s ease;
+}
+.glow:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(255, 0, 255, 0.65);
+}
+
+/* Sign up button */
+.secondary {
+  margin-top: 5px;
+  border: 2px solid #ff4dff;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  padding: 12px;
   border-radius: 10px;
   font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
+  transition: 0.3s ease;
 }
-
-.login-btn.glow {
-  background: linear-gradient(90deg, #7209b7, #b5179e);
-  color: white;
-  box-shadow: 0 0 10px #7209b7;
-}
-.login-btn.glow:hover {
-  background: linear-gradient(90deg, #560bad, #9d4edd);
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
   transform: scale(1.03);
-  box-shadow: 0 0 20px #b5179e;
+  box-shadow: 0 0 15px rgba(255, 77, 255, 0.6);
 }
 
-.login-btn.secondary {
-  background: transparent;
-  border: 2px solid #b5179e;
-  color: #fff;
-}
-.login-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* 💬 Popup Toast */
-.popup {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  font-size: 15px;
-  animation: fadeIn 0.3s ease;
-  z-index: 9999;
-}
-.popup.success { background: #28a745; }
-.popup.error { background: #dc3545; }
-.popup.info { background: #007bff; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.fade-out { animation: fadeOut 0.4s forwards; }
-@keyframes fadeOut {
-  to { opacity: 0; transform: translateY(20px); }
+.login-logo {
+  font-size: 32px;
+  font-weight: 600;
 }

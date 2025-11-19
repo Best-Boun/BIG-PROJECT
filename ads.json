@@ -3,37 +3,38 @@
     {
       "id": "2c3e",
       "name": "SmartPersona – User Signup Campaign",
-      "platform": "Facebook",
-      "date": "2025-11-12",
+      "description": "สมัครใช้งาน SmartPersona วันนี้ รับสิทธิพิเศษ",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "customWidth": "",
+      "customHeight": "",
+      "date": "2025-11-18",
       "active": true
     },
     {
       "id": "ee8b",
       "name": "SmartPersona – AI Resume Promo",
-      "platform": "YouTube",
-      "date": "2025-11-12",
+      "description": "ลดราคาแพ็กเกจ AI Resume 50%",
+      "image": "",
+      "position": "banner",
+      "sizePreset": "small",
+      "customWidth": "100",
+      "customHeight": "100",
+      "date": "2025-11-18",
       "active": true
     },
     {
-      "id": "8a09afa8-66c7-4160-9da8-5171aae14f57",
-      "name": "SmartPersona – App Install",
-      "platform": "LinkedIn",
-      "date": "2025-11-14",
-      "active": true
-    },
-    {
-      "id": "eab3788c-5a78-40d3-ac42-fab59e30c92b",
-      "name": "New Ad Campaign",
-      "platform": "LinkedIn",
-      "date": "2025-11-16",
-      "active": true
-    },
-    {
-      "id": "daf528ae-4283-4808-a84c-b8d30e459663",
-      "name": "New Ad Campaign",
-      "platform": "Facebook",
-      "date": "2025-11-16",
-      "active": true
+      "id": "1763549710234_g5to",
+      "name": "New Ad",
+      "description": "คำอธิบาย...",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "customWidth": "",
+      "customHeight": "",
+      "date": "2025-11-19",
+      "active": false
     }
   ]
 }

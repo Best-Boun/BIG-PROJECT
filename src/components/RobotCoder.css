@@ -1,0 +1,299 @@
+:root{
+  --accentA:#8a4bff;
+  --accentB:#ff40e0;
+  --skin:#f2e8ff;
+}
+
+/* ========== ROOT & FLOAT ========== */
+.dev-root{
+  width:200px;
+  height:150px;
+  margin:6px auto 0;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  z-index:100; /* ให้หุ่นอยู่บนสุด (แต่ไม่ทับ modal ของหน้า) */
+  animation:dev-float 4s ease-in-out infinite;
+}
+@keyframes dev-float{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+  100%{transform:translateY(0)}
+}
+
+/* ========== SOFT GLOW (BEHIND CHARACTER) ==========
+   ลดขนาด + ให้วางหลังสุดของหุ่น เพื่อไม่ไปรบกวน bubble/page bubbles
+============================================= */
+.dev-root::before{
+  content:"";
+  position:absolute;
+  top:22px;
+  left:50%;
+  transform:translateX(-50%);
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:radial-gradient(circle,
+    rgba(255,255,255,0.24),
+    rgba(150,80,255,0.12),
+    rgba(70,20,150,0.05),
+    transparent 70%);
+  filter:blur(16px); /* ลดจากของเก่า */
+  z-index:-1; /* วางหลังตัวหุ่นเสมอ */
+  animation:softGlow 4s ease-in-out infinite alternate;
+}
+@keyframes softGlow{
+  0%{transform:scale(0.97);opacity:0.75}
+  100%{transform:scale(1.03);opacity:1}
+}
+
+/* ========== SCENE ========== */
+.dev-scene{
+  width:100%;
+  height:100%;
+  position:relative;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:120;
+}
+
+/* chair */
+.chair{
+  position:absolute;
+  bottom:38px;
+  left:52px;
+  width:80px;
+  height:56px;
+  border-radius:10px;
+  background:linear-gradient(180deg, rgba(138,75,255,0.08), rgba(0,0,0,0.04));
+  z-index:110;
+}
+
+/* ========== CHARACTER (โดดเด่นขึ้น) ========== */
+.dev-character{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  z-index:130; /* ดันตัวละครให้ชัดเจน */
+}
+
+/* HEAD */
+.head{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:var(--skin);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+  transition:transform .18s ease;
+  z-index:135;
+}
+.hair{
+  position:absolute;
+  top:8px;
+  left:6px;
+  width:52px;
+  height:18px;
+  border-radius:8px;
+  background:linear-gradient(90deg,var(--accentA),var(--accentB));
+  transform:translateY(-2px);
+  z-index:136;
+}
+.face{ display:flex; gap:10px; z-index:137; }
+
+/* EYES: default blinking (but blink disabled when cover) */
+.eye{
+  width:8px;
+  height:8px;
+  background:#3b1ebf;
+  border-radius:50%;
+  transition: all .12s ease;
+}
+
+/* ========== LAPTOP ========== */
+.torso{
+  width:96px;
+  height:36px;
+  border-radius:8px;
+  background:linear-gradient(90deg, rgba(138,75,255,0.95), rgba(255,58,223,0.85));
+  box-shadow:0 8px 18px rgba(64,24,140,0.12);
+  transform-origin:center top;
+  transition:transform .18s ease;
+}
+.laptop{
+  width:130px;
+  height:62px;
+  margin-top:-8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  z-index:125;
+}
+.screen{
+  width:102px;
+  height:48px;
+  border-radius:8px;
+  background:linear-gradient(180deg,#e9eefb,#d6d7ff);
+  box-shadow:inset 0 6px 18px rgba(255,255,255,0.06), 0 12px 20px rgba(0,0,0,0.18);
+  border:1px solid rgba(0,0,0,0.06);
+  transition: background .14s ease, box-shadow .14s ease, transform .12s ease;
+  transform-origin:center top;
+}
+.keyboard{
+  width:110px;
+  height:8px;
+  border-radius:6px;
+  background:linear-gradient(90deg, rgba(0,0,0,0.05), rgba(255,255,255,0.02));
+}
+
+/* HANDS */
+.hands{
+  position:absolute;
+  bottom:34px;
+  width:130px;
+  display:flex;
+  justify-content:space-between;
+  z-index:128;
+}
+.hand{
+  width:30px;
+  height:12px;
+  border-radius:8px;
+  background:#efe2ff;
+  transition:transform .12s ease;
+  box-shadow:0 6px 10px rgba(0,0,0,0.08);
+}
+
+/* ========== THOUGHT BUBBLE ==========
+   อยู่หน้า (z-index สูง) และ animation ของ code-run จะ pause by default
+====================================== */
+.thought{
+  position:absolute;
+  top:-34px;
+  right:-20px;
+  width:120px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transform:translateY(6px) scale(0.96);
+  transition:opacity .12s ease, transform .16s ease;
+  pointer-events:none;
+  z-index:9999; /* มากพอที่จะอยู่หน้า bubble ของหน้า login */
+}
+
+/* ให้รองรับทั้งการใช้ class "show" หรือการใช้ dev-root.typing */
+.dev-root.typing .thought,
+.thought.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+
+/* bubble styling (inside thought) */
+.thought .bubble{
+  width:100%;
+  height:28px;
+  background:linear-gradient(90deg, rgba(255,255,255,0.96), rgba(245,245,255,0.92));
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  padding:0 8px;
+  overflow:hidden;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  z-index:10000;
+}
+
+/* code lines: animation PAUSED by default to avoid restarting loops */
+.code-run{
+  white-space:nowrap;
+  display:inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+  font-size:12px;
+  color:#444;
+  transform:translateX(100%);
+  animation: run-left 2.6s linear infinite;
+  animation-play-state:paused; /* paused until typing */
+}
+
+/* when typing, resume animation (no full restart flicker) */
+.dev-root.typing .code-run,
+.thought.show .code-run{
+  animation-play-state:running;
+}
+
+/* slower/stable movement to look natural */
+@keyframes run-left{
+  0%{ transform:translateX(100%); }
+  100%{ transform:translateX(-140%); }
+}
+
+/* ========== TYPING HANDS HEAD EFFECTS ========== */
+.dev-root.typing .left-hand{ animation:leftType .17s infinite alternate; transform-origin:center; }
+.dev-root.typing .right-hand{ animation:rightType .17s infinite alternate; transform-origin:center; }
+@keyframes leftType{ from{transform:translateY(-2px) rotate(-4deg)} to{transform:translateY(4px) rotate(6deg)} }
+@keyframes rightType{ from{transform:translateY(4px) rotate(6deg)} to{transform:translateY(-2px) rotate(-4deg)} }
+
+.dev-root.typing .head{ transform:translateY(2px) translateX(-2px) scale(0.994); }
+.dev-root.typing .screen{ box-shadow: inset 0 8px 28px rgba(0,0,0,0.12), 0 10px 22px rgba(124,35,255,0.06); transform:translateY(-2px); }
+
+/* ========== COVER (password focused) - ตาปิด ========== */
+/* บังคับตาเป็นเส้นเมื่อต้องปิดตา (cover) */
+.dev-root.cover .eye{
+  width:18px !important;
+  height:4px !important;
+  border-radius:4px !important;
+  background: rgba(50,50,50,0.6) !important;
+  transform:none !important;
+}
+/* ปิดการ blink เมื่อ cover */
+.dev-root.cover .eye{ animation:none !important; }
+
+/* ========== PEEK (show password) - มองจอ ========== */
+.dev-root.peek .head{ transform: rotate(6deg) translateX(3px); }
+.dev-root.peek .eye{
+  transform: translateY(-3px);
+  box-shadow:0 0 8px rgba(255,58,223,0.08);
+}
+
+/* ========== ERROR / SUCCESS ========== */
+.dev-root.error{ animation: dev-shake .5s linear; }
+@keyframes dev-shake{
+  10%{transform:translateX(-6px)} 30%{transform:translateX(6px)} 50%{transform:translateX(-4px)} 70%{transform:translateX(4px)} 100%{transform:translateX(0)}
+}
+.dev-root.error .screen{ animation: screen-error .5s linear; }
+@keyframes screen-error{
+  0%{ background: linear-gradient(180deg,#e9eefb,#d6d7ff); }
+  40%{ background: linear-gradient(180deg,#ff5a5a,#ff2b2b); box-shadow:0 0 18px rgba(255,60,60,0.55); transform:scale(1.02); }
+  100%{ background: linear-gradient(180deg,#e9eefb,#d6d7ff); }
+}
+
+.dev-root.success{ transform: translateY(-6px) scale(1.02); transition:transform .18s ease; }
+.dev-root.success .screen{ animation: screen-success .8s forwards; }
+@keyframes screen-success{
+  40%{ background: linear-gradient(180deg,#0b6b2b,#0bb35a); box-shadow:0 0 22px rgba(0,255,150,0.35); }
+  100%{ background: linear-gradient(180deg,#0b6b2b,#0bb35a); }
+}
+
+/* ========== BLINK (only when not cover/peek) ========== */
+.dev-root:not(.cover):not(.peek) .eye{ animation: dev-blink 4s infinite; }
+@keyframes dev-blink{
+  0%,90%{ transform: scaleY(1) }
+  94%{ transform: scaleY(0.18) }
+  100%{ transform: scaleY(1) }
+}
+
+/* responsive */
+@media (max-width:480px){
+  .dev-root{ width:160px; height:130px; }
+  .chair{ left:42px; width:70px; height:52px; }
+}

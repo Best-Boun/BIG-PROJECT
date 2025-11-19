@@ -11,24 +11,6 @@
       "username": "user",
       "password": "1",
       "role": "user"
-    },
-    {
-      "id": "dfd4",
-      "username": "san",
-      "email": "san@user",
-      "password": "1",
-      "name": "san",
-      "role": "user",
-      "oldPassword": null
-    },
-    {
-      "id": "08c2",
-      "username": "tle",
-      "email": "tle@fat",
-      "password": "1",
-      "name": "tle",
-      "role": "user",
-      "oldPassword": null
     }
   ],
   "profiles": [],

@@ -1,6 +1,6 @@
-/* ===================================================================
-   ⭐ GLOBAL FONT + BODY
-===================================================================*/
+/* ============================================================
+   GLOBAL FONT + BODY
+============================================================ */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Kanit:wght@300;500;600&display=swap");
 
 body {
@@ -11,69 +11,66 @@ body {
   min-height: 100vh;
 }
 
-/* ===================================================================
-   ⭐ PAGE CONTAINER (ทุกหน้า)
-===================================================================*/
+/* ============================================================
+   GENERAL PAGE CONTAINER
+============================================================ */
 .page-container {
   width: 90%;
   max-width: 1200px;
   margin: 40px auto;
-  background: rgba(255,255,255,0.75);
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 24px;
   padding: 35px 40px;
-
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  box-shadow: 0 20px 50px rgba(80,80,120,0.15);
-  border: 1px solid rgba(255,255,255,0.5);
-
+  box-shadow: 0 20px 50px rgba(80, 80, 120, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   transition: 0.3s ease;
 }
-
 .page-container:hover {
   transform: translateY(-3px);
-  box-shadow: 0 28px 65px rgba(70,70,110,0.25);
+  box-shadow: 0 28px 65px rgba(70, 70, 110, 0.25);
 }
 
-/* ===================================================================
-   ⭐ BUTTONS
-===================================================================*/
+/* ============================================================
+   BUTTONS
+============================================================ */
 .btn {
   padding: 9px 16px;
   border-radius: 12px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: 0.2s ease;
   font-size: 0.9rem;
+  transition: 0.2s ease;
 }
-
-/* Hover Effect */
 .btn:hover {
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
-/* Colors */
 .btn-add {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   color: #fff;
 }
+
 .btn-save {
   background: linear-gradient(135deg, #5677ff, #7a3cff);
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
 .btn-delete {
   background: linear-gradient(135deg, #ff4d4d, #ff2f2f);
   color: #fff;
 }
+
 .btn-manage {
   background: linear-gradient(135deg, #ffc107, #ffb300);
   color: #000;
 }
 
-/* View Button */
 .btn-view {
   background: #eef1ff;
   color: #2f4adf;
@@ -83,9 +80,9 @@ body {
   background: #d7ddff;
 }
 
-/* ===================================================================
-   ⭐ POPUP
-===================================================================*/
+/* ============================================================
+   POPUP
+============================================================ */
 .popup {
   position: fixed;
   bottom: 25px;
@@ -99,14 +96,12 @@ body {
   transition: 0.3s;
   z-index: 9999;
   font-weight: 600;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 .popup.fade {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* Popup Colors */
 .popup.success {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
@@ -117,98 +112,31 @@ body {
   background: linear-gradient(135deg, #57b6ff, #4a9cff);
 }
 
-/* ===================================================================
-   ⭐ ADS MANAGEMENT
-===================================================================*/
 
-/* Header */
-.header-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-.header-box h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(90deg,#4d5eff,#b44dff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Search */
-.search-box {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(100,100,255,0.45);
-  background: rgba(255,255,255,0.85);
-
-  backdrop-filter: blur(6px);
-  transition: 0.2s;
-}
-
-.search-box:focus {
-  border-color: #6c7bff;
-  box-shadow: 0 0 0 4px rgba(90,110,255,0.25);
-  outline: none;
-}
-
-/* Header row */
-.list-header {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 2fr;
-  padding: 14px 18px;
-  background: rgba(240,240,255,0.8);
-  backdrop-filter: blur(4px);
-
-  border-radius: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-/* Ad Row */
-.ad-row {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 2fr;
-
-  padding: 15px 18px;
-  background: rgba(255,255,255,0.9);
-  border-radius: 20px;
-
-  margin-bottom: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-
-  border: 1px solid rgba(255,255,255,0.5);
-  transition: 0.25s ease;
-}
-
-.ad-row:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(80,80,120,0.15);
-  border-color: rgba(150,150,255,0.6);
-}
-
-/* ===================================================================
-   ⭐ ADMIN MANAGEMENT
-===================================================================*/
-
+/* ============================================================
+   ADMIN MANAGEMENT
+============================================================ */
 .am-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
 }
-
 .am-header h2 {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(90deg,#4d5eff,#b44dff);
+  background: linear-gradient(90deg, #4d5eff, #b44dff);
+   background-clip: text;          /* ← อันนี้คือ standard */
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
-/* Search */
+.am-controls {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .am-search-wrapper {
   position: relative;
 }
@@ -218,39 +146,27 @@ body {
   top: 9px;
   opacity: 0.55;
 }
-
 .am-search-input {
-  padding: 10px 14px 10px 34px;
+  padding: 10px 34px;
   border-radius: 12px;
   border: 1px solid #ccc;
   width: 230px;
-  background: rgba(255,255,255,0.85);
-  transition: 0.2s ease;
-}
-.am-search-input:focus {
-  border-color: #6c7bff;
-  box-shadow: 0 0 0 3px rgba(90,110,255,0.25);
 }
 
-/* Filter */
 .am-select {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid #ccc;
 }
 
-/* Overview stats */
 .am-overview {
   display: flex;
   gap: 18px;
   margin-bottom: 25px;
   padding: 14px 20px;
   border-radius: 16px;
-
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(8px);
-
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .am-stat-number {
@@ -259,41 +175,40 @@ body {
   color: #4a55ff;
 }
 
-/* Grid */
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
   gap: 22px;
 }
 
-/* User Card */
 .user-card {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   padding: 24px;
   border-radius: 20px;
-
   border-left: 8px solid #8b8b8b20;
-  backdrop-filter: blur(6px);
-
-  box-shadow: 0 12px 26px rgba(0,0,0,0.08);
   transition: 0.25s ease;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
 }
+
 .user-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
 }
 
-.admin-card { border-left-color: #4d77ff; }
-.user-card-box { border-left-color: #2ecc71; }
+.admin-card {
+  border-left-color: #4d77ff;
+}
 
-/* Role badges */
+.user-card-box {
+  border-left-color: #2ecc71;
+}
+
 .role-label {
   padding: 6px 14px;
   border-radius: 12px;
   font-weight: 600;
   font-size: 0.75rem;
 }
-
 .role-label.admin {
   background: #dfe7ff;
   color: #355dff;
@@ -303,112 +218,197 @@ body {
   color: #1e9e54;
 }
 
-/* ===================================================================
-   ⭐ MODAL
-===================================================================*/
+/* ============================================================
+   MODAL
+============================================================ */
 .am-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
-  align-items: center;
   justify-content: center;
-  backdrop-filter: blur(6px);
-  z-index: 9999;
+  align-items: center;
 }
 
 .am-modal-card {
   width: 420px;
   background: #ffffffee;
-  border-radius: 22px;
   padding: 22px;
-  box-shadow: 0 25px 55px rgba(0,0,0,0.25);
-  animation: popup 0.25s ease-out;
-  backdrop-filter: blur(10px);
-}
-
-@keyframes popup {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  border-radius: 22px;
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.25);
 }
 
 .am-btn-confirm {
   padding: 10px 22px;
-  background: linear-gradient(90deg,#5b73ff,#7c4dff);
+  background: linear-gradient(90deg, #5b73ff, #7c4dff);
   color: #fff;
   border-radius: 12px;
-  border: none;
 }
-.am-btn-confirm:hover {
-  background: linear-gradient(90deg,#4e61fa,#6f3dec);
-}
-
 .am-btn-cancel {
   padding: 10px 20px;
   background: #e3e3e3;
   border-radius: 12px;
-  border: none;
 }
 
-/* Empty result */
-.no-result {
-  text-align: center;
-  font-size: 1.2rem;
-  margin-top: 20px;
-  opacity: 0.85;
+/* ============================================================
+   USER DASHBOARD
+============================================================ */
+.user-dashboard-container {
+  display: flex;
+}
+.use.dark r-sidebar {
+  width: 230px;
+  padding: 30px;
+}
+.user-main {
+  flex: 1;
+  padding: 30px;
 }
 
-/* ===================================================================
-   ⭐ STATUS BUTTON (Active / Inactive)
-=================================================================== */
-
-.status-btn {
-  padding: 8px 18px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: 0.2s ease;
-  font-size: 0.9rem;
-  display: inline-block;
+.user-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
 }
 
-/* ACTIVE */
-.status-btn.active {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.35);
+.user-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 20px;
 }
 
-/* INACTIVE */
-.status-btn.inactive {
-  background: linear-gradient(135deg, #f6d365, #fda085);
-  color: #663300;
-  box-shadow: 0 4px 10px rgba(253, 160, 133, 0.35);
+/* ============================================================
+   DARK MODE – GLOBAL BASE
+============================================================ */
+/* ============================================================
+   DARK MODE – GLOBAL BASE
+============================================================ */
+.dark {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
 }
 
-/* Hover */
-.status-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+.dark .page-container {
+  background: rgba(30, 41, 59, 0.85);
 }
 
-/* PLATFORM BADGE */
-.platform-badge {
-  padding: 8px 14px;
-  font-weight: 600;
-  border-radius: 12px;
-  border: 2px solid;
-  display: inline-block;
-  font-size: 0.9rem;
-
-  backdrop-filter: blur(4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-
-  transition: 0.2s;
+/* Main containers */
+.dark .user-card,
+.dark .ad-row,
+.dark .am-modal-card {
+  background: rgba(15, 23, 42, 0.9);
+  color: #ffffff; /* ← แก้ใหม่ */
 }
 
-.platform-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+/* ⭐ FIX: ทำให้ Reset / admin / user ชัด */
+.dark .user-card .actions span,
+.dark .user-card .actions i,
+.dark .user-card .actions svg {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+
+/* Inputs */
+.dark input,
+.dark select {
+  background: rgba(30, 41, 59, 0.85);
+  color: #f1f5f9;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+.dark input::placeholder,
+.dark select::placeholder {
+  color: #94a3b8;
+}
+
+/* Role badges */
+.dark .role-label.admin {
+  background: rgba(148, 163, 184, 0.25);
+  color: #c7d2fe !important;
+}
+.dark .role-label.user {
+  background: rgba(74, 222, 128, 0.25);
+  color: #bbf7d0 !important;
+}
+
+/* Overview Stats */
+.dark .am-overview {
+  background: rgba(51, 65, 85, 0.5);
+}
+.dark .am-stat-number {
+  color: #c7d2fe !important;
+}
+
+/* Search boxes */
+.dark .search-box,
+.dark .am-search-input {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #f1f5f9;
+}
+.dark .search-box::placeholder {
+  color: #94a3b8;
+}
+
+/* List header */
+.dark .list-header {
+  background: rgba(51, 65, 85, 0.7);
+  color: #e2e8f0;
+}
+
+/* Platform badge */
+.dark .platform-badge {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* Buttons */
+.dark .btn-view {
+  background: rgba(148, 163, 184, 0.2);
+  color: #bfdbfe;
+}
+.dark .status-btn.inactive {
+  color: #fef3c7;
+}
+
+/* ⭐ บังคับให้ทุกตัวหนังสือเป็นสีขาว เมื่อ .dark ทำงาน */
+.dark, 
+.dark * {
+    color: #ffffff !important;
+}
+/* ================================
+   FIX DARK MODE TEXT NOT CHANGING
+=================================*/
+
+/* ตัวหนังสือทั่วไปใน dark mode */
+.dark * {
+  color: #ffffff !important;
+}
+
+/* แก้ select ตอนเปิด dark mode */
+.dark select {
+  color: #ffffff !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+}
+
+/* แก้ option ข้างใน dropdown */
+.dark select option {
+  color: #ffffff !important;
+  background: #1e293b !important;
+}
+/* ปุ่ม delete เล็กลง */
+.btn-delete {
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  margin-left: 6px; 
+  margin-top: 10px ;
+  background-color: #ff4d4f;
+  
+}
+
+/* ระยะห่างปุ่ม */
+.am-btn-group button {
+  margin-right: 6px;
+  
 }

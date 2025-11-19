@@ -1,19 +1,85 @@
+/* GLOBAL LAYOUT */
 .app {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #f8fafc;
   color: #1e293b;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", "Poppins", sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* DARK MODE */
+.dark .app {
+  background: #0f172a;
+  color: #f1f5f9;
 }
 
 .main {
   flex: 1;
-  padding: 1.5rem;
+  padding: 2rem;
   overflow-y: auto;
-  margin-left: 255px; /* เท่ากับ width ของ sidebar */
-  padding: 30px;
+  margin-left: 255px; /* width ของ sidebar */
+  transition: margin-left 0.3s ease, background 0.3s ease;
 }
 
+/* ถ้า sidebar ปิด */
+.sidebar.hidden + .main {
+  margin-left: 0;
+}
+
+/* LOADING SCREEN */
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+/* DARK MODE LOADING */
+.dark .loading-screen {
+  color: #a78bfa;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  background: #4f46e5;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: white;
+  font-size: 1.2rem;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+}
+
+.toggle-btn:hover {
+  background: #4338ca;
+  transform: scale(1.05);
+}
+
+/* LOGOUT BUTTON */
+.btn-logout {
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+/* GRID CARDS (หน้า Dashboard บางหน้าใช้) */
 .cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -21,3 +87,21 @@
   margin-bottom: 1.5rem;
 }
 
+.cards .card {
+  padding: 1.2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.cards .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+/* DARK MODE CARDS */
+.dark .cards .card {
+  background: #1e293b;
+  color: #e2e8f0;
+}

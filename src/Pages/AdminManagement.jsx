@@ -9,14 +9,13 @@ const MAIN_ADMIN_ID = "1";
    ⭐ LOCAL LOG SYSTEM (fallback)
 ============================================================ */
 const addLocalLog = (entry) => {
-  const list = JSON.parse(localStorage.getItem("localLogs") || "[]");
-  list.unshift(entry);
-  localStorage.setItem("localLogs", JSON.stringify(list));
+  const prev = JSON.parse(localStorage.getItem("localLogs") || "[]");
+  prev.unshift(entry);
+  localStorage.setItem("localLogs", JSON.stringify(prev));
 };
-
-const getLocalLogs = () => {
-  return JSON.parse(localStorage.getItem("localLogs") || "[]");
-};
+// eslint-disable-next-line no-unused-vars
+const getLocalLogs = () =>
+  JSON.parse(localStorage.getItem("localLogs") || "[]");
 
 /* ============================================================
    ⭐ POPUP
@@ -40,27 +39,24 @@ function AdminManagement() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  // modal user
   const [modalType, setModalType] = useState(null);
   const [modalUser, setModalUser] = useState(null);
 
-  // Log Modal
-  const [logModalOpen, setLogModalOpen] = useState(false);
-  const [logs, setLogs] = useState([]);
-  const [logsLoading, setLogsLoading] = useState(false);
+  /* ============================================================
+     ⭐ APPLY DARK MODE IF SAVED
+  ============================================================ */
+  useEffect(() => {
+    const dark = localStorage.getItem("darkMode") === "true";
+    if (dark) document.body.classList.add("dark");
+  }, []);
 
-  const openModal = (type, user) => {
-    setModalType(type);
-    setModalUser(user);
-  };
-
-  const closeModal = () => {
-    setModalType(null);
-    setModalUser(null);
+  const toggleDarkMode = () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
   };
 
   /* ============================================================
-     ⭐ FETCH USERS → 3001
+     ⭐ FETCH USERS
   ============================================================ */
   useEffect(() => {
     fetchUsers();
@@ -79,7 +75,7 @@ function AdminManagement() {
   };
 
   /* ============================================================
-     ⭐ SAVE USER → PATCH 3001
+     ⭐ SAVE USER
   ============================================================ */
   const saveUser = async (user) => {
     try {
@@ -89,7 +85,7 @@ function AdminManagement() {
         body: JSON.stringify(user),
       });
 
-      if (!res.ok) throw new Error("Update failed");
+      if (!res.ok) throw new Error();
 
       setAllUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, ...user } : u))
@@ -100,7 +96,7 @@ function AdminManagement() {
   };
 
   /* ============================================================
-     ⭐ CREATE LOG → 3003 + local fallback
+     ⭐ LOG SYSTEM
   ============================================================ */
   const createLog = async ({ action, target, detail, actor = "admin" }) => {
     const entry = {
@@ -121,7 +117,7 @@ function AdminManagement() {
         body: JSON.stringify(entry),
       });
     } catch {
-      console.warn("Log server down → using local only");
+      console.warn("Log server down → ใช้ local");
     }
   };
 
@@ -142,11 +138,11 @@ function AdminManagement() {
       createLog({
         action: "restore_password",
         target: user.username,
-        detail: "คืนค่ารหัสผ่านเดิม",
+        detail: "คืนรหัสผ่านเดิม",
       });
 
       showPopup("🔄 คืนรหัสผ่านเดิมแล้ว");
-      closeModal();
+      setModalType(null);
       return;
     }
 
@@ -163,7 +159,7 @@ function AdminManagement() {
     });
 
     showPopup("🔐 รีเซ็ตรหัสผ่านแล้ว");
-    closeModal();
+    setModalType(null);
   };
 
   /* ============================================================
@@ -173,8 +169,8 @@ function AdminManagement() {
     const user = allUsers.find((u) => u.id === id);
     if (!user) return;
 
-    if (user.id === MAIN_ADMIN_ID)
-      return showPopup("❌ Admin หลักเปลี่ยน Role ไม่ได้", "error");
+    if (id === MAIN_ADMIN_ID)
+      return showPopup("❌ Admin หลักเปลี่ยน role ไม่ได้", "error");
 
     const updated = {
       ...user,
@@ -190,36 +186,34 @@ function AdminManagement() {
     });
 
     showPopup("🎫 เปลี่ยน Role สำเร็จ");
-    closeModal();
+    setModalType(null);
   };
 
   /* ============================================================
-     ⭐ FETCH LOGS → first Local then 3003
+     ⭐ DELETE USER
   ============================================================ */
-  const fetchLogs = async () => {
-    setLogsLoading(true);
+  const deleteUser = async (id) => {
+    const user = allUsers.find((u) => u.id === id);
+    if (!user) return;
 
-    const local = getLocalLogs();
-    if (local.length > 0) {
-      setLogs(local);
-      setLogsLoading(false);
-      return;
-    }
+    if (id === MAIN_ADMIN_ID)
+      return showPopup("❌ Admin หลักลบไม่ได้", "error");
 
     try {
-      const res = await fetch(API_LOGS + "?_sort=time&_order=desc");
-      const data = await res.json();
-      setLogs(data);
-    } catch {
-      showPopup("โหลด Log ไม่สำเร็จ", "error");
-    } finally {
-      setLogsLoading(false);
-    }
-  };
+      await fetch(`${API_USERS}/${id}`, { method: "DELETE" });
 
-  const openLogModal = () => {
-    setLogModalOpen(true);
-    fetchLogs();
+      setAllUsers((prev) => prev.filter((u) => u.id !== id));
+
+      createLog({
+        action: "delete_user",
+        target: user.username,
+        detail: "ลบบัญชีผู้ใช้",
+      });
+
+      showPopup("🗑️ ลบผู้ใช้สำเร็จ", "success");
+    } catch {
+      showPopup("❌ ลบผู้ใช้ไม่สำเร็จ", "error");
+    }
   };
 
   /* ============================================================
@@ -248,15 +242,12 @@ function AdminManagement() {
   ============================================================ */
   return (
     <div className="page-container admin-page">
-
-      {/* HEADER */}
       <div className="am-header">
         <h2>⚙️ Admin Management</h2>
 
         <div className="am-controls">
-
-          <button className="btn btn-save" onClick={openLogModal}>
-            📜 View Logs
+          <button className="btn btn-save" onClick={toggleDarkMode}>
+            🌙 Dark Mode
           </button>
 
           <div className="am-search-wrapper">
@@ -281,30 +272,23 @@ function AdminManagement() {
         </div>
       </div>
 
-      {/* LOADING */}
-      {loading && (
-        <div className="am-loading">
-          <div className="spinner"></div>
-          <p>กำลังโหลดข้อมูล...</p>
-        </div>
-      )}
-
-      {!loading && (
+      {/* ========== USER LIST ========== */}
+      {loading ? (
+        <p>กำลังโหลด...</p>
+      ) : (
         <>
-          {/* OVERVIEW */}
+          {/* Stats */}
           <div className="am-overview">
             <div className="am-stat">
               <div className="am-stat-number">{allUsers.length}</div>
               <div className="am-stat-label">Total Users</div>
             </div>
-
             <div className="am-stat">
               <div className="am-stat-number">
                 {allUsers.filter((u) => u.role === "admin").length}
               </div>
               <div className="am-stat-label">Admins</div>
             </div>
-
             <div className="am-stat">
               <div className="am-stat-number">
                 {allUsers.filter((u) => u.role === "user").length}
@@ -313,10 +297,11 @@ function AdminManagement() {
             </div>
           </div>
 
-          {/* Admin Cards */}
+          {/* ADMIN LIST */}
           {usersFiltered.filter((u) => u.role === "admin").length > 0 && (
             <>
               <h3 className="section-title">👑 Admin</h3>
+
               <div className="admin-grid">
                 {usersFiltered
                   .filter((u) => u.role === "admin")
@@ -325,16 +310,34 @@ function AdminManagement() {
                       <div className="am-card-header">
                         <div>
                           <div className="role-label admin">ADMIN</div>
-                          <h4 className="username">{u.username}</h4>
+                          <h4>{u.username}</h4>
                           <div className="email">{u.email}</div>
                         </div>
 
                         <div className="am-btn-group">
-                          <button className="btn btn-view" onClick={() => openModal("view", u)}>👁 View</button>
-                          <button className="btn reset-btn" onClick={() => openModal("reset", u)}>🔐 Reset</button>
+                          <button
+                            className="btn btn-view"
+                            onClick={() =>
+                              setModalType("view") || setModalUser(u)
+                            }
+                          >
+                            👁 View
+                          </button>
+
+                          <button
+                            className="btn reset-btn"
+                            onClick={() =>
+                              setModalType("reset") || setModalUser(u)
+                            }
+                          >
+                            🔐 Reset
+                          </button>
+
                           <button
                             className="btn role-btn"
-                            onClick={() => openModal("role", u)}
+                            onClick={() =>
+                              setModalType("role") || setModalUser(u)
+                            }
                             disabled={u.id === MAIN_ADMIN_ID}
                           >
                             🎫 {u.role}
@@ -347,10 +350,11 @@ function AdminManagement() {
             </>
           )}
 
-          {/* User Cards */}
+          {/* USERS LIST */}
           {usersFiltered.filter((u) => u.role === "user").length > 0 && (
             <>
               <h3 className="section-title">👤 Users</h3>
+
               <div className="admin-grid">
                 {usersFiltered
                   .filter((u) => u.role === "user")
@@ -359,15 +363,45 @@ function AdminManagement() {
                       <div className="am-card-header">
                         <div>
                           <div className="role-label user">USER</div>
-                          <h4 className="username">{u.username}</h4>
+                          <h4>{u.username}</h4>
                           <div className="email">{u.email}</div>
                         </div>
 
                         <div className="am-btn-group">
-                          <button className="btn btn-view" onClick={() => openModal("view", u)}>👁 View</button>
-                          <button className="btn reset-btn" onClick={() => openModal("reset", u)}>🔐 Reset</button>
-                          <button className="btn role-btn" onClick={() => openModal("role", u)}>
+                          <button
+                            className="btn btn-view"
+                            onClick={() =>
+                              setModalType("view") || setModalUser(u)
+                            }
+                          >
+                            👁 View
+                          </button>
+
+                          <button
+                            className="btn reset-btn"
+                            onClick={() =>
+                              setModalType("reset") || setModalUser(u)
+                            }
+                          >
+                            🔐 Reset
+                          </button>
+
+                          <button
+                            className="btn role-btn"
+                            onClick={() =>
+                              setModalType("role") || setModalUser(u)
+                            }
+                          >
                             🎫 {u.role}
+                          </button>
+
+                          <button
+                            className="btn btn-delete"
+                            onClick={() => (
+                              setModalType("delete"), setModalUser(u)
+                            )}
+                          >
+                            🗑 Delete
                           </button>
                         </div>
                       </div>
@@ -379,67 +413,52 @@ function AdminManagement() {
         </>
       )}
 
-      {/* LOG MODAL */}
-      {logModalOpen && (
-        <div className="am-modal-backdrop" onClick={() => setLogModalOpen(false)}>
-          <div className="am-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="am-modal-header">
-              <h3>📜 Action Logs</h3>
-              <button className="am-close" onClick={() => setLogModalOpen(false)}>✖</button>
-            </div>
-
-            <div className="am-modal-body">
-              {logsLoading ? (
-                <p>⏳ loading...</p>
-              ) : logs.length === 0 ? (
-                <p>No logs yet.</p>
-              ) : (
-                <ul className="log-list">
-                  {logs.map((log) => (
-                    <li key={log.id} className="log-item">
-                      <b>{log.action}</b> — {log.target}
-                      <br />
-                      <small>{new Date(log.time).toLocaleString()}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="am-modal-actions">
-              <button className="am-btn-cancel" onClick={() => setLogModalOpen(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW / RESET / ROLE MODAL */}
+      {/* USER MODAL */}
       {modalType && modalUser && (
-        <div className="am-modal-backdrop" onClick={closeModal}>
+        <div className="am-modal-backdrop" onClick={() => setModalType(null)}>
           <div className="am-modal-card" onClick={(e) => e.stopPropagation()}>
+            {/* HEADER */}
             <div className="am-modal-header">
               <h3>
                 {modalType === "view" && "👁 Profile"}
                 {modalType === "reset" && "🔐 Reset Password"}
                 {modalType === "role" && "🎫 Change Role"}
+                {modalType === "delete" && "🗑 Delete User"}
               </h3>
-              <button className="am-close" onClick={closeModal}>✖</button>
+
+              <button className="am-close" onClick={() => setModalType(null)}>
+                ✖
+              </button>
             </div>
 
+            {/* BODY */}
             <div className="am-modal-body">
               {modalType === "view" && (
                 <>
-                  <p><b>Username:</b> {modalUser.username}</p>
-                  <p><b>Email:</b> {modalUser.email}</p>
-                  <p><b>Role:</b> {modalUser.role}</p>
+                  <p>
+                    <b>Username:</b> {modalUser.username}
+                  </p>
+                  <p>
+                    <b>Email:</b> {modalUser.email}
+                  </p>
+                  <p>
+                    <b>Role:</b> {modalUser.role}
+                  </p>
                 </>
               )}
 
               {modalType === "reset" && (
                 <p className="am-confirm-text">
-                  {modalUser.oldPassword
-                    ? <>คืนรหัสผ่านเดิมของ <b>{modalUser.username}</b> ใช่ไหม?</>
-                    : <>รีเซ็ตรหัสผ่านของ <b>{modalUser.username}</b> เป็น <b>1234</b> ใช่ไหม?</>}
+                  {modalUser.oldPassword ? (
+                    <>
+                      คืนรหัสผ่านเดิมของ <b>{modalUser.username}</b> ใช่ไหม?
+                    </>
+                  ) : (
+                    <>
+                      รีเซ็ตรหัสผ่านของ <b>{modalUser.username}</b> เป็น{" "}
+                      <b>1234</b> ใช่ไหม?
+                    </>
+                  )}
                 </p>
               )}
 
@@ -449,27 +468,53 @@ function AdminManagement() {
                   <b>{modalUser.role === "admin" ? "user" : "admin"}</b> ?
                 </p>
               )}
+
+              {modalType === "delete" && (
+                <p className="am-confirm-text">
+                  ต้องการลบผู้ใช้ <b>{modalUser.username}</b> ใช่ไหม?
+                </p>
+              )}
             </div>
 
+            {/* ACTION BUTTONS */}
             <div className="am-modal-actions">
-              <button className="am-btn-cancel" onClick={closeModal}>Cancel</button>
+              <button
+                className="am-btn-cancel"
+                onClick={() => setModalType(null)}
+              >
+                Cancel
+              </button>
 
               {modalType === "reset" && (
-                <button className="am-btn-confirm" onClick={() => confirmReset(modalUser.id)}>
+                <button
+                  className="am-btn-confirm"
+                  onClick={() => confirmReset(modalUser.id)}
+                >
                   Confirm
                 </button>
               )}
 
               {modalType === "role" && (
-                <button className="am-btn-confirm" onClick={() => confirmRole(modalUser.id)}>
+                <button
+                  className="am-btn-confirm"
+                  onClick={() => confirmRole(modalUser.id)}
+                >
                   Change
+                </button>
+              )}
+
+              {modalType === "delete" && (
+                <button
+                  className="am-btn-confirm delete"
+                  onClick={() => deleteUser(modalUser.id)}
+                >
+                  Delete
                 </button>
               )}
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

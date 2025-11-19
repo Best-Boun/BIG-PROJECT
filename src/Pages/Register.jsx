@@ -10,7 +10,6 @@ function Register() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  // 🟣 เพิ่มคลาสเฉพาะหน้านี้เพื่อ theme เดียวกับ login
   useEffect(() => {
     document.body.classList.add("login-page");
     return () => document.body.classList.remove("login-page");
@@ -36,7 +35,8 @@ function Register() {
 
   return (
     <div className="login-bg-animated">
-      <div className="login-card luxury">
+      {/* NEON FRAME HERE */}
+      <div className="login-card glow-frame">
         <h2 className="login-logo">
           <span>Smart</span>Persona
         </h2>
@@ -45,6 +45,7 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>ชื่อผู้ใช้</Form.Label>
             <Form.Control
+              className="animated-input"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -56,6 +57,7 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>อีเมล</Form.Label>
             <Form.Control
+              className="animated-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -66,6 +68,7 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>รหัสผ่าน</Form.Label>
             <Form.Control
+              className="animated-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

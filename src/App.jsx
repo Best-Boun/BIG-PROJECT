@@ -1,4 +1,4 @@
-// ✅ src/App.js
+// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
@@ -10,6 +10,9 @@ import AdsManagement from "./Pages/AdsManagement";
 import AdminManagement from "./Pages/AdminManagement";
 import UserDashboard from "./Pages/UserDashboard";
 
+// ⭐⭐⭐ เพิ่มตรงนี้ ⭐⭐⭐
+import UserFeed from "./Pages/UserFeed";
+
 import "./App.css";
 
 function App() {
@@ -17,9 +20,10 @@ function App() {
   const [role, setRole] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
-  // ✅ โหลดข้อมูลจาก localStorage ครั้งแรก
+  /* LOAD TOKEN */
   useEffect(() => {
     const savedRole = localStorage.getItem("role");
     const savedToken = localStorage.getItem("token");
@@ -33,7 +37,6 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ✅ Redirect หลังจากโหลดเสร็จ (แก้หน้าเปล่า)
   useEffect(() => {
     if (loading) return;
 
@@ -41,7 +44,6 @@ function App() {
     const savedToken = localStorage.getItem("token");
 
     if (!savedRole || !savedToken) {
-      // ไม่มี token → กลับหน้า login
       setToken("");
       setRole("");
       return;
@@ -50,33 +52,32 @@ function App() {
     setRole(savedRole);
     setToken(savedToken);
 
-    // ✅ ดีเลย์นิดให้ router mount ก่อน navigate
     setTimeout(() => {
       if (
         window.location.pathname === "/" ||
         window.location.pathname === "/register"
       ) {
         if (savedRole === "admin") navigate("/chart", { replace: true });
-        else if (savedRole === "user") navigate("/user-dashboard", { replace: true });
+        else if (savedRole === "user")
+          navigate("/user-dashboard", { replace: true });
       }
     }, 50);
-  }, [loading]);
+  }, [loading, navigate]);
 
-  // ✅ Logout
   const handleLogout = () => {
     localStorage.clear();
     setToken("");
     setRole("");
+
     setTimeout(() => {
       navigate("/", { replace: true });
       window.location.reload();
     }, 100);
   };
 
-  // ✅ Loading screen
   if (loading) return <div className="loading-screen">Loading...</div>;
 
-  // ✅ ถ้าไม่มี token → แสดงหน้า Login/Register
+  /* NOT LOGGED IN */
   if (!token) {
     return (
       <Routes>
@@ -90,10 +91,9 @@ function App() {
     );
   }
 
-  // ✅ ถ้ามี token แล้ว
+  /* LOGGED IN */
   return (
     <div className="app">
-      {/* ✅ Sidebar แสดงเฉพาะ admin */}
       {role === "admin" && (
         <>
           <button className="toggle-btn" onClick={() => setIsOpen(!isOpen)}>
@@ -109,7 +109,7 @@ function App() {
 
       <main className="main">
         <Routes>
-          {/* 🔹 ADMIN ROUTES */}
+          {/* ADMIN ROUTES */}
           {role === "admin" && (
             <>
               <Route path="/chart" element={<ChartPage />} />
@@ -118,21 +118,26 @@ function App() {
             </>
           )}
 
-          {/* 🔹 USER ROUTES */}
+          {/* ⭐ USER ROUTES ⭐ */}
           {role === "user" && (
-            <Route
-              path="/user-dashboard"
-              element={<UserDashboard handleLogout={handleLogout} />}
-            />
+            <>
+              <Route
+                path="/user-dashboard"
+                element={<UserDashboard handleLogout={handleLogout} />}
+              />
+
+              {/* ⭐⭐ หน้าที่จะไว้โชว์โฆษณาจริงของ user ⭐⭐ */}
+              <Route path="/user-feed" element={<UserFeed />} />
+            </>
           )}
 
-          {/* 🔹 LOGOUT */}
+          {/* LOGOUT */}
           <Route
             path="/logout"
             element={<LogoutButton handleLogout={handleLogout} />}
           />
 
-          {/* 🔹 FALLBACK */}
+          {/* DEFAULT */}
           <Route
             path="*"
             element={
@@ -148,7 +153,6 @@ function App() {
   );
 }
 
-// ✅ ปุ่ม Logout
 function LogoutButton({ handleLogout }) {
   return (
     <div style={{ textAlign: "center", marginTop: "30px" }}>

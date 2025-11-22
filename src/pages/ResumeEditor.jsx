@@ -130,7 +130,7 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
     skills: [''],
     languages: [],
     education: [{ degree: '', school: '', startDate: '', endDate: '' }],
-    experience: [{ position: '', company: '', startDate: '', endDate: '', description: '' }],
+    employment: [{ position: '', company: '', startDate: '', endDate: '', description: '' }],
     certifications: [],
     hobbies: []
   };
@@ -154,7 +154,7 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
 export default function ResumeEditor({ initialData }) {
   const [resumeData, setResumeData] = useState(initialData || {
     name: '', title: '', email: '', phone: '', location: '', summary: '', photo: '',
-    education: [], experience: [], languages: [], hobbies: [],
+    education: [], employment: [], languages: [], hobbies: [],
     skills: {
       languages: '',
       frontend: '',
@@ -192,9 +192,9 @@ export default function ResumeEditor({ initialData }) {
   const removeEducation = (idx) => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }));
 
   // EXPERIENCE HANDLERS
-  const addExperience = () => setResumeData(prev => ({ ...prev, experience: [...prev.experience, { position: '', company: '', startDate: '', endDate: '', description: '' }] }));
-  const updateExperience = (idx, field, value) => setResumeData(prev => { const updated = [...prev.experience]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, experience: updated }; });
-  const removeExperience = (idx) => setResumeData(prev => ({ ...prev, experience: prev.experience.filter((_, i) => i !== idx) }));
+  const addEmployment = () => setResumeData(prev => ({ ...prev, employment: [...prev.employment, { position: '', company: '', startDate: '', endDate: '', description: '' }] }));
+  const updateEmployment = (idx, field, value) => setResumeData(prev => { const updated = [...prev.employment]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, employment: updated }; });
+  const removeEmployment = (idx) => setResumeData(prev => ({ ...prev, employment: prev.employment.filter((_, i) => i !== idx) }));
 
   // DOWNLOAD PDF HANDLER - Using jsPDF + html2canvas
   const handleDownloadPDF = async () => {
@@ -324,7 +324,7 @@ export default function ResumeEditor({ initialData }) {
               <Accordion defaultActiveKey="0">
                 {/* 1. PERSONAL DETAILS */}
                 <Accordion.Item eventKey="0">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>👤 Personal Details</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Personal Details</Accordion.Header>
                   <Accordion.Body>
                     {/* Photo Upload */}
                     <Form.Group className="mb-4">
@@ -408,7 +408,7 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 2. CONTACT INFORMATION */}
                 <Accordion.Item eventKey="1">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>📞 Contact Information</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Contact Information</Accordion.Header>
                   <Accordion.Body>
                     <Form.Group className="mb-3">
                       <Form.Label className="fw-bold">Email</Form.Label>
@@ -427,7 +427,7 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 3. PROFESSIONAL SUMMARY */}
                 <Accordion.Item eventKey="2">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>📋 Professional Summary</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Professional Summary</Accordion.Header>
                   <Accordion.Body>
                     <Form.Group>
                       <Form.Label className="fw-bold">Professional Summary</Form.Label>
@@ -438,7 +438,7 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 4. EDUCATION */}
                 <Accordion.Item eventKey="3">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>🎓 Education</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Education</Accordion.Header>
                   <Accordion.Body>
                     {(resumeData.education || []).map((edu, idx) => (
                       <Card key={idx} className="mb-3 p-3" style={{ background: '#f8f9fa', borderLeft: `4px solid #667eea` }}>
@@ -517,9 +517,9 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 5. EXPERIENCE */}
                 <Accordion.Item eventKey="4">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>💼 Experience</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Experience</Accordion.Header>
                   <Accordion.Body>
-                    {(resumeData.experience || []).map((job, idx) => (
+                    {(resumeData.employment || []).map((job, idx) => (
                       <Card key={idx} className="mb-3 p-3" style={{ background: '#f8f9fa', borderLeft: `4px solid #667eea` }}>
                         <Form.Group className="mb-3">
                           <Form.Label className="small fw-bold" style={{ color: '#333' }}>Job Title</Form.Label>
@@ -527,7 +527,7 @@ export default function ResumeEditor({ initialData }) {
                             size="sm" 
                             type="text" 
                             value={job.position} 
-                            onChange={(e) => updateExperience(idx, 'position', e.target.value)} 
+                            onChange={(e) => updateEmployment(idx, 'position', e.target.value)} 
                             placeholder="e.g. Senior Product Manager"
                             className="border-1"
                           />
@@ -538,7 +538,7 @@ export default function ResumeEditor({ initialData }) {
                             size="sm" 
                             type="text" 
                             value={job.company} 
-                            onChange={(e) => updateExperience(idx, 'company', e.target.value)} 
+                            onChange={(e) => updateEmployment(idx, 'company', e.target.value)} 
                             placeholder="Company name"
                             className="border-1"
                           />
@@ -551,7 +551,7 @@ export default function ResumeEditor({ initialData }) {
                                 size="sm" 
                                 type="text" 
                                 value={job.startDate} 
-                                onChange={(e) => updateExperience(idx, 'startDate', e.target.value)} 
+                                onChange={(e) => updateEmployment(idx, 'startDate', e.target.value)} 
                                 placeholder="e.g. Jul 2012"
                                 className="border-1"
                               />
@@ -564,7 +564,7 @@ export default function ResumeEditor({ initialData }) {
                                 size="sm" 
                                 type="text" 
                                 value={job.endDate} 
-                                onChange={(e) => updateExperience(idx, 'endDate', e.target.value)} 
+                                onChange={(e) => updateEmployment(idx, 'endDate', e.target.value)} 
                                 placeholder="e.g. Present"
                                 className="border-1"
                               />
@@ -578,26 +578,26 @@ export default function ResumeEditor({ initialData }) {
                             as="textarea" 
                             rows={2} 
                             value={job.description} 
-                            onChange={(e) => updateExperience(idx, 'description', e.target.value)} 
+                            onChange={(e) => updateEmployment(idx, 'description', e.target.value)} 
                             placeholder="Job responsibilities..."
                             className="border-1"
                           />
                         </Form.Group>
-                        <Button variant="danger" size="sm" onClick={() => removeExperience(idx)} className="w-100"><FaTrash /> Delete</Button>
+                        <Button variant="danger" size="sm" onClick={() => removeEmployment(idx)} className="w-100"><FaTrash /> Delete</Button>
                       </Card>
                     ))}
-                    {(!resumeData.experience || resumeData.experience.length === 0) && (
+                    {(!resumeData.employment || resumeData.employment.length === 0) && (
                       <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
                         <p>No experience added yet</p>
                       </div>
                     )}
-                    <Button variant="primary" size="sm" onClick={addExperience} className="w-100 mt-2"><FaPlus /> Add Experience</Button>
+                    <Button variant="primary" size="sm" onClick={addEmployment} className="w-100 mt-2"><FaPlus /> Add Experience</Button>
                   </Accordion.Body>
                 </Accordion.Item>
 
                 {/* 6. SKILLS */}
                 <Accordion.Item eventKey="5">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>🎯 Skills</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Skills</Accordion.Header>
                   <Accordion.Body>
                     {/* Category Dropdown */}
                     <Form.Group className="mb-3">
@@ -689,7 +689,7 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 7. LANGUAGES */}
                 <Accordion.Item eventKey="6">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>🌐 Languages</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Languages</Accordion.Header>
                   <Accordion.Body>
                     {(resumeData.languages || []).map((lang, idx) => (
                       <div key={idx} className="mb-3 p-3" style={{ background: '#f8f9fa', borderRadius: '6px' }}>
@@ -717,7 +717,7 @@ export default function ResumeEditor({ initialData }) {
 
                 {/* 8. HOBBIES & INTERESTS */}
                 <Accordion.Item eventKey="8">
-                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>🎨 Hobbies & Interests</Accordion.Header>
+                  <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Hobbies & Interests</Accordion.Header>
                   <Accordion.Body>
                     {(resumeData.hobbies || []).map((hobby, idx) => (
                       <div key={idx} className="d-flex gap-2 mb-2">
@@ -749,7 +749,7 @@ export default function ResumeEditor({ initialData }) {
                 marginBottom: '20px',
                 border: '1px solid #ddd'
               }}>
-                <h6 style={{ fontWeight: 'bold', marginBottom: '12px', color: '#333' }}>⚙️ Design Settings</h6>
+                <h6 style={{ fontWeight: 'bold', marginBottom: '12px', color: '#333' }}>Design Settings</h6>
                 
                 {/* Font Size */}
                 <Form.Group className="mb-3">

@@ -1,10 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ProfileContext } from "../../ProfileContext";
 import './Profilepublic.css';
+import Header2 from '../../components/Header2';
 
 const ProfilePublic = ({ onNavigate }) => {
   const { profileData } = useContext(ProfileContext);
   const [isUpdated, setIsUpdated] = useState(false);
+
+  
 
   useEffect(() => {
     setIsUpdated(!isUpdated);
@@ -115,6 +118,8 @@ const ProfilePublic = ({ onNavigate }) => {
     }
   };
 
+  
+
   if (!profileData) {
     return (
       <div style={{
@@ -182,6 +187,8 @@ const ProfilePublic = ({ onNavigate }) => {
 
   return (
     <>
+    <Header2 user={profileData} onLogout={() => console.log("Logout")} />
+      
       {/* Header Section */}
       <header className="profile-header">
         <div className="header-container">
@@ -427,7 +434,7 @@ const ProfilePublic = ({ onNavigate }) => {
         </div>
 
         {/* SIDEBAR */}
-        <div className="sidebar">
+        <div className="sidebar2">
 
           {/* 9. Quick Info - WITH PRIVACY CHECK */}
           {profileData.privacy?.quickInfo !== false && (

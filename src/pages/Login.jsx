@@ -55,7 +55,7 @@ function Login({ setToken, setRole }) {
         setRole(user.role);
 
         window.location.href =
-          user.role === "admin" ? "/chart" : "/user-dashboard";
+          user.role === "admin" ? "/chart" : "/feed";
       }, 900);
     } else {
       setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");

@@ -34,6 +34,7 @@ const getSize = (baseSize, designSettings) => {
   return baseSize * getFontSizeMultiplier(designSettings?.fontSize || 'M');
 };
 
+
 const getSpacing = (baseSpacing, designSettings) => {
   return baseSpacing * getSpacingMultiplier(designSettings?.spacing || 'M');
 };

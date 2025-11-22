@@ -1,0 +1,431 @@
+/* ==========================================
+   🎨 HEADER.CSS - Navigation Bar Styling
+   ========================================== */
+
+/* Import Bootstrap first */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* ========================================
+   Color Scheme
+   ======================================== */
+:root {
+    --primary-purple: #6a11cb;
+    --primary-blue: #2575fc;
+    --dark-gray: #333333;
+    --light-gray: #f5f5f5;
+    --white: #ffffff;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+}
+
+/* ========================================
+   NAVBAR CUSTOM STYLING
+   ======================================== */
+.navbar-custom {
+    background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);
+    box-shadow: 0 4px 15px rgba(106, 17, 203, 0.2);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-custom .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Logo Styling */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--white) !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05);
+}
+
+.logo-icon {
+    font-size: 2rem;
+    display: inline-block;
+}
+
+.logo-text {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+/* ========================================
+   3 Main Navigation Sections
+   ======================================== */
+.nav-main-sections {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.nav-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 15px !important;
+    margin: 0 5px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.3s ease;
+    z-index: -1;
+}
+
+.nav-section:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+}
+
+.nav-section:hover::before {
+    left: 0;
+}
+
+.nav-section.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: var(--white) !important;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon Styling */
+.nav-icon {
+    font-size: 1.1rem;
+    display: inline-block;
+}
+
+.nav-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ========================================
+   User Dropdown Menu
+   ======================================== */
+.user-dropdown {
+    margin-left: 15px;
+}
+
+.user-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: var(--white) !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.user-menu-trigger:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+.user-avatar .avatar-img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-name {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    background: var(--white);
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 10px 0;
+    min-width: 200px;
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    color: var(--dark-gray);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown-item:hover {
+    background: var(--light-gray);
+    color: var(--primary-purple);
+    transform: translateX(4px);
+}
+
+.dropdown-item.active {
+    background: var(--light-gray);
+    color: var(--primary-purple);
+}
+
+.dropdown-divider {
+    margin: 5px 0;
+    border-color: #f0f0f0;
+}
+
+/* ========================================
+   Hamburger Menu (Mobile)
+   ======================================== */
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 8px;
+    margin-right: 10px;
+}
+
+.hamburger:hover {
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+/* Tablet (992px and down) */
+@media (max-width: 992px) {
+    .navbar-custom {
+        padding: 12px 0;
+    }
+
+    .hamburger {
+        display: inline-block;
+    }
+
+    .nav-section {
+        margin: 8px 0;
+        width: 100%;
+        justify-content: flex-start;
+        padding: 12px 15px !important;
+    }
+
+    .nav-section::after {
+        display: none;
+    }
+
+    .nav-section.active::after {
+        display: none;
+    }
+
+    .user-dropdown {
+        margin-left: 0;
+        margin-top: 15px;
+        width: 100%;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        padding-top: 15px;
+    }
+
+    .user-menu-trigger {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 10px 15px;
+    }
+}
+
+/* Mobile (576px and down) */
+@media (max-width: 576px) {
+    .navbar-custom {
+        padding: 10px 0;
+    }
+
+    .brand-logo {
+        font-size: 1.2rem;
+    }
+
+    .logo-icon {
+        font-size: 1.5rem;
+    }
+
+    .logo-text {
+        display: none;
+    }
+
+    .nav-section {
+        font-size: 0.85rem;
+        margin: 5px 0;
+        padding: 10px 12px !important;
+    }
+
+    .nav-icon {
+        font-size: 1rem;
+    }
+
+    .nav-label {
+        display: none;
+    }
+
+    .user-menu-trigger {
+        height: 40px;
+        align-items: center;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        justify-content: center;
+    }
+
+    .user-name {
+        display: none;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 1.2rem;
+    }
+
+    .dropdown-menu {
+        min-width: 150px;
+    }
+
+    .dropdown-item {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .user-dropdown {
+        margin-left: 0;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+}
+
+/* ========================================
+   Animation Effects
+   ======================================== */
+
+/* Dropdown Fade In Animation */
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade In Animation for Navbar */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.navbar-custom {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Smooth Transition */
+.navbar-custom,
+.nav-section,
+.user-menu-trigger,
+.dropdown-item {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+.nav-section:focus,
+.user-menu-trigger:focus,
+.dropdown-item:focus {
+    outline: 2px solid var(--primary-purple);
+    outline-offset: 2px;
+}
+
+/* Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+    .navbar-custom,
+    .nav-section,
+    .user-menu-trigger,
+    .dropdown-item,
+    .brand-logo {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* ========================================
+   Dark Mode Support (Optional)
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    .dropdown-menu {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+
+    .dropdown-item {
+        color: #e0e0e0;
+    }
+
+    .dropdown-item:hover {
+        background: #3a3a3a;
+        color: #fff;
+        transform: translateX(4px);
+    }
+}

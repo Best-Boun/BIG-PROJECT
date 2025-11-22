@@ -11,7 +11,7 @@ import './Resumepage.css';
 function ChooseModeScreen({ onSelectMode }) {
   return (
     <div className="choose-mode-container">
-      <Container maxWidth="lg" className="py-5">
+      <Container style={{width:'100%', padding:'20px'}} className="py-5">
         <div className="mode-header mb-5">
           <h1>Create Your Resume</h1>
           <p>Choose how you want to create your resume</p>

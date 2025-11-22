@@ -1,21 +1,69 @@
-// src/App.jsx
-import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+// ==========================================
+// 🎯 APP.JSX - Main Application with Routing (UPDATED)
+// ==========================================
+// Flow: Landing → Login → User Pages (Profile, Feed, etc.)
+// UPDATED: Added admin-layout and user-layout classes for proper styling
 
-import Login from "./Pages/Login";
-import Register from "./Pages/Register";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+
+import Header from './components/Header';
+import Profilepublic from './pages/ProfilePublic/Profilepublic';
+import JobBrowse from './pages/JobBrowse';
+import Resumepage from './pages/Resumepage';
+import ProfileEdit from './pages/ProfileEdit';
+import Feed from './pages/Feed/Feed';
+import { ProfileProvider } from './ProfileContext';
+import './App.css';
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Sidebar from "./components/Sidebar";
 import ChartPage from "./pages/ChartPage";
-import AdsManagement from "./Pages/AdsManagement";
-import AdminManagement from "./Pages/AdminManagement";
-import UserDashboard from "./Pages/UserDashboard";
+import AdsManagement from "./pages/AdsManagement";
+import AdminManagement from "./pages/AdminManagement";
+import Landing from "./pages/Landing";
 
-// ⭐⭐⭐ เพิ่มตรงนี้ ⭐⭐⭐
-import UserFeed from "./Pages/UserFeed";
+// ============ WRAPPER COMPONENTS ============
 
-import "./App.css";
+// Wrapper for Profilepublic with navigation
+function ProfilepublicWrapper() {
+  const navigate = useNavigate();
 
-function App() {
+  const handleNavigate = (page) => {
+    if (page === 'edit') navigate('/edit-profile');
+    if (page === 'resume') navigate('/resume');
+  };
+
+  return <Profilepublic onNavigate={handleNavigate} />;
+}
+
+// Wrapper for Resumepage with navigation
+function ResumepageWrapper() {
+  const navigate = useNavigate();
+
+  const handleNavigate = (page) => {
+    if (page === 'profile') navigate('/profile');
+    if (page === 'edit') navigate('/edit-profile');
+  };
+
+  return <Resumepage onNavigate={handleNavigate} />;
+}
+
+// Wrapper for ProfileEdit with navigation
+function ProfileEditWrapper() {
+  const navigate = useNavigate();
+
+  const handleNavigate = (page) => {
+    if (page === 'profile') navigate('/profile');
+    if (page === 'resume') navigate('/resume');
+  };
+
+  return <ProfileEdit onNavigate={handleNavigate} />;
+}
+
+// ============ APP CONTENT COMPONENT ============
+
+function AppContent() {
   const [token, setToken] = useState("");
   const [role, setRole] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +71,14 @@ function App() {
 
   const navigate = useNavigate();
 
-  /* LOAD TOKEN */
+  // Mock user data
+  const [user] = useState({
+    name: 'Alex Johnson',
+    profileImage: '👤',
+    email: 'alex@example.com'
+  });
+
+  /* ============ LOAD TOKEN & ROLE FROM STORAGE ============ */
   useEffect(() => {
     const savedRole = localStorage.getItem("role");
     const savedToken = localStorage.getItem("token");
@@ -37,6 +92,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  /* ============ CHECK AUTH & REDIRECT ============ */
   useEffect(() => {
     if (loading) return;
 
@@ -53,13 +109,9 @@ function App() {
     setToken(savedToken);
 
     setTimeout(() => {
-      if (
-        window.location.pathname === "/" ||
-        window.location.pathname === "/register"
-      ) {
+      if (window.location.pathname === "/" || window.location.pathname === "/register") {
         if (savedRole === "admin") navigate("/chart", { replace: true });
-        else if (savedRole === "user")
-          navigate("/user-dashboard", { replace: true });
+        else if (savedRole === "user") navigate("/feed", { replace: true });
       }
     }, 50);
   }, [loading, navigate]);
@@ -77,90 +129,81 @@ function App() {
 
   if (loading) return <div className="loading-screen">Loading...</div>;
 
-  /* NOT LOGGED IN */
+  /* ============ NOT LOGGED IN - SHOW LOGIN/REGISTER ============ */
   if (!token) {
     return (
       <Routes>
-        <Route
-          path="/"
-          element={<Login setToken={setToken} setRole={setRole} />}
-        />
+        <Route path="/" element={<Login setToken={setToken} setRole={setRole} />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/landing" element={<Landing />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
 
-  /* LOGGED IN */
+  /* ============ ADMIN ROUTES ============ */
+  if (role === "admin") {
+    return (
+      <div className="app admin-layout">
+        <button className="toggle-btn" onClick={() => setIsOpen(!isOpen)}>
+          ☰
+        </button>
+        <Sidebar
+          className={isOpen ? "" : "hidden"}
+          role={role}
+          onLogout={handleLogout}
+        />
+
+        <main className="main">
+          <Routes>
+            <Route path="/chart" element={<ChartPage />} />
+            <Route path="/ads" element={<AdsManagement />} />
+            <Route path="/admin" element={<AdminManagement />} />
+            <Route path="*" element={<Navigate to="/chart" replace />} />
+          </Routes>
+        </main>
+      </div>
+    );
+  }
+
+  /* ============ USER ROUTES (LOGGED IN) ============ */
   return (
-    <div className="app">
-      {role === "admin" && (
-        <>
-          <button className="toggle-btn" onClick={() => setIsOpen(!isOpen)}>
-            ☰
-          </button>
-          <Sidebar
-            className={isOpen ? "" : "hidden"}
-            role={role}
-            onLogout={handleLogout}
-          />
-        </>
-      )}
+    <ProfileProvider>
+      <div className="app user-layout">
+        {/* Main Content - No Header here, Feed has its own Header2 */}
+        <main className="app-main">
+          <Routes>
+            {/* 📰 Feed Page - Default for users */}
+            <Route path="/feed" element={<Feed user={user} onLogout={handleLogout} />} />
 
-      <main className="main">
-        <Routes>
-          {/* ADMIN ROUTES */}
-          {role === "admin" && (
-            <>
-              <Route path="/chart" element={<ChartPage />} />
-              <Route path="/ads" element={<AdsManagement />} />
-              <Route path="/admin" element={<AdminManagement />} />
-            </>
-          )}
+            {/* 👤 Profile Page */}
+            <Route path="/profile" element={<ProfilepublicWrapper />} />
 
-          {/* ⭐ USER ROUTES ⭐ */}
-          {role === "user" && (
-            <>
-              <Route
-                path="/user-dashboard"
-                element={<UserDashboard handleLogout={handleLogout} />}
-              />
+            {/* ✏️ Edit Profile Page */}
+            <Route path="/edit-profile" element={<ProfileEditWrapper />} />
 
-              {/* ⭐⭐ หน้าที่จะไว้โชว์โฆษณาจริงของ user ⭐⭐ */}
-              <Route path="/user-feed" element={<UserFeed />} />
-            </>
-          )}
+            {/* 💼 Job Page */}
+            <Route path="/jobs" element={<JobBrowse />} />
 
-          {/* LOGOUT */}
-          <Route
-            path="/logout"
-            element={<LogoutButton handleLogout={handleLogout} />}
-          />
+            {/* 📄 Resume Page */}
+            <Route path="/resume" element={<ResumepageWrapper />} />
 
-          {/* DEFAULT */}
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to={role === "admin" ? "/chart" : "/user-dashboard"}
-                replace
-              />
-            }
-          />
-        </Routes>
-      </main>
-    </div>
+
+            {/* Default - Redirect to Feed */}
+            <Route path="/" element={<Navigate to="/feed" replace />} />
+
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/feed" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </ProfileProvider>
   );
 }
 
-function LogoutButton({ handleLogout }) {
-  return (
-    <div style={{ textAlign: "center", marginTop: "30px" }}>
-      <button onClick={handleLogout} className="btn btn-logout">
-        🚪 Logout
-      </button>
-    </div>
-  );
+// ============ MAIN APP COMPONENT ============
+
+export default function App() {
+  return <AppContent />;
 }
 
-export default App;

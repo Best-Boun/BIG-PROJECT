@@ -1,4 +1,6 @@
+/* ========================================= */
 /* GLOBAL LAYOUT */
+/* ========================================= */
 .app {
   display: flex;
   min-height: 100vh;
@@ -14,7 +16,11 @@
   color: #f1f5f9;
 }
 
-.main {
+/* ========================================= */
+/* ADMIN LAYOUT (with Sidebar) */
+/* ========================================= */
+/* Admin main content area - has margin for sidebar */
+.app.admin-layout .main {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
@@ -23,9 +29,47 @@
 }
 
 /* ถ้า sidebar ปิด */
-.sidebar.hidden + .main {
+.app.admin-layout .sidebar.hidden + .main {
   margin-left: 0;
 }
+
+/* TOGGLE BUTTON - Admin only */
+.app.admin-layout .toggle-btn {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  background: #4f46e5;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: white;
+  font-size: 1.2rem;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+}
+
+.app.admin-layout .toggle-btn:hover {
+  background: #4338ca;
+  transform: scale(1.05);
+}
+
+/* ========================================= */
+/* USER LAYOUT (with Header, no Sidebar) */
+/* ========================================= */
+.app.user-layout {
+  display: block; /* Override flex for user layout */
+}
+
+.app.user-layout .app-main {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0; /* No padding, each page handles its own */
+  margin: 0; /* NO margin-left */
+}
+
+/* ========================================= */
+/* SHARED STYLES */
+/* ========================================= */
 
 /* LOADING SCREEN */
 .loading-screen {
@@ -41,26 +85,6 @@
 /* DARK MODE LOADING */
 .dark .loading-screen {
   color: #a78bfa;
-}
-
-/* TOGGLE BUTTON */
-.toggle-btn {
-  position: fixed;
-  top: 18px;
-  left: 18px;
-  background: #4f46e5;
-  padding: 10px 14px;
-  border-radius: 10px;
-  color: white;
-  font-size: 1.2rem;
-  border: none;
-  cursor: pointer;
-  z-index: 999;
-}
-
-.toggle-btn:hover {
-  background: #4338ca;
-  transform: scale(1.05);
 }
 
 /* LOGOUT BUTTON */
@@ -104,4 +128,24 @@
 .dark .cards .card {
   background: #1e293b;
   color: #e2e8f0;
+}
+
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+@media (max-width: 768px) {
+  .app.admin-layout .main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
 }

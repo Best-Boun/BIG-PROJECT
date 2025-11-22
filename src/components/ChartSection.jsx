@@ -88,10 +88,7 @@ function ChartSection() {
         <Doughnut key="total-users" data={totalUsers} />
       </div>
 
-      <div className="chart-box">
-        <h3>Gender Distribution</h3>
-        <Doughnut key="gender" data={genderData} />
-      </div>
+      
 
       <div className="chart-box wide">
         <h3>Average Usage Time</h3>

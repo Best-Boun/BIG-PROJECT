@@ -74,11 +74,8 @@ function Sidebar({ role, onLogout }) {
             cursor: "pointer",
           }}
         >
-          <option value="helloworldbot">Hello World Bot</option>
-          <option value="faqbot">FAQ Bot</option>
-          <option value="openaibot">OpenAI Bot</option>
-          <option value="geminibot">Gemini Bot</option>
-          <option value="browserllmbot">Browser LLM Bot</option>
+          <option value="faqbot">จัดการงาน</option>
+          <option value="browserllmbot">ตรวจสอบ</option>
         </select>
         {Bot ? <Bot /> : null}
       </div>

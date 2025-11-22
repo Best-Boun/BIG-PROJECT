@@ -5,7 +5,6 @@ import Apple from "../assets/appleex.png";
 function Header() {
   return (
     <header className="header">
-      <input type="text" placeholder="Search..." className="search-bar" />
       <div className="user">
         <span className="bell">🔔</span>
         <div className="user-info">

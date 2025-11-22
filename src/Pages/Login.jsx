@@ -37,7 +37,7 @@ function Login({ setToken, setRole }) {
       animateError();
       return;
     }
-
+        //ตรวจสอบข้อมูล
     const user = await verifyUser(username, password);
 
     if (user) {

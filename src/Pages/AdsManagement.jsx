@@ -87,7 +87,7 @@ function AdsManagement() {
 
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-  /* ---------- FETCH ADS ---------- */
+  /* ---------- FETCH ADS ----------ดึงโฆษณา */ 
   useEffect(() => {
     (async () => {
       try {
@@ -134,7 +134,7 @@ function AdsManagement() {
     }
   };
 
-  /* ---------- ADD ---------- */
+  /* ---------- ADD ----------เพิ่ม ads */
   const addAd = async () => {
     const newAd = {
       id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -215,7 +215,7 @@ function AdsManagement() {
     setUnsavedChanges(true);
   };
 
-  /* ---------- EDIT ---------- */
+  /* ---------- EDIT ---------- แก้ไข ads*/
   const startEdit = (ad) => {
     setEditingId(ad.id);
     setEditData({

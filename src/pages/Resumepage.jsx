@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { ProfileContext } from "../ProfileContext.jsx";
 import ResumeEditor from './ResumeEditor.jsx';
-import './Resumepage.css';
+// import './Resumepage.css';
 
 // ============================================
 // CHOOSE MODE SCREEN

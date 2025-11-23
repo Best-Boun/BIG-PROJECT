@@ -11,6 +11,15 @@
       "username": "user",
       "password": "1",
       "role": "user"
+    },
+    {
+      "id": "4a2f",
+      "username": "san",
+      "email": "san@gmail",
+      "password": "1",
+      "name": "san",
+      "role": "user",
+      "createdAt": "2025-11-22T16:31:11.817Z"
     }
   ],
   "profiles": [],

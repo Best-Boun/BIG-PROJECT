@@ -1,6 +1,7 @@
+// server.js
 import express from "express";
 import multer from "multer";
-import cors from "cors"; // ⭐ เพิ่มอันนี้
+import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -9,15 +10,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ⭐ เปิด CORS ให้ frontend เข้าถึงได้
 app.use(
   cors({
-    origin: "*", // หรือ "http://localhost:5173"
-    methods: "GET,POST",
+    origin: "*",
+    methods: "GET,POST,PUT,DELETE",
   })
 );
 
-// ให้ public ใช้ไฟล์ได้
+// serve public folder so uploaded files are available at /upload/filename
 app.use(express.static(path.join(__dirname, "public")));
 
 const storage = multer.diskStorage({
@@ -32,6 +32,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file" });
   res.json({
     filename: req.file.filename,
     url: `/upload/${req.file.filename}`,

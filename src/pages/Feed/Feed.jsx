@@ -1,220 +1,423 @@
-import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
-import Header2 from '../../components/Header2';
-import './Feed.css';
+// src/Pages/Feed/Feed.jsx
+import React, { useEffect, useState, useContext, useRef } from "react";
+import { Container, Row, Col } from "react-bootstrap";
+import Header2 from "../../components/Header2";
+import { ProfileContext } from "../../ProfileContext";
+import "./Feed.css";
+
+const POSTS_KEY = "smartPersonaPosts";
 
 export default function Feed({ user, onLogout }) {
+  const API_ADS = "http://localhost:3002/adsList";
+  const { profileData } = useContext(ProfileContext);
+
+  // -------------------------------------------
+  // ✅ ใช้ user จาก localStorage เป็นหลัก (แก้บัคชื่อไม่ตรง Header)
+  // -------------------------------------------
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+
+  const currentUser =
+    storedUser && storedUser.name?.trim()
+      ? storedUser
+      : profileData && profileData.name?.trim()
+      ? profileData
+      : user;
+
+  // -------------------------------------------
+  // State
+  // -------------------------------------------
+  const [ads, setAds] = useState([]);
+  const [selectedAd, setSelectedAd] = useState(null);
+
+  const [postText, setPostText] = useState("");
+  const [postImage, setPostImage] = useState(null);
+  const [posts, setPosts] = useState([]);
+
+  const fileInputRef = useRef();
+
+  // -------------------------------------------
+  // Load posts with safe fallback + seed
+  // -------------------------------------------
+  useEffect(() => {
+    const loaded = localStorage.getItem(POSTS_KEY);
+
+    if (loaded) {
+      try {
+        const parsed = JSON.parse(loaded);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPosts(parsed);
+          return;
+        }
+        // eslint-disable-next-line no-unused-vars
+      } catch (err) {
+        console.warn("❌ Posts broken → reseeding…");
+      }
+    }
+
+    // Seed posts (ของคนอื่น)
+    const seedPosts = [
+      {
+        id: Date.now() + 101,
+        type: "post",
+        user: { name: "Sarah Chen", avatar: "/default-avatar.png" },
+        text: "Just finished an amazing project with my team!",
+        image: null,
+        likes: 12,
+        isLiked: false,
+        comments: 3,
+        shares: 1,
+        time: "2 hours ago",
+      },
+      {
+        id: Date.now() + 102,
+        type: "post",
+        user: { name: "John Smith", avatar: "/default-avatar.png" },
+        text: "Excited to announce that I've been promoted!",
+        image: null,
+        likes: 34,
+        isLiked: false,
+        comments: 10,
+        shares: 2,
+        time: "4 hours ago",
+      },
+      {
+        id: Date.now() + 103,
+        type: "post",
+        user: { name: "Emily Watson", avatar: "/default-avatar.png" },
+        text: "Working remotely today ☕🌥️",
+        image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+        likes: 5,
+        isLiked: false,
+        comments: 1,
+        shares: 0,
+        time: "1 hour ago",
+      },
+      {
+        id: Date.now() + 104,
+        type: "ad",
+        user: { name: "SmartPersona Ads", avatar: "/default-avatar.png" },
+        text: "SmartPersona – AI Resume Promo (50% Off)",
+        image: "https://images.unsplash.com/photo-1581091870627-3d17856a8c49",
+        likes: 12,
+        isLiked: false,
+        comments: 1,
+        shares: 0,
+        time: "Sponsored",
+      },
+    ];
+
+    setPosts(seedPosts);
+    localStorage.setItem(POSTS_KEY, JSON.stringify(seedPosts));
+  }, []);
+
+  // -------------------------------------------
+  // Save posts quickly
+  // -------------------------------------------
+  const savePosts = (updated) => {
+    setPosts(updated);
+    localStorage.setItem(POSTS_KEY, JSON.stringify(updated));
+  };
+
+  // -------------------------------------------
+  // Sidebar Ads
+  // -------------------------------------------
+  useEffect(() => {
+    fetch(API_ADS)
+      .then((res) => res.json())
+      .then((data) => setAds((data || []).filter((ad) => ad.active)))
+      .catch((err) => console.error("Ads error", err));
+  }, []);
+
+  // -------------------------------------------
+  // Resize photo before upload
+  // -------------------------------------------
+  const resizeImageFileToDataUrl = (file, maxWidth = 900) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const resized = await resizeImageFileToDataUrl(file, 900);
+    setPostImage(resized);
+  };
+
+  const handlePhotoClick = () => fileInputRef.current?.click();
+
+  // -------------------------------------------
+  // Create Post
+  // -------------------------------------------
+  const handleCreatePost = () => {
+    if (!postText && !postImage) return;
+
+    const newPost = {
+      id: Date.now(),
+      type: "post",
+      user: {
+        name: currentUser?.name,
+        avatar:
+          currentUser?.profileImage &&
+          (currentUser.profileImage.startsWith("data:") ||
+            currentUser.profileImage.startsWith("http"))
+            ? currentUser.profileImage
+            : "/default-avatar.png",
+      },
+      text: postText,
+      image: postImage,
+      likes: 0,
+      isLiked: false,
+      comments: 0,
+      shares: 0,
+      time: "Just now",
+    };
+
+    savePosts([newPost, ...posts]);
+
+    setPostText("");
+    setPostImage(null);
+  };
+
+  // -------------------------------------------
+  // Like
+  // -------------------------------------------
+  const toggleLike = (id) => {
+    savePosts(
+      posts.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              likes: p.isLiked ? p.likes - 1 : p.likes + 1,
+              isLiked: !p.isLiked,
+            }
+          : p
+      )
+    );
+  };
+
+  // -------------------------------------------
+  // Delete post
+  // -------------------------------------------
+  const deletePost = (id) => {
+    if (!confirm("Delete this post?")) return;
+    savePosts(posts.filter((p) => p.id !== id));
+  };
+
+  // -------------------------------------------
+  // Render UI
+  // -------------------------------------------
   return (
     <div className="feed-page">
-      {/* Header2 at the top */}
-      <Header2 user={user} onLogout={onLogout} />
-      
-      {/* Feed Content */}
+      <Header2 user={currentUser} onLogout={onLogout} />
+
       <Container fluid className="feed-container">
         <Row className="feed-layout">
-      
           <Col xl={7} lg={8} md={12} className="main-feed">
-            
+            {/* Create Post Box */}
             <div className="create-post-box mb-3">
               <div className="d-flex align-items-center mb-3">
                 <div className="user-avatar">
-                  👤
+                  <img
+                    src={
+                      currentUser?.profileImage &&
+                      (currentUser.profileImage.startsWith("data:") ||
+                        currentUser.profileImage.startsWith("http"))
+                        ? currentUser.profileImage
+                        : "/default-avatar.png"
+                    }
+                    className="avatar-img"
+                  />
                 </div>
-                <input 
-                  type="text" 
-                  className="form-control ms-3" 
-                  placeholder="What's on your mind?"
+
+                <input
+                  type="text"
+                  className="form-control ms-3"
+                  placeholder={`What's on your mind, ${currentUser?.name}?`}
+                  value={postText}
+                  onChange={(e) => setPostText(e.target.value)}
                 />
               </div>
+
+              {postImage && (
+                <img
+                  src={postImage}
+                  style={{
+                    width: "100%",
+                    maxHeight: 450,
+                    borderRadius: 12,
+                    objectFit: "cover",
+                    marginBottom: 10,
+                  }}
+                />
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+
               <div className="d-flex justify-content-around post-buttons">
-                <button className="btn btn-post-action">
-                  <span className="post-icon">📷</span> Photo
+                <button
+                  className="btn btn-post-action"
+                  onClick={handlePhotoClick}
+                >
+                  📷 Photo
                 </button>
-                <button className="btn btn-post-action">
-                  <span className="post-icon">💼</span> Job
+
+                <button
+                  className="btn btn-primary-post"
+                  onClick={handleCreatePost}
+                >
+                  Post
                 </button>
-                <button className="btn btn-primary-post">Post</button>
               </div>
             </div>
 
-            {/* Feed Posts */}
+            {/* Posts */}
             <div className="feed-posts">
-              {/* Post 1 */}
-              <div className="post-card mb-3">
-                <div className="post-header">
-                  <div className="d-flex align-items-start">
-                    <div className="user-avatar">👤</div>
-                    <div className="ms-3">
-                      <h6 className="mb-0">Sarah Chen</h6>
-                      <small className="text-muted d-block">Product Manager</small>
-                      <small className="text-muted">2 hours ago</small>
-                    </div>
-                  </div>
-                  <button className="btn btn-link text-muted">⋮</button>
-                </div>
-                <div className="post-content">
-                  <p>Just finished an amazing project with my team! Really proud of what we accomplished. Looking forward to the next challenge.</p>
-                </div>
-                <div className="post-stats">
-                  <span>❤️ 245 likes</span>
-                  <span>💬 18 comments</span>
-                  <span>🔄 5 shares</span>
-                </div>
-                <div className="post-actions">
-                  <button className="btn btn-action">
-                    <span className="action-icon">👍</span> Like
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">💬</span> Comment
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">🔄</span> Share
-                  </button>
-                </div>
-              </div>
+              {posts.map((post) => (
+                <div
+                  key={post.id}
+                  className="post-card mb-3"
+                  style={{ position: "relative" }}
+                >
+                  {post.type === "post" &&
+                    post.user?.name === currentUser?.name && (
+                      <button
+                        onClick={() => deletePost(post.id)}
+                        style={{
+                          position: "absolute",
+                          top: 12,
+                          right: 12,
+                          background: "white",
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                        }}
+                      >
+                        ⋮
+                      </button>
+                    )}
 
-              {/* Post 2 */}
-              <div className="post-card mb-3">
-                <div className="post-header">
-                  <div className="d-flex align-items-start">
-                    <div className="user-avatar">👤</div>
-                    <div className="ms-3">
-                      <h6 className="mb-0">John Smith</h6>
-                      <small className="text-muted d-block">Software Engineer</small>
-                      <small className="text-muted">4 hours ago</small>
+                  <div className="post-header">
+                    <div className="d-flex align-items-start">
+                      <div className="user-avatar">
+                        <img src={post.user.avatar} className="avatar-img" />
+                      </div>
+                      <div className="ms-3">
+                        <h6 className="mb-0">{post.user.name}</h6>
+                        <small className="text-muted">{post.time}</small>
+                      </div>
                     </div>
-                  </div>
-                  <button className="btn btn-link text-muted">⋮</button>
-                </div>
-                <div className="post-content">
-                  <p>Excited to announce that I've been promoted to Senior Developer! 🎉 Thanks to everyone who supported me along the way. Time to level up!</p>
-                </div>
-                <div className="post-stats">
-                  <span>❤️ 523 likes</span>
-                  <span>💬 42 comments</span>
-                  <span>🔄 35 shares</span>
-                </div>
-                <div className="post-actions">
-                  <button className="btn btn-action">
-                    <span className="action-icon">👍</span> Like
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">💬</span> Comment
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">🔄</span> Share
-                  </button>
-                </div>
-              </div>
 
-              {/* Post 3 */}
-              <div className="post-card mb-3">
-                <div className="post-header">
-                  <div className="d-flex align-items-start">
-                    <div className="user-avatar">👤</div>
-                    <div className="ms-3">
-                      <h6 className="mb-0">Emily Rodriguez</h6>
-                      <small className="text-muted d-block">UX Designer</small>
-                      <small className="text-muted">6 hours ago</small>
-                    </div>
+                    {post.type === "ad" && (
+                      <span className="badge bg-info text-dark">Sponsored</span>
+                    )}
                   </div>
-                  <button className="btn btn-link text-muted">⋮</button>
-                </div>
-                <div className="post-content">
-                  <p>Just launched a new design system for our team. It's been incredible to see how it's already improving our workflow. Design thinking at its finest!</p>
-                </div>
-                <div className="post-stats">
-                  <span>❤️ 189 likes</span>
-                  <span>💬 24 comments</span>
-                  <span>🔄 12 shares</span>
-                </div>
-                <div className="post-actions">
-                  <button className="btn btn-action">
-                    <span className="action-icon">👍</span> Like
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">💬</span> Comment
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">🔄</span> Share
-                  </button>
-                </div>
-              </div>
 
-              {/* Post 4 */}
-              <div className="post-card mb-3">
-                <div className="post-header">
-                  <div className="d-flex align-items-start">
-                    <div className="user-avatar">👤</div>
-                    <div className="ms-3">
-                      <h6 className="mb-0">Alex Johnson</h6>
-                      <small className="text-muted d-block">Tech Lead</small>
-                      <small className="text-muted">1 day ago</small>
-                    </div>
+                  {post.text && <p>{post.text}</p>}
+
+                  {post.image && (
+                    <img
+                      src={post.image}
+                      style={{
+                        width: "100%",
+                        borderRadius: 12,
+                        objectFit: "cover",
+                        marginTop: 10,
+                        maxHeight: 420,
+                      }}
+                    />
+                  )}
+
+                  <div className="post-stats">❤️ {post.likes} likes</div>
+
+                  <div className="post-actions">
+                    <button
+                      className="btn btn-action"
+                      onClick={() => toggleLike(post.id)}
+                    >
+                      {post.isLiked ? "💔 Unlike" : "👍 Like"}
+                    </button>
+                    <button className="btn btn-action">💬 Comment</button>
+                    <button className="btn btn-action">🔄 Share</button>
                   </div>
-                  <button className="btn btn-link text-muted">⋮</button>
                 </div>
-                <div className="post-content">
-                  <p>Mentoring session today was amazing! Love helping junior developers grow their skills. Remember: we all started somewhere!</p>
-                </div>
-                <div className="post-stats">
-                  <span>❤️ 412 likes</span>
-                  <span>💬 56 comments</span>
-                  <span>🔄 28 shares</span>
-                </div>
-                <div className="post-actions">
-                  <button className="btn btn-action">
-                    <span className="action-icon">👍</span> Like
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">💬</span> Comment
-                  </button>
-                  <button className="btn btn-action">
-                    <span className="action-icon">🔄</span> Share
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           </Col>
 
-          {/* ========================================= */}
-          {/* RIGHT SIDEBAR - Sponsored Widgets */}
-          {/* ========================================= */}
+          {/* Sidebar */}
           <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
-            {/* Premium Learning Platform */}
-            <div className="widget sponsored-widget mb-3">
-              <div className="widget-badge">Sponsored</div>
-              <h5>Premium Learning Platform</h5>
-              <p>Learn new skills with industry experts</p>
-              <button className="btn btn-widget w-100">Start Learning</button>
-            </div>
+            {ads.map((ad) => (
+              <div key={ad.id} className="widget sponsored-widget mb-3">
+                <div className="widget-badge">Sponsored</div>
 
-            {/* Job Board Pro */}
-            <div className="widget sponsored-widget mb-3">
-              <div className="widget-badge">Sponsored</div>
-              <h5>Job Board Pro</h5>
-              <p>Find your dream job easily</p>
-              <button className="btn btn-widget w-100">Browse Jobs</button>
-            </div>
+                {ad.image ? (
+                  <img
+                    src={`http://localhost:4000/upload/${ad.image}`}
+                    className="ad-img"
+                    alt={ad.name}
+                  />
+                ) : (
+                  <div className="ad-placeholder">พื้นที่โฆษณา</div>
+                )}
 
-            {/* Network & Connect */}
-            <div className="widget sponsored-widget mb-3">
-              <div className="widget-badge">Sponsored</div>
-              <h5>Network & Connect</h5>
-              <p>Build your professional network</p>
-              <button className="btn btn-widget w-100">Join Network</button>
-            </div>
+                <h5>{ad.name}</h5>
+                <p>{ad.description}</p>
 
-            {/* Footer Links */}
-            <div className="footer-links mt-3">
-              <a href="#">About</a> • 
-              <a href="#">Advertising</a> • 
-              <a href="#">Help</a> • 
-              <a href="#">Privacy</a>
-            </div>
+                <button
+                  className="btn btn-widget w-100"
+                  onClick={() => setSelectedAd(ad)}
+                >
+                  ดูรายละเอียด
+                </button>
+              </div>
+            ))}
           </Col>
         </Row>
       </Container>
+
+      {/* Sidebar Modal */}
+      {selectedAd && (
+        <div className="ad-modal-backdrop" onClick={() => setSelectedAd(null)}>
+          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={`http://localhost:4000/upload/${selectedAd.image}`}
+              className="ad-modal-img"
+            />
+
+            <h3>{selectedAd.name}</h3>
+            <p>{selectedAd.description}</p>
+
+            <button
+              className="btn-close-modal"
+              onClick={() => setSelectedAd(null)}
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

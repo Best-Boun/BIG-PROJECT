@@ -1,3 +1,5 @@
+/* src/Pages/Feed/Feed.css */
+
 /* ========================================= */
 /* FEED PAGE - 2 Columns Layout (No Left Sidebar) */
 /* ========================================= */
@@ -9,7 +11,7 @@
 
 .feed-container {
   min-height: calc(100vh - 65px);
-  padding: 25px ;
+  padding: 25px;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -18,13 +20,11 @@
 
 .feed-layout {
   width: 100%;
-  max-width: 1300px;  /* เหมือนรูป */
-  margin: 0 auto;   
+  max-width: 1300px;
+  margin: 0 auto;
 }
 
-/* ========================================= */
-/* MAIN FEED - Left Aligned */
-/* ========================================= */
+/* MAIN FEED */
 .main-feed {
   margin: 0 auto;
 }
@@ -43,9 +43,7 @@
   transform: translateY(-2px);
 }
 
-/* ========================================= */
-/* USER AVATAR - Orange/Yellow Style */
-/* ========================================= */
+/* USER AVATAR */
 .user-avatar {
   width: 48px;
   height: 48px;
@@ -59,9 +57,7 @@
   box-shadow: 0 2px 8px rgba(255, 165, 0, 0.3);
 }
 
-/* ========================================= */
 /* CREATE POST BOX */
-/* ========================================= */
 .create-post-box input {
   border: 1px solid #e0e0e0;
   border-radius: 24px;
@@ -122,9 +118,7 @@
   font-size: 16px;
 }
 
-/* ========================================= */
 /* POST CARD */
-/* ========================================= */
 .post-header {
   display: flex;
   justify-content: space-between;
@@ -179,9 +173,7 @@
   gap: 4px;
 }
 
-/* ========================================= */
-/* POST ACTIONS - Like, Comment, Share */
-/* ========================================= */
+/* ACTIONS */
 .post-actions {
   display: flex;
   gap: 8px;
@@ -213,9 +205,7 @@
   font-size: 16px;
 }
 
-/* ========================================= */
-/* RIGHT SIDEBAR - Sponsored Widgets */
-/* ========================================= */
+/* RIGHT SIDEBAR */
 .right-sidebar {
   padding: 0 15px;
   position: sticky;
@@ -236,17 +226,17 @@
   transform: translateY(-2px);
 }
 
-/* Pink/Purple Gradient for Sponsored Widgets */
+/* Sponsored look */
 .sponsored-widget {
   background: linear-gradient(135deg, #ff6ec7 0%, #c45fff 100%);
   position: relative;
   text-align: center;
   border: none;
   color: white;
-  min-width: 500px;
-  right: 50px;
+  padding: 22px;
 }
 
+/* badge */
 .widget-badge {
   position: absolute;
   top: 10px;
@@ -261,155 +251,132 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+/* title/desc */
 .sponsored-widget h5 {
   margin-top: 10px;
   font-weight: 800;
   color: white;
   font-size: 18px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .sponsored-widget p {
   color: rgba(255, 255, 255, 0.95);
   font-size: 14px;
   margin: 10px 0 15px;
-  font-weight: 500;
 }
 
-.btn-widget {
-  margin-top: 10px;
-  font-weight: 700;
-  background: white;
-  border: none;
-  color: #c45fff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* ad image */
+.ad-img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 
-.btn-widget:hover {
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  color: #c45fff;
+/* placeholder for ad when no image */
+.ad-placeholder {
+  width: 100%;
+  height: 140px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffe8f8, #e8f0ff);
+  color: #6b6b6b;
+  font-weight: 800;
+  margin-bottom: 10px;
 }
 
+/* footer links */
 .footer-links {
   text-align: center;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.8);
   padding: 15px;
   margin-top: 10px;
-  
 }
 
 .footer-links a {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   margin: 0 5px;
-  transition: color 0.3s ease;
 }
 
-.footer-links a:hover {
+/* modal */
+.ad-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.ad-modal {
+  background: white;
+  width: 420px;
+  max-width: 90%;
+  padding: 20px;
+  border-radius: 14px;
+  animation: fadeIn 0.25s ease-out;
+  text-align: center;
+}
+
+.ad-modal-img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  max-height: 250px;
+  object-fit: cover;
+}
+
+/* placeholder inside modal */
+.ad-modal-placeholder {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0f6ff, #fff0f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a8a8a;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.btn-close-modal {
+  background: #ff6ec7;
   color: white;
-  text-decoration: underline;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 15px;
+  cursor: pointer;
+}
+.btn-close-modal:hover {
+  background: #ff4ebe;
 }
 
-/* ========================================= */
-/* RESPONSIVE */
-/* ========================================= */
+/* responsive */
 @media (max-width: 991px) {
   .right-sidebar {
     display: none !important;
   }
-  
   .main-feed {
     padding: 0 15px;
   }
 }
 
-@media (max-width: 768px) {
-  .main-feed {
-    padding: 0 10px;
-  }
-  
-  .feed-container {
-    padding: 15px 0;
-  }
-}
-
 @media (max-width: 576px) {
-  .create-post-box,
-  .post-card {
-    padding: 15px;
+  .ad-placeholder, .ad-img {
+    max-height: 120px;
   }
-  
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-  
-  .post-stats {
-    font-size: 12px;
-    gap: 10px;
-  }
-  
-  .post-actions .btn {
-    font-size: 13px;
-    padding: 8px 10px;
-  }
-  
-  .btn-post-action,
-  .btn-primary-post {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-}
-
-/* ========================================= */
-/* ANIMATIONS */
-/* ========================================= */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.post-card {
-  animation: fadeIn 0.4s ease-out;
-}
-
-.create-post-box {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.widget {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* ========================================= */
-/* SCROLLBAR STYLING */
-/* ========================================= */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.5);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.7);
 }

@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useRef, useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -29,6 +30,7 @@ function Login({ setToken, setRole }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
     const username = userRef.current.value.trim();
     const password = passRef.current.value.trim();
 
@@ -37,25 +39,33 @@ function Login({ setToken, setRole }) {
       animateError();
       return;
     }
-        //ตรวจสอบข้อมูล
+
+    // verifyUser should return a user object: { id, username, role, token, ... }
     const user = await verifyUser(username, password);
 
     if (user) {
       animateSuccess();
 
       setTimeout(() => {
-        localStorage.setItem("token", user.token);
-        localStorage.setItem("role", user.role);
+        // Save authentication info (but DO NOT clear posts)
+        localStorage.setItem("token", user.token || "token-placeholder");
+        localStorage.setItem("role", user.role || "user");
+
+        // Save full current user object for feed/profile usage
+        localStorage.setItem("currentUser", JSON.stringify(user));
+
+        // Save userID for per-user keys (important!)
         localStorage.setItem(
-          "currentUser",
-          JSON.stringify({ username, role: user.role })
+          "userID",
+          user.id?.toString ? user.id.toString() : String(user.id)
         );
 
-        setToken(user.token);
-        setRole(user.role);
+        // update app state
+        if (setToken) setToken(user.token || "token-placeholder");
+        if (setRole) setRole(user.role || "user");
 
-        window.location.href =
-          user.role === "admin" ? "/chart" : "/feed";
+        // navigate
+        window.location.href = user.role === "admin" ? "/chart" : "/feed";
       }, 900);
     } else {
       setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
@@ -96,7 +106,6 @@ function Login({ setToken, setRole }) {
 
   return (
     <div className="login-bg-animated">
-      
       {/* Floating bubbles */}
       <div className="bubble b1" />
       <div className="bubble b2" />
@@ -105,9 +114,11 @@ function Login({ setToken, setRole }) {
       <div className="bubble b5" />
       <div className="bubble b6" />
 
-      <div className={`login-card glow-frame ${shake ? "shake" : ""} ${success ? "success" : ""}`}>
-        
-        {/* Robot */}
+      <div
+        className={`login-card glow-frame ${shake ? "shake" : ""} ${
+          success ? "success" : ""
+        }`}
+      >
         <RobotCoder
           isUsernameTyping={typingUser}
           isPasswordFocused={blinkEye}
@@ -124,7 +135,6 @@ function Login({ setToken, setRole }) {
         <p className="subtitle">Sign in to your account</p>
 
         <Form onSubmit={handleLogin} className="login-form">
-
           <Form.Group className="mb-3">
             <div className="input-with-icon">
               <i className="bi bi-envelope" />
@@ -152,7 +162,9 @@ function Login({ setToken, setRole }) {
               />
 
               <i
-                className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} password-icon-right ${rotateEye ? "rotate" : ""}`}
+                className={`bi ${
+                  showPassword ? "bi-eye" : "bi-eye-slash"
+                } password-icon-right ${rotateEye ? "rotate" : ""}`}
                 onClick={togglePassword}
               />
             </div>
@@ -173,9 +185,7 @@ function Login({ setToken, setRole }) {
           >
             สมัครสมาชิกใหม่
           </Button>
-
         </Form>
-
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+// src/pages/Register.jsx
 import React, { useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -23,19 +24,21 @@ function Register() {
       return;
     }
 
+    // registerUser should return { success: true, message: "...", user: { id, username, email, role } }
     const result = await registerUser(username, email, password);
-    setMessage(result.message);
+    setMessage(result.message || "Registered");
 
     if (result.success) {
+      // if API returns user data, we can auto-save or redirect
+      // but we will redirect to login for now
       setTimeout(() => {
         window.location.href = "/";
-      }, 1500);
+      }, 1200);
     }
   };
 
   return (
     <div className="login-bg-animated">
-      {/* NEON FRAME HERE */}
       <div className="login-card glow-frame">
         <h2 className="login-logo">
           <span>Smart</span>Persona

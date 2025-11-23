@@ -5,10 +5,8 @@
       "name": "SmartPersona – User Signup Campaign",
       "description": "สมัครใช้งาน SmartPersona วันนี้ รับสิทธิพิเศษ",
       "image": "",
-      "position": "feed",
-      "sizePreset": "medium",
-      "customWidth": "",
-      "customHeight": "",
+      "position": "banner",
+      "sizePreset": "small",
       "date": "2025-11-18",
       "active": true
     },
@@ -19,13 +17,21 @@
       "image": "",
       "position": "banner",
       "sizePreset": "small",
-      "customWidth": "100",
-      "customHeight": "100",
       "date": "2025-11-18",
       "active": true
     },
     {
       "id": "1763549710234_g5to",
+      "name": "Hii",
+      "description": "คำอธิบาย...",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "date": "2025-11-19",
+      "active": true
+    },
+    {
+      "id": "1763818914253_4uxf",
       "name": "New Ad",
       "description": "คำอธิบาย...",
       "image": "",
@@ -33,7 +39,19 @@
       "sizePreset": "medium",
       "customWidth": "",
       "customHeight": "",
-      "date": "2025-11-19",
+      "date": "2025-11-22",
+      "active": false
+    },
+    {
+      "id": "1763818927519_81ns",
+      "name": "New Ad",
+      "description": "คำอธิบาย...",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "customWidth": "",
+      "customHeight": "",
+      "date": "2025-11-22",
       "active": false
     }
   ]

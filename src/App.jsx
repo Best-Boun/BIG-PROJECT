@@ -1,9 +1,3 @@
-// ==========================================
-// 🎯 APP.JSX - Main Application with Routing (UPDATED)
-// ==========================================
-// Flow: Landing → Login → User Pages (Profile, Feed, etc.)
-// UPDATED: Added admin-layout and user-layout classes for proper styling
-
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 

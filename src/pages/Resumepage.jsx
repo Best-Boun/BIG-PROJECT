@@ -4,13 +4,20 @@ import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { ProfileContext } from "../ProfileContext.jsx";
 import ResumeEditor from './ResumeEditor.jsx';
 // import './Resumepage.css';
+import Header2 from '../components/Header2';
 
-// ============================================
-// CHOOSE MODE SCREEN
-// ============================================
+
+ const handleLogout = () => {
+        // ตัวอย่าง: ล้าง token และ redirect
+        localStorage.removeItem('token');
+        window.location.href = '/login'; // หรือใช้ useNavigate
+    };
+
+    const currentUser = { username: 'John Doe', role: 'user' }; // หรือ user จาก context/state จริง
 function ChooseModeScreen({ onSelectMode }) {
   return (
     <div className="choose-mode-container">
+      <Header2 user={currentUser} onLogout={handleLogout} />
       <Container style={{width:'100%', padding:'20px'}} className="py-5">
         <div className="mode-header mb-5">
           <h1>Create Your Resume</h1>

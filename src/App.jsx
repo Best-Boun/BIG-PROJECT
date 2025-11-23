@@ -22,6 +22,9 @@ import ChartPage from "./pages/ChartPage";
 import AdsManagement from "./pages/AdsManagement";
 import AdminManagement from "./pages/AdminManagement";
 import Landing from "./pages/Landing";
+import Feature1 from "./components/Feature1";
+import Feature2 from "./components/Feature2";
+import Feature3 from "./components/Feature3";
 
 
 // ============ WRAPPER COMPONENTS ============
@@ -189,6 +192,9 @@ function AppContent() {
             {/* 📄 Resume Page */}
             <Route path="/resume" element={<ResumepageWrapper />} />
 
+            <Route path="/feature1" element={<Feature1 />} />
+            <Route path="/feature2" element={<Feature2 />} />
+            <Route path="/feature3" element={<Feature3 />} />
 
             {/* Default - Redirect to Feed */}
             <Route path="/" element={<Navigate to="/feed" replace />} />

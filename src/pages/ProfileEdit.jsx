@@ -1,7 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { ProfileContext } from "../ProfileContext";
+import { useNavigate } from 'react-router-dom';
 import './ProfileEdit.css';
-// Reusable Section Header with Privacy Toggle
+
+
+
 const SectionHeader = ({ title, sectionName, togglePrivacy, isPublic }) => (
     <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>
@@ -39,6 +42,7 @@ const SectionHeader = ({ title, sectionName, togglePrivacy, isPublic }) => (
     </div>
 );
 function ProfileEdit({ onNavigate }) {
+    const navigate = useNavigate();
     const { profileData, updateProfile, addArrayItem, updateArrayItem, removeArrayItem } = useContext(ProfileContext);
     const [profile, setProfile] = useState(profileData || {});
     const [originalProfile, setOriginalProfile] = useState(profileData || {});
@@ -56,6 +60,7 @@ function ProfileEdit({ onNavigate }) {
         publication: false,
         expertise: false
     });
+
     // Form states
     const [forms, setForms] = useState({
         experience: { title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
@@ -74,7 +79,7 @@ function ProfileEdit({ onNavigate }) {
             setProfile(profileData);
             setOriginalProfile(JSON.parse(JSON.stringify(profileData)));
 
-            // Ã Â¹â‚¬Ã Â¸Å Ã Â¹â€¡Ã Â¸â€ž localStorage Ã Â¸ÂªÃ Â¸Â³Ã Â¸Â«Ã Â¸Â£Ã Â¸Â±Ã Â¸Å¡ GitHub connected status
+            
             const isGitHubConnected = localStorage.getItem('github_connected') === 'true';
             if (isGitHubConnected) {
                 setProfile(prevProfile => ({
@@ -84,6 +89,11 @@ function ProfileEdit({ onNavigate }) {
             }
         }
     }, [profileData]);
+
+      const handleCustomizeClick = () => {
+    navigate('/feature1'); // ✅ ใช้ navigate โดยตรง
+  };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setProfile({ ...profile, [name]: value });
@@ -1124,6 +1134,7 @@ function ProfileEdit({ onNavigate }) {
                                 e.target.style.backgroundColor = 'white';
                                 e.target.style.color = '#6a11cb';
                             }}
+                            onClick={handleCustomizeClick}
                         >
                             Customize
                         </button>

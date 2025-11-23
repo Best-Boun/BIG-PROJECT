@@ -54,16 +54,8 @@ function ChartSection() {
     ],
   };
 
-  // 👥 เพศของผู้ใช้
-  const genderData = {
-    labels: ["Female", "Male", "Other"],
-    datasets: [
-      {
-        data: [48, 50, 2],
-        backgroundColor: ["#ec4899", "#3b82f6", "#a855f7"],
-      },
-    ],
-  };
+  
+ 
 
   // 🔢 ผู้ใช้ทั้งหมด (รวม)
   const totalUsers = {

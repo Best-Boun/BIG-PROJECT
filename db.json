@@ -13,6 +13,7 @@
       "role": "user"
     },
     {
+<<<<<<< HEAD
       "id": "4a2f",
       "username": "san",
       "email": "san@gmail",
@@ -20,6 +21,15 @@
       "name": "san",
       "role": "user",
       "createdAt": "2025-11-22T16:31:11.817Z"
+=======
+      "id": "d507",
+      "username": "rrr",
+      "email": "awdadad@123131a",
+      "password": "1",
+      "name": "rrr",
+      "role": "user",
+      "createdAt": "2025-11-22T13:21:37.107Z"
+>>>>>>> 45e3d9a13fcade90501bc90e7fa66b45a69c12ea
     }
   ],
   "profiles": [],

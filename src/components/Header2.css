@@ -156,21 +156,20 @@
 }
 
 .user-avatar {
-    font-size: 1.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 255, 255, 0.2);
+    width: 35px;      /* ขนาด avatar */
+    height: 35px;
     border-radius: 50%;
+    background: none; /* ลบสีพื้นหลัง */
+    border: none;     /* ลบ border */
+    padding: 0;
+    display: inline-block;
 }
 
 .user-avatar .avatar-img {
-    width: 35px;
-    height: 35px;
+   width: 100%;
+    height: 100%;
     border-radius: 50%;
-    object-fit: cover;
+    object-fit: cover; 
 }
 
 .user-name {

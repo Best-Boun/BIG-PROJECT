@@ -5,7 +5,7 @@
 .glass-root{ display:grid; grid-template-columns: 280px 1fr 260px; gap:20px; height:100vh; padding:24px; box-sizing:border-box; background: radial-gradient(closest-corner at 20% 10%, #0c1530 0%, transparent 10%), radial-gradient(closest-corner at 90% 90%, #1b0f2c 0%, transparent 15%), #050816; }
 
 /* Sidebar */
-.sidebar{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:16px; display:flex; flex-direction:column; backdrop-filter: blur(8px); box-shadow: 0 8px 40px rgba(10,10,20,0.6); border:1px solid rgba(255,255,255,0.04); }
+.sidebar2{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:16px; display:flex; flex-direction:column; backdrop-filter: blur(8px); box-shadow: 0 8px 40px rgba(10,10,20,0.6); border:1px solid rgba(255,255,255,0.04); }
 .sb-top h3{ color:#eaf2ff; margin:0 0 8px 0; font-size:16px }
 .sb-controls{ display:flex; gap:8px; align-items:center }
 .sb-search{ flex:1; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); color:#eaf2ff }
@@ -40,7 +40,7 @@
 .ms.active, .ms.active:focus, .ms:active{ background: linear-gradient(90deg,#7a5cff,#00c6ff); color:#051028 }
 
 /* Card */
-.card{ position:relative; border-radius:16px; min-height:360px; overflow:hidden; box-shadow: 0 30px 80px rgba(4,8,20,0.7); border:1px solid rgba(255,255,255,0.03); background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); }
+.card2{ position:relative; border-radius:16px; min-height:360px; overflow:hidden; box-shadow: 0 30px 80px rgba(4,8,20,0.7); border:1px solid rgba(255,255,255,0.03); background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); }
 .card-bg{ position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0.06 }
 .card-bg.g1{ background: linear-gradient(135deg,#7a5cff 0%, #00c6ff 100%); opacity:0.08 }
 .card-bg.g2{ background: linear-gradient(135deg,#ff6ec7 0%, #7a5cff 100%); opacity:0.08 }

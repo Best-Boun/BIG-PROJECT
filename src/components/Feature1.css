@@ -36,7 +36,7 @@ body{
 }
 
 /* left sidebar */
-.sidebar{
+.sidebar2{
   position: sticky;
   top: 28px;
   height: calc(100vh - 56px);
@@ -44,8 +44,8 @@ body{
   padding-right: 6px;
   z-index: 20;
 }
-.sidebar::-webkit-scrollbar{ width:8px }
-.sidebar::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px }
+.sidebar2::-webkit-scrollbar{ width:8px }
+.sidebar2::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px }
 
 /* card */
 .card{
@@ -203,13 +203,13 @@ input[type="range"]{ height:20px }
 /* responsive */
 @media (max-width:1100px){
   .feature1-container{ grid-template-columns: 1fr; gap:26px; padding:16px }
-  .sidebar{ order:2; position:static; height:auto; max-height:none; overflow:visible }
+  .sidebar2{ order:2; position:static; height:auto; max-height:none; overflow:visible }
   .preview-area{ order:1; padding: 0 10px }
   .preview-card{ max-width:100% }
 }
 
 /* ensure sidebar controls are always on top (prevents preview overlap) */
-.sidebar, .card, .preset-button, .btn { position: relative; z-index: 40 }
+.sidebar2, .card, .preset-button, .btn { position: relative; z-index: 40 }
 
 /* small helpers */
 button:focus{ outline: none; box-shadow: 0 6px 18px rgba(122,92,255,0.08) }

@@ -1,11 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./Feature3.css";
 
-// Feature3 — Glass + Neon (Premium)
-// - Glassmorphism + subtle neon glow
-// - Improved visual hierarchy, compact skill bars, refined sidebar
-// - Responsive, accessible, keyboard-friendly
-
 export default function Feature3() {
   const [profiles, setProfiles] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -120,7 +115,7 @@ export default function Feature3() {
 
   return (
     <div className="glass-root">
-      <aside className="sidebar">
+      <aside className="sidebar2">
         <div className="sb-top">
           <h3>เลือกโปรไฟล์</h3>
           <div className="sb-controls">
@@ -192,7 +187,7 @@ export default function Feature3() {
           </div>
         </div>
 
-        <section className="card" aria-live="polite">
+        <section className="card2" aria-live="polite">
           <div className={`card-bg ${themePreview==='g1' ? 'g1' : themePreview==='g2' ? 'g2' : ''}`} />
           <div className="card-body">
             {/* HR */}

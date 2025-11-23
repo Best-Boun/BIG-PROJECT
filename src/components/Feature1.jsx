@@ -110,7 +110,7 @@ export default function Feature1() {
   return (
     <div className="feature1-container">
       {/* ---------------- LEFT SIDEBAR ---------------- */}
-      <aside className="sidebar">
+      <aside className="sidebar2">
 
         {/* PRESETS */}
         <div className="card">

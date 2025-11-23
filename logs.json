@@ -119,6 +119,22 @@
       "target": "SmartPersona – User Signup Campaign",
       "detail": "platform: Facebook",
       "time": "2025-11-18T09:52:31.768Z"
+    },
+    {
+      "id": "d7d101f3-1ddf-4b18-8295-9f99997e9186",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น admin",
+      "time": "2025-11-22T16:31:57.117Z"
+    },
+    {
+      "id": "69c9d2bc-fc27-4bda-b8da-e64e95823787",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น user",
+      "time": "2025-11-22T16:32:17.437Z"
     }
   ]
 }

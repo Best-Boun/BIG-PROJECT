@@ -428,3 +428,37 @@
         transform: translateX(4px);
     }
 }
+/* ========================================
+   🔥 ADD — Force username to right side of avatar
+   ======================================== */
+
+.user-menu-trigger {
+    display: flex !important;
+    align-items: center;
+    flex-direction: row !important;    /* บังคับให้ชื่ออยู่ขวา */
+    gap: 12px !important;
+}
+
+.user-avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ชื่อผู้ใช้ อยู่ขวาของรูป */
+.user-name {
+    display: inline-block !important;
+    color: white !important;
+    font-weight: 600;
+    white-space: nowrap;
+}

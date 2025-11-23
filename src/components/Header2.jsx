@@ -9,11 +9,9 @@ import "./Header2.css";
 export default function Header2({ user, onLogout }) {
   const { profileData } = useContext(ProfileContext);
 
-  // 🔥 ถ้ามีโปรไฟล์ให้ใช้ profileData แทน user props
+  // ใช้ตัวที่มี name ก่อน (profileData → user)
   const currentUser =
-    profileData && profileData.name && profileData.name.trim() !== ""
-      ? profileData
-      : user;
+    profileData && profileData.name?.trim() !== "" ? profileData : user;
 
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,7 +27,7 @@ export default function Header2({ user, onLogout }) {
           <span className="logo-text">Smart Persona</span>
         </Navbar.Brand>
 
-        <Navbar.Collapse id="basic-navbar-nav" in={isMenuOpen}>
+        <Navbar.Collapse in={isMenuOpen}>
           <Nav className="ms-auto nav-main-sections">
             <Nav.Link
               href="/feed"
@@ -75,6 +73,7 @@ export default function Header2({ user, onLogout }) {
                   id="user-dropdown"
                   className="user-menu-trigger"
                 >
+                  {/* Avatar */}
                   <span className="user-avatar">
                     <img
                       src={
@@ -89,6 +88,7 @@ export default function Header2({ user, onLogout }) {
                     />
                   </span>
 
+                  {/* Name (ตอนนี้อยู่ขวาของรูปแล้ว) */}
                   <span className="user-name">{currentUser.name}</span>
                 </Dropdown.Toggle>
 

@@ -1095,28 +1095,16 @@ function ProfileEdit({ onNavigate }) {
                         </div>
                     )}
                     {/* ACTION BUTTONS */}
-                    <div style={{ marginTop: '30px', display: 'flex', gap: '15px' }}>
+                    <div
+                        style={{
+                            marginTop: '30px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '15px',
+                        }}
+                    >
+                        {/* Left button */}
                         <button
-                            onClick={handleSave}
-                            style={{
-                                padding: '12px 30px',
-                                backgroundColor: '#27ae60',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: '600',
-                                fontSize: '16px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s',
-                                boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)'
-                            }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#229954'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#27ae60'}
-                        >
-                            Save All Changes
-                        </button>
-                        <button
-                            onClick={() => onNavigate('profile')}
                             style={{
                                 padding: '12px 30px',
                                 backgroundColor: 'white',
@@ -1137,9 +1125,58 @@ function ProfileEdit({ onNavigate }) {
                                 e.target.style.color = '#6a11cb';
                             }}
                         >
-                            View Profile
+                            Customize
                         </button>
+
+                        {/* กลุ่มปุ่มขวา */}
+                        <div style={{ display: 'flex', gap: '15px', marginLeft: 'auto' }}>
+                            <button
+                                onClick={handleSave}
+                                style={{
+                                    padding: '12px 30px',
+                                    backgroundColor: '#27ae60',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: '600',
+                                    fontSize: '16px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)'
+                                }}
+                                onMouseEnter={(e) => (e.target.style.backgroundColor = '#229954')}
+                                onMouseLeave={(e) => (e.target.style.backgroundColor = '#27ae60')}
+                            >
+                                Save All Changes
+                            </button>
+
+                            <button
+                                onClick={() => onNavigate('profile')}
+                                style={{
+                                    padding: '12px 30px',
+                                    backgroundColor: 'white',
+                                    color: '#6a11cb',
+                                    border: '2px solid #6a11cb',
+                                    borderRadius: '8px',
+                                    fontWeight: '600',
+                                    fontSize: '16px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = '#6a11cb';
+                                    e.target.style.color = 'white';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = 'white';
+                                    e.target.style.color = '#6a11cb';
+                                }}
+                            >
+                                View Profile
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
             {/* MODALS - All kept as in original */}

@@ -11,6 +11,15 @@
       "username": "user",
       "password": "1",
       "role": "user"
+    },
+    {
+      "id": "d507",
+      "username": "rrr",
+      "email": "awdadad@123131a",
+      "password": "1",
+      "name": "rrr",
+      "role": "user",
+      "createdAt": "2025-11-22T13:21:37.107Z"
     }
   ],
   "profiles": [],

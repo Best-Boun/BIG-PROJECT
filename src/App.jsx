@@ -23,6 +23,7 @@ import AdsManagement from "./pages/AdsManagement";
 import AdminManagement from "./pages/AdminManagement";
 import Landing from "./pages/Landing";
 
+
 // ============ WRAPPER COMPONENTS ============
 
 // Wrapper for Profilepublic with navigation
@@ -198,8 +199,13 @@ function AppContent() {
         </main>
       </div>
     </ProfileProvider>
-  );
+    );
 }
+
+ 
+
+
+
 
 // ============ MAIN APP COMPONENT ============
 

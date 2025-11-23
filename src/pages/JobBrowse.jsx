@@ -1,8 +1,3 @@
-// ==========================================
-// 🔍 JOB BROWSE PAGE
-// ==========================================
-// ใช้: ค้นหาและแสดงรายการงาน + Filter
-// ความเข้าใจ: Component นี้มีการค้นหา, filter, และแสดง JobCard หลายใบ
 
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
@@ -10,6 +5,8 @@ import { FaSearch, FaFilter } from 'react-icons/fa';
 import { mockJobs, mockFilters, mockCurrentUser } from '../data/mockDataJob';
 import JobCard from '../components/JobCard';
 import './JobBrowse.css';
+import Header2 from '../components/Header2';
+
 
 export default function JobBrowse() {
     // ✅ State Variables
@@ -115,7 +112,17 @@ export default function JobBrowse() {
         setSelectedSalaryRange('');
     };
 
+     const handleLogout = () => {
+        // ตัวอย่าง: ล้าง token และ redirect
+        localStorage.removeItem('token');
+        window.location.href = '/login'; // หรือใช้ useNavigate
+    };
+
+    const currentUser = mockCurrentUser; // หรือ user จาก context/state จริง
+
     return (
+        <>
+        <Header2 user={currentUser} onLogout={handleLogout} />
         <Container fluid className="job-browse-container">
             {/* Page Header */}
             <div className="page-header">
@@ -264,51 +271,10 @@ export default function JobBrowse() {
                 </Col>
             </Row>
         </Container>
+        </>
     );
 }
 
-/*
-📖 อธิบาย JobBrowse Component:
 
-1. **State Management:**
-   - jobs = ข้อมูลงานทั้งหมด
-   - filteredJobs = ผลลัพธ์หลังจาก filter
-   - favorites = รหัสงานที่ saved
-   - searchTerm, selectedLocation, ... = ค่า filter ต่างๆ
-
-2. **useEffect Hook:**
-   - ทำงานเมื่อ search หรือ filter เปลี่ยน
-   - เรียก applyFilters() เพื่อคำนวณผลลัพธ์
-   - setTimeout = simulate API delay
-
-3. **applyFilters() Function:**
-   - ตัวกรอง jobs ตามเงื่อนไข 5 ประการ:
-     ✅ Search term (title, company)
-     ✅ Location
-     ✅ Job type
-     ✅ Level
-     ✅ Salary range
-   - มาตรฐาน "pipeline" (ชั้นละตัว)
-
-4. **Event Handlers:**
-   - handleFavoriteToggle() = เพิ่ม/ลบ favorite
-   - handleViewDetails() = ไปหน้า detail
-   - handleApplyJob() = สมัครงาน
-   - handleClearFilters() = ล้าง filter
-
-5. **JSX Structure:**
-   - Left Sidebar (lg={3}) = Filters
-   - Right Section (lg={9}) = Job Cards
-   - Form.Select + Form.Control = Input fields
-
-6. **Responsive:**
-   - ปุ่ม "Show Filters" สำหรับ mobile (d-lg-none)
-   - Sidebar ซ่อนเมื่อขนาด screen เล็ก
-
-7. **ใช้ Components:**
-   - <JobCard /> = render job card ซ้ำ
-   - <Spinner /> = loading indicator
-   - <Form.Select /> = dropdown filter
-*/
 
 

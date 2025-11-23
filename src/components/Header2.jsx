@@ -85,13 +85,13 @@ export default function Header2 ({ user, onLogout }) {
     <img 
         src={user.profileImage && (user.profileImage.startsWith('data:') || user.profileImage.startsWith('http'))
             ? user.profileImage
-            : '/default-avatar.png'
+            : '/avatar.png'
         }
         alt="avatar"
         className="avatar-img"
     />
 </span>
-                                    <span className="user-name">{user.name}</span>
+                                    <span className="user-name">{ user.name }</span>
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu align="end">

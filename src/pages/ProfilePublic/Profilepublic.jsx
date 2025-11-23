@@ -118,6 +118,14 @@ const ProfilePublic = ({ onNavigate }) => {
     }
   };
 
+  const handleLogout = () => {
+        // ตัวอย่าง: ล้าง token และ redirect
+        localStorage.removeItem('token');
+        window.location.href = '/login'; // หรือใช้ useNavigate
+    };
+
+    const currentUser = { username: 'John Doe', role: 'user' };
+
   
 
   if (!profileData) {
@@ -139,6 +147,8 @@ const ProfilePublic = ({ onNavigate }) => {
 
   if (!hasProfileData) {
     return (
+      <>
+      <Header2 user={currentUser} onLogout={handleLogout} />
       <div style={{
         background: 'linear-gradient(135deg, rgba(106, 17, 203, 0.95) 0%, rgba(37, 117, 252, 0.95) 100%)',
         color: 'white',
@@ -182,12 +192,13 @@ const ProfilePublic = ({ onNavigate }) => {
           </button>
         </div>
       </div>
+      </>
     );
   }
 
   return (
     <>
-    <Header2 user={profileData} onLogout={() => console.log("Logout")} />
+    <Header2 user={currentUser} onLogout={handleLogout} />
       
       {/* Header Section */}
       <header className="profile-header">

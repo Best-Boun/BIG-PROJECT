@@ -85,6 +85,7 @@
 .post-buttons {
   display: flex;
   gap: 10px;
+  
 }
 
 .btn-post-action {

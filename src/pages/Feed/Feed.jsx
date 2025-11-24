@@ -4,6 +4,8 @@ import { Container, Row, Col } from "react-bootstrap";
 import Header2 from "../../components/Header2";
 import { ProfileContext } from "../../ProfileContext";
 import "./Feed.css";
+import applex from "../../assets/appleex.png";
+
 
 const POSTS_KEY = "smartPersonaPosts";
 
@@ -35,9 +37,7 @@ export default function Feed({ user, onLogout }) {
 
   const fileInputRef = useRef();
 
-  // -------------------------------------------
-  // Load posts with safe fallback + seed
-  // -------------------------------------------
+  
   useEffect(() => {
     const loaded = localStorage.getItem(POSTS_KEY);
 
@@ -59,7 +59,7 @@ export default function Feed({ user, onLogout }) {
       {
         id: Date.now() + 101,
         type: "post",
-        user: { name: "Sarah Chen", avatar: "/default-avatar.png" },
+        user: { name: "Sarah Chen", avatar: applex },
         text: "Just finished an amazing project with my team!",
         image: null,
         likes: 12,
@@ -285,7 +285,7 @@ export default function Feed({ user, onLogout }) {
                 </button>
 
                 <button
-                  className="btn btn-primary-post"
+                  className="btn btn-primary"
                   onClick={handleCreatePost}
                 >
                   Post
@@ -386,7 +386,7 @@ export default function Feed({ user, onLogout }) {
                 <p>{ad.description}</p>
 
                 <button
-                  className="btn btn-widget w-100"
+                  className="btn btn-widget w-100 btn-warning"
                   onClick={() => setSelectedAd(ad)}
                 >
                   ดูรายละเอียด

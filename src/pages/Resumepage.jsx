@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { ProfileContext } from "../ProfileContext.jsx";
 import ResumeEditor from './ResumeEditor.jsx';
-// import './Resumepage.css';
+import './Resumepage.css';
 import Header2 from '../components/Header2';
 
 
@@ -16,8 +16,9 @@ import Header2 from '../components/Header2';
     const currentUser = { username: 'John Doe', role: 'user' }; // หรือ user จาก context/state จริง
 function ChooseModeScreen({ onSelectMode }) {
   return (
+    <>
+    <Header2 user={currentUser} onLogout={handleLogout} />
     <div className="choose-mode-container">
-      <Header2 user={currentUser} onLogout={handleLogout} />
       <Container style={{width:'100%', padding:'20px'}} className="py-5">
         <div className="mode-header mb-5">
           <h1>Create Your Resume</h1>
@@ -104,6 +105,7 @@ function ChooseModeScreen({ onSelectMode }) {
         </Card>
       </Container>
     </div>
+    </>
   );
 }
 

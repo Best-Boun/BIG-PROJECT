@@ -75,7 +75,7 @@ function Sidebar({ role, onLogout }) {
           }}
         >
           <option value="faqbot">จัดการงาน</option>
-          <option value="browserllmbot">ตรวจสอบ</option>
+          <option value="browserllmbot">BOBA</option>
         </select>
         {Bot ? <Bot /> : null}
       </div>

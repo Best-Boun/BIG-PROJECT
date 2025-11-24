@@ -11,12 +11,15 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 40px 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* ← เปลี่ยนจาก center เป็น flex-start */
+  justify-content: center;
 }
 
+
 .mode-header {
-  text-align: center;
+   text-align: center;
   color: white;
+  margin-bottom: 40px; /* ← เพิ่ม margin ล่าง */
 }
 
 .mode-header h1 {
@@ -39,9 +42,19 @@
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  min-height: 500px;
+  min-height: 400px; /* ← ลดความสูงลง */
+  height: auto; /* ← เปลี่ยนเป็น auto */
   display: flex;
   flex-direction: column;
+}
+
+.mode-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .mode-card:hover {
@@ -349,6 +362,7 @@
 @media (max-width: 768px) {
   .choose-mode-container {
     padding: 20px 0;
+    align-items: flex-start;
   }
 
   .mode-header h1 {
@@ -361,7 +375,13 @@
   }
 
   .mode-card {
-    min-height: 400px;
+    min-height: 350px;
+  }
+
+  .mode-cards-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 15px;
   }
 
   .mode-icon {

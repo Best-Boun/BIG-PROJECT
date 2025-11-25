@@ -4,6 +4,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import Header2 from "../../components/Header2";
 import { ProfileContext } from "../../ProfileContext";
 import "./Feed.css";
+import Swal from "sweetalert2";
 
 const POSTS_KEY = "smartPersonaPosts";
 
@@ -12,7 +13,7 @@ export default function Feed({ user, onLogout }) {
   const { profileData } = useContext(ProfileContext);
 
   // -------------------------------------------
-  // ✅ ใช้ user จาก localStorage เป็นหลัก (แก้บัคชื่อไม่ตรง Header)
+  // Use user from localStorage
   // -------------------------------------------
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
@@ -36,7 +37,7 @@ export default function Feed({ user, onLogout }) {
   const fileInputRef = useRef();
 
   // -------------------------------------------
-  // Load posts with safe fallback + seed
+  // Load posts
   // -------------------------------------------
   useEffect(() => {
     const loaded = localStorage.getItem(POSTS_KEY);
@@ -44,22 +45,23 @@ export default function Feed({ user, onLogout }) {
     if (loaded) {
       try {
         const parsed = JSON.parse(loaded);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        const missingAvatar = parsed.some((p) => !p.user?.avatar);
+
+        if (!missingAvatar && Array.isArray(parsed) && parsed.length > 0) {
           setPosts(parsed);
           return;
         }
-        // eslint-disable-next-line no-unused-vars
-      } catch (err) {
-        console.warn("❌ Posts broken → reseeding…");
+      } catch  {
+        console.warn("Posts broken → reseeding…");
       }
     }
 
-    // Seed posts (ของคนอื่น)
+    // Seed Posts
     const seedPosts = [
       {
         id: Date.now() + 101,
         type: "post",
-        user: { name: "Sarah Chen", avatar: "/default-avatar.png" },
+        user: { name: "Sarah Chen", avatar: "/avatars/2.png" },
         text: "Just finished an amazing project with my team!",
         image: null,
         likes: 12,
@@ -71,7 +73,7 @@ export default function Feed({ user, onLogout }) {
       {
         id: Date.now() + 102,
         type: "post",
-        user: { name: "John Smith", avatar: "/default-avatar.png" },
+        user: { name: "John Smith", avatar: "/avatars/1.png" },
         text: "Excited to announce that I've been promoted!",
         image: null,
         likes: 34,
@@ -83,7 +85,7 @@ export default function Feed({ user, onLogout }) {
       {
         id: Date.now() + 103,
         type: "post",
-        user: { name: "Emily Watson", avatar: "/default-avatar.png" },
+        user: { name: "Emily Watson", avatar: "/avatars/3.png" },
         text: "Working remotely today ☕🌥️",
         image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
         likes: 5,
@@ -95,9 +97,9 @@ export default function Feed({ user, onLogout }) {
       {
         id: Date.now() + 104,
         type: "ad",
-        user: { name: "SmartPersona Ads", avatar: "/default-avatar.png" },
+        user: { name: "SmartPersona Ads", avatar: "/Ads_Img/ADS1.png" },
         text: "SmartPersona – AI Resume Promo (50% Off)",
-        image: "https://images.unsplash.com/photo-1581091870627-3d17856a8c49",
+        image: "/Ads_Img/ADS1.png",
         likes: 12,
         isLiked: false,
         comments: 1,
@@ -111,7 +113,7 @@ export default function Feed({ user, onLogout }) {
   }, []);
 
   // -------------------------------------------
-  // Save posts quickly
+  // Save posts
   // -------------------------------------------
   const savePosts = (updated) => {
     setPosts(updated);
@@ -129,7 +131,7 @@ export default function Feed({ user, onLogout }) {
   }, []);
 
   // -------------------------------------------
-  // Resize photo before upload
+  // Resize photo
   // -------------------------------------------
   const resizeImageFileToDataUrl = (file, maxWidth = 900) => {
     return new Promise((resolve) => {
@@ -190,7 +192,6 @@ export default function Feed({ user, onLogout }) {
     };
 
     savePosts([newPost, ...posts]);
-
     setPostText("");
     setPostImage(null);
   };
@@ -213,15 +214,35 @@ export default function Feed({ user, onLogout }) {
   };
 
   // -------------------------------------------
-  // Delete post
+  // Delete with SweetAlert2
   // -------------------------------------------
-  const deletePost = (id) => {
-    if (!confirm("Delete this post?")) return;
-    savePosts(posts.filter((p) => p.id !== id));
+  const deletePost = async (id) => {
+    const result = await Swal.fire({
+      title: "ลบโพสต์นี้?",
+      text: "คุณแน่ใจนะว่าจะลบโพสต์นี้",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "ลบเลย",
+      cancelButtonText: "ยกเลิก",
+    });
+
+    if (result.isConfirmed) {
+      savePosts(posts.filter((p) => p.id !== id));
+
+      Swal.fire({
+        title: "ลบสำเร็จ!",
+        text: "โพสต์ถูกลบเรียบร้อยแล้ว",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    }
   };
 
   // -------------------------------------------
-  // Render UI
+  // Render
   // -------------------------------------------
   return (
     <div className="feed-page">
@@ -397,7 +418,7 @@ export default function Feed({ user, onLogout }) {
         </Row>
       </Container>
 
-      {/* Sidebar Modal */}
+      {/* Modal Ads */}
       {selectedAd && (
         <div className="ad-modal-backdrop" onClick={() => setSelectedAd(null)}>
           <div className="ad-modal" onClick={(e) => e.stopPropagation()}>

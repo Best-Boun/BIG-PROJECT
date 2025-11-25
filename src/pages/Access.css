@@ -1,140 +1,59 @@
 /* ============================================================
-   GLOBAL FONT + BODY
+   FONT + GLOBAL
 ============================================================ */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Kanit:wght@300;500;600&display=swap");
 
 body {
   font-family: "Poppins", "Kanit", sans-serif;
-  background: linear-gradient(135deg, #e8edff, #f4e8ff);
+  background: linear-gradient(135deg, #eef2ff, #f7ecff);
   margin: 0;
-  color: #333;
   min-height: 100vh;
+  transition: background .3s ease;
 }
 
 /* ============================================================
-   GENERAL PAGE CONTAINER
+   PAGE CONTAINER
 ============================================================ */
 .page-container {
   width: 90%;
   max-width: 1200px;
   margin: 40px auto;
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
   padding: 35px 40px;
+  border-radius: 26px;
   backdrop-filter: blur(12px);
-  box-shadow: 0 20px 50px rgba(80, 80, 120, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 50px rgba(50, 50, 100, 0.15);
   transition: 0.3s ease;
 }
 .page-container:hover {
   transform: translateY(-3px);
-  box-shadow: 0 28px 65px rgba(70, 70, 110, 0.25);
 }
 
 /* ============================================================
-   BUTTONS
-============================================================ */
-.btn {
-  padding: 9px 16px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: 0.2s ease;
-}
-.btn:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-}
-
-.btn-add {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: #fff;
-}
-
-.btn-save {
-  background: linear-gradient(135deg, #5677ff, #7a3cff);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-delete {
-  background: linear-gradient(135deg, #ff4d4d, #ff2f2f);
-  color: #fff;
-}
-
-.btn-manage {
-  background: linear-gradient(135deg, #ffc107, #ffb300);
-  color: #000;
-}
-
-.btn-view {
-  background: #eef1ff;
-  color: #2f4adf;
-  border: 1px solid #ccd6ff;
-}
-.btn-view:hover {
-  background: #d7ddff;
-}
-
-/* ============================================================
-   POPUP
-============================================================ */
-.popup {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: linear-gradient(135deg, #5677ff, #7a3cff);
-  color: #fff;
-  padding: 14px 20px;
-  border-radius: 14px;
-  opacity: 0;
-  transform: translateY(15px);
-  transition: 0.3s;
-  z-index: 9999;
-  font-weight: 600;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-}
-.popup.fade {
-  opacity: 1;
-  transform: translateY(0);
-}
-.popup.success {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-}
-.popup.error {
-  background: linear-gradient(135deg, #ff4d4d, #ff2f2f);
-}
-.popup.info {
-  background: linear-gradient(135deg, #57b6ff, #4a9cff);
-}
-
-
-/* ============================================================
-   ADMIN MANAGEMENT
+   HEADER
 ============================================================ */
 .am-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 28px;
 }
 .am-header h2 {
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(90deg, #4d5eff, #b44dff);
-   background-clip: text;          /* ← อันนี้คือ standard */
+  background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
+/* ============================================================
+   CONTROL AREA
+============================================================ */
 .am-controls {
   display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
 .am-search-wrapper {
@@ -146,27 +65,33 @@ body {
   top: 9px;
   opacity: 0.55;
 }
+
 .am-search-input {
-  padding: 10px 34px;
+  padding: 10px 14px 10px 34px;
   border-radius: 12px;
   border: 1px solid #ccc;
   width: 230px;
+  background: #fff;
 }
 
 .am-select {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid #ccc;
+  background: #fff;
 }
 
+/* ============================================================
+   STAT OVERVIEW
+============================================================ */
 .am-overview {
   display: flex;
-  gap: 18px;
-  margin-bottom: 25px;
-  padding: 14px 20px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  gap: 16px;
+  background: white;
+  border-radius: 18px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 
 .am-stat-number {
@@ -174,40 +99,68 @@ body {
   font-weight: 700;
   color: #4a55ff;
 }
+.am-stat-label {
+  font-size: .85rem;
+}
 
+/* ============================================================
+   GRID
+============================================================ */
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(650px, 1fr));
+
+  gap: 20px;
 }
 
+/* ============================================================
+   USER CARD
+============================================================ */
 .user-card {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 24px;
-  border-radius: 20px;
-  border-left: 8px solid #8b8b8b20;
-  transition: 0.25s ease;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 18px 22px;
+  border-radius: 18px;
+  border-left: 6px solid #ccc;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: .25s ease;
+     min-width: 550px;
+  width: 100%;     /* ให้กว้างตาม grid */
+  max-width: 100%; /* บังคับไม่ให้เกิน */
 }
-
 .user-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.12);
 }
 
-.admin-card {
-  border-left-color: #4d77ff;
-}
+.admin-card { border-left-color: #4d77ff; }
+.user-card-box { border-left-color: #2ecc71; }
 
-.user-card-box {
-  border-left-color: #2ecc71;
+/* ============================================================
+   USER INFO
+============================================================ */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-
-.role-label {
-  padding: 6px 14px;
-  border-radius: 12px;
+.user-name {
+  margin: 0;
+  font-size: 1.15rem;
   font-weight: 600;
-  font-size: 0.75rem;
+}
+
+/* ============================================================
+   ROLE LABEL
+============================================================ */
+.role-label {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: .7rem;
+  font-weight: 700;
+  width: fit-content;
 }
 .role-label.admin {
   background: #dfe7ff;
@@ -219,196 +172,344 @@ body {
 }
 
 /* ============================================================
+   ACTION BUTTONS
+============================================================ */
+.user-actions {
+  display: flex;
+  gap: 10px;
+   flex-wrap: nowrap;      /* ไม่ให้ตัดบรรทัด */
+  white-space: nowrap;    /* บังคับให้อยู่บรรทัดเดียว */
+}
+
+.action-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: .8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: .2s;
+}
+.action-btn.view {
+  background: #eef1ff;
+  color: #2f4adf;
+}
+.action-btn.reset {
+  background: #fff5dd;
+  color: #d18b00;
+}
+.action-btn.role {
+  background: #f4ecff;
+  color: #7e42df;
+}
+.action-btn.delete {
+  background: #ff4d4d;
+  color: #fff;
+}
+
+/* ============================================================
    MODAL
 ============================================================ */
 .am-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.35);  /* ลดความมืด */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9998 !important;
 }
 
 .am-modal-card {
   width: 420px;
-  background: #ffffffee;
-  padding: 22px;
+  background: #ffffff !important; /* บังคับ modal ขาว */
+  color: #000 !important;
+  padding: 24px;
   border-radius: 22px;
-  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 55px rgba(0,0,0,0.25);
+  z-index: 9999 !important;
 }
 
-.am-btn-confirm {
-  padding: 10px 22px;
-  background: linear-gradient(90deg, #5b73ff, #7c4dff);
-  color: #fff;
-  border-radius: 12px;
-}
-.am-btn-cancel {
-  padding: 10px 20px;
-  background: #e3e3e3;
-  border-radius: 12px;
-}
 
-/* ============================================================
-   USER DASHBOARD
-============================================================ */
-.user-dashboard-container {
+.am-modal-actions {
+  margin-top: 18px;
   display: flex;
-}
-.use.dark r-sidebar {
-  width: 230px;
-  padding: 30px;
-}
-.user-main {
-  flex: 1;
-  padding: 30px;
-}
-
-.user-content-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.user-card {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 20px;
-  border-radius: 20px;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 /* ============================================================
-   DARK MODE – GLOBAL BASE
+   DARK MODE FIXES (ALL TEXT + BUTTONS)
 ============================================================ */
 /* ============================================================
-   DARK MODE – GLOBAL BASE
+   DARK MODE — CLEAN & PERFECT VERSION
 ============================================================ */
+
 .dark {
-  background: #0f172a !important;
-  color: #e2e8f0 !important;
+  background:#0f172a !important;
 }
 
-.dark .page-container {
-  background: rgba(30, 41, 59, 0.85);
-}
-
-/* Main containers */
-.dark .user-card,
-.dark .ad-row,
-.dark .am-modal-card {
-  background: rgba(15, 23, 42, 0.9);
-  color: #ffffff; /* ← แก้ใหม่ */
-}
-
-/* ⭐ FIX: ทำให้ Reset / admin / user ชัด */
-.dark .user-card .actions span,
-.dark .user-card .actions i,
-.dark .user-card .actions svg {
+.dark body,
+.dark .page-container,
+.dark .am-header,
+.dark label,
+.dark p,
+.dark span,
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
   color: #ffffff !important;
-  opacity: 1 !important;
-  font-weight: 600 !important;
 }
 
-/* Inputs */
-.dark input,
-.dark select {
-  background: rgba(30, 41, 59, 0.85);
-  color: #f1f5f9;
-  border-color: rgba(148, 163, 184, 0.4);
-}
-.dark input::placeholder,
-.dark select::placeholder {
-  color: #94a3b8;
+/* ===== TEXT ใช้สีขาวทั้งหมด ===== */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark p,
+.dark span,
+.dark label,
+.dark strong,
+.dark small,
+.dark .section-title,
+.dark .user-name,
+.dark .am-stat-number,
+.dark .am-stat-label {
+  color:#ffffff !important;
 }
 
-/* Role badges */
+/* ===== Page container ===== */
+.dark .page-container {
+  background:rgba(30,41,59,0.9) !important;
+  color:#ffffff !important;
+  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+}
+
+/* ===== SEARCH BOX & SELECT ===== */
+.dark .am-search-input,
+.dark .am-select {
+  background:rgba(255,255,255,0.08) !important;
+  border-color:rgba(255,255,255,0.25) !important;
+  color:#ffffff !important;
+}
+.dark .am-select option {
+  background:#1e293b !important;
+  color:#ffffff !important;
+}
+.dark .search-icon {
+  color:#ffffff !important;
+  opacity:.85 !important;
+}
+
+/* ===== Overview Box ===== */
+.dark .am-overview {
+  background:rgba(255,255,255,0.06) !important;
+}
+.dark .am-overview div {
+  color:white !important;
+}
+
+/* ===== USER CARD / ADMIN CARD ===== */
+.dark .user-card,
+.dark .admin-card,
+.dark .user-card-box {
+  background:rgba(255,255,255,0.06) !important;
+  color:#ffffff !important;
+  border-left-color:rgba(120,120,255,0.55) !important;
+}
+
+/* ROLE LABELS */
 .dark .role-label.admin {
-  background: rgba(148, 163, 184, 0.25);
-  color: #c7d2fe !important;
+  background:rgba(150,150,255,0.2) !important;
+  color:white !important;
 }
 .dark .role-label.user {
-  background: rgba(74, 222, 128, 0.25);
-  color: #bbf7d0 !important;
+  background:rgba(100,255,180,0.2) !important;
+  color:white !important;
 }
 
-/* Overview Stats */
-.dark .am-overview {
-  background: rgba(51, 65, 85, 0.5);
+/* ===== Action Buttons ===== */
+.dark .action-btn.view {
+  background:rgba(180,180,255,0.15) !important;
+  color:white !important;
 }
-.dark .am-stat-number {
-  color: #c7d2fe !important;
+.dark .action-btn.reset {
+  background:rgba(255,200,120,0.2) !important;
+  color:white !important;
 }
-
-/* Search boxes */
-.dark .search-box,
-.dark .am-search-input {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
-  color: #f1f5f9;
+.dark .action-btn.role {
+  background:rgba(200,150,255,0.2) !important;
+  color:white !important;
 }
-.dark .search-box::placeholder {
-  color: #94a3b8;
-}
-
-/* List header */
-.dark .list-header {
-  background: rgba(51, 65, 85, 0.7);
-  color: #e2e8f0;
+.dark .action-btn.delete {
+  background:#ff4d4d !important;
+  color:#ffffff !important;
 }
 
-/* Platform badge */
-.dark .platform-badge {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.1);
+/* ===== Modal ===== */
+.dark .am-modal-card {
+  background:rgba(255,255,255,0.06) !important;
+  color:white !important;
+}
+.dark .am-btn-cancel {
+  background:rgba(255,255,255,0.2) !important;
+  color:white !important;
+}
+.dark .am-btn-confirm {
+  background:linear-gradient(90deg,#7380ff,#9f6bff) !important;
+  color:white !important;
 }
 
-/* Buttons */
-.dark .btn-view {
-  background: rgba(148, 163, 184, 0.2);
-  color: #bfdbfe;
-}
-.dark .status-btn.inactive {
-  color: #fef3c7;
+/* ===== Header text ===== */
+.dark .am-header {
+  color:white !important;
 }
 
-/* ⭐ บังคับให้ทุกตัวหนังสือเป็นสีขาว เมื่อ .dark ทำงาน */
-.dark, 
-.dark * {
+
+/* ===== FIX: FORCE WHITE FOR ALL DASHBOARD NUMBERS ===== */
+.dark .stat-value,
+.dark .stat-number,
+.dark .card-value,
+.dark .dashboard-number,
+.dark .am-stat-number,
+.dark .am-number,
+.dark .number,
+.dark .value,
+.dark .overview-number {
     color: #ffffff !important;
 }
-/* ================================
-   FIX DARK MODE TEXT NOT CHANGING
-=================================*/
 
-/* ตัวหนังสือทั่วไปใน dark mode */
-.dark * {
+/* FIX: Force username text to show in light mode */
+.user-card .user-name,
+.admin-card .user-name,
+.user-card-box .user-name {
+  color: #1e1e1e !important;
+}
+
+/* Dark mode override */
+.dark .user-card .user-name,
+.dark .admin-card .user-name,
+.dark .user-card-box .user-name {
   color: #ffffff !important;
 }
 
-/* แก้ select ตอนเปิด dark mode */
-.dark select {
-  color: #ffffff !important;
-  background: rgba(30, 41, 59, 0.9) !important;
+/* ============================================================
+   MODAL BUTTON FIX — สีปุ่ม + สลับตำแหน่ง + Hover
+============================================================ */
+
+/* ปรับ layout ให้ปุ่มอยู่ขวา และสลับตำแหน่ง */
+.am-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-direction: row-reverse; /* ⭐ สลับตำแหน่งปุ่ม */
 }
 
-/* แก้ option ข้างใน dropdown */
-.dark select option {
-  color: #ffffff !important;
-  background: #1e293b !important;
-}
-/* ปุ่ม delete เล็กลง */
-.btn-delete {
-  padding: 4px 10px !important;
-  font-size: 12px !important;
-  border-radius: 6px !important;
-  margin-left: 6px; 
-  margin-top: 10px ;
-  background-color: #ff4d4f;
-  
+/* ปุ่มหลัก เช่น Confirm / Change / Delete */
+.am-btn-confirm,
+.am-btn-change,
+.am-btn-delete {
+  background: linear-gradient(90deg,#6a5bff,#9a5bff);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
 }
 
-/* ระยะห่างปุ่ม */
-.am-btn-group button {
-  margin-right: 6px;
-  
+.am-btn-confirm:hover,
+.am-btn-change:hover,
+.am-btn-delete:hover {
+  opacity: .85;
+  transform: translateY(-2px);
 }
+
+/* ปุ่ม Cancel */
+.am-btn-cancel {
+  background: #e5e7eb;
+  color: #111;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.am-btn-cancel:hover {
+  background: #d1d5db;
+  transform: translateY(-2px);
+}
+
+/* Dark Mode */
+.dark .am-btn-cancel {
+  background: rgba(255,255,255,0.15);
+  color: white;
+}
+
+.dark .am-btn-cancel:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.dark .am-btn-confirm,
+.dark .am-btn-change,
+.dark .am-btn-delete {
+  background: linear-gradient(90deg,#7380ff,#9f6bff) !important;
+}
+
+/* ============================
+   Dark Mode Toggle Button
+============================ */
+/* ============================
+   Dark Mode Toggle Switch (FINAL)
+============================ */
+.dark-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dark-toggle-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.dark .dark-toggle-text {
+  color: #ffffff !important;
+}
+
+.dark-toggle-switch {
+  width: 50px;
+  height: 26px;
+  background: #dbeafe;
+  border-radius: 20px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* ⭐ สำคัญสุด */
+  transition: 0.25s;
+}
+
+.dark-toggle-switch.on {
+  background: #4f46e5;
+  justify-content: flex-end;
+}
+
+.dark-toggle-ball {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  transition: 0.25s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+

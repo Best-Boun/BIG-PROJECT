@@ -341,3 +341,124 @@
     height: 140px;
   }
 }
+
+/* =========================================================
+   DARK MODE FIX (Overrides)
+   ========================================================= */
+
+/* พื้นหลัง dark */
+body.dark {
+  background: #0c1220 !important;
+}
+
+/* กล่องใหญ่ */
+body.dark .sp-page-container {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* การ์ดโฆษณา */
+body.dark .sp-ad-card {
+  background: #1f2937 !important;
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* ชื่อ, รายละเอียด, วันที่ */
+body.dark .sp-ad-card h3 {
+  color: #fff !important;
+}
+
+body.dark .sp-desc {
+  color: #d1d5db !important;
+}
+
+body.dark .sp-date {
+  color: #9ca3af !important;
+}
+
+/* ค้นหา */
+body.dark .sp-search {
+  background: #1f2937;
+  border-color: #374151;
+  color: white;
+}
+
+body.dark .sp-search::placeholder {
+  color: #9ca3af;
+}
+
+/* Placeholder โฆษณา */
+body.dark .sp-no-image {
+  background: linear-gradient(135deg, #374151, #4b5563) !important;
+  color: #d1d5db !important;
+}
+
+body.dark .sp-no-image.big {
+  background: linear-gradient(135deg, #374151, #4b5563) !important;
+  color: #e5e7eb !important;
+}
+
+/* ปุ่ม */
+body.dark .sp-btn {
+  opacity: 0.95;
+}
+
+body.dark .sp-btn:hover {
+  opacity: 1;
+}
+
+/* ปุ่มดู / Edit / Delete รายการ */
+body.dark .sp-btn-view {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #93c5fd !important;
+}
+
+body.dark .sp-btn-edit {
+  background: #fbbf24 !important;
+  color: #1f2937 !important;
+}
+
+body.dark .sp-btn-delete {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+/* ปุ่มสถานะ Active/Inactive */
+body.dark .sp-status.active {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+body.dark .sp-status.inactive {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+}
+
+/* กล่อง Edit */
+body.dark .sp-edit-box {
+  background: #1e2532 !important;
+  border-color: #374151 !important;
+}
+
+body.dark .sp-input {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+body.dark .sp-file-label {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #dbeafe !important;
+}
+
+/* Modal */
+body.dark .sp-modal-card {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark .preview-img {
+  border: 2px solid #374151;
+}

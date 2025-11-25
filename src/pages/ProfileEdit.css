@@ -1,5 +1,5 @@
 /* ==========================================
-   🎨 PROFILEEDIT-NEW.CSS - Profile Edit (REDESIGNED)
+   ðŸŽ¨ PROFILEEDIT-NEW.CSS - Profile Edit (REDESIGNED)
    ========================================== */
 
 :root {
@@ -84,7 +84,7 @@
     gap: 8px;
 }
 
-/* 🎯 IMPROVED TAB BUTTONS */
+/* ðŸŽ¯ IMPROVED TAB BUTTONS */
 .tab-btn {
     background: #f8f9fa;
     border: 2px solid transparent;
@@ -317,7 +317,7 @@
 
 .form-label {
     font-weight: 600;
-    color: var(--dark-gray);
+    color: #1a1a1a;
     margin-bottom: 8px;
     display: block;
     font-size: 0.95rem;
@@ -464,8 +464,8 @@
 }
 
 .skill-item {
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.05) 0%, rgba(37, 117, 252, 0.05) 100%);
-    border: 1px solid rgba(106, 17, 203, 0.1);
+    background: transparent;
+    border: none;
     padding: 12px;
     border-radius: 10px;
     display: flex;
@@ -476,8 +476,8 @@
 }
 
 .skill-item:hover {
-    border-color: var(--primary-purple);
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.15) 0%, rgba(37, 117, 252, 0.15) 100%);
+    border-color: transparent;
+    background: transparent;
 }
 
 .skill-content {

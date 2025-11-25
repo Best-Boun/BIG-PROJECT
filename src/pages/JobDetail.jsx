@@ -1,15 +1,16 @@
 // ==========================================
 // 💼 JOBDETAIL.JSX - Job Details Page
 // ==========================================
-// ใช้: แสดงรายละเอียดงานเต็ม
+// ใช้: แสดงรายละเอียดงานเต่มๆ
 // ความเข้าใจ: Protected route - ต้อง login
+// ✅ FIXED: Removed <Container> from header, added <div className="header-content">
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Badge, ListGroup, Spinner, Alert } from 'react-bootstrap';
-import { 
-    FaMapMarkerAlt, 
-    FaBriefcase, 
+import { Container, Row, Col, Button, Badge, Spinner, Alert } from 'react-bootstrap';
+import {
+    FaMapMarkerAlt,
+    FaBriefcase,
     FaClock,
     FaMoneyBillWave,
     FaHeart,
@@ -18,7 +19,7 @@ import {
     FaCheck,
     FaShare
 } from 'react-icons/fa';
-import { mockJobs } from '../data/mockData';
+import { mockJobs } from '../data/mockDataJob';
 import './JobDetail.css';
 
 export default function JobDetail() {
@@ -31,9 +32,11 @@ export default function JobDetail() {
     const [loading, setLoading] = useState(true);
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
-    // 🔄 useEffect - ดึงข้อมูลงาน
+    // 🎨 Icons สำหรับ benefits
+    const benefitIcons = ['🎯', '💰', '🏥', '🏖️', '📚', '🚀', '⚡', '🌟'];
+
+    // 📄 useEffect - ดึงข้อมูลงาน
     useEffect(() => {
-        // Simulate API call
         setTimeout(() => {
             const foundJob = mockJobs.find(j => j.id === parseInt(id));
             if (foundJob) {
@@ -85,8 +88,8 @@ export default function JobDetail() {
                 <Container className="text-center py-5">
                     <h2>Job Not Found</h2>
                     <p>Sorry, we couldn't find the job you're looking for.</p>
-                    <Button 
-                        variant="primary" 
+                    <Button
+                        variant="primary"
                         onClick={() => navigate('/jobs')}
                         className="mt-3"
                     >
@@ -99,29 +102,25 @@ export default function JobDetail() {
 
     return (
         <div className="job-detail-page">
-            {/* ========================================
-                JOB HEADER SECTION
-                ======================================== */}
+            {/* JOB HEADER SECTION */}
             <section className="job-detail-header">
-                <Container>
-                    <Button 
-                        variant="link" 
+                <div className="header-content">
+                    <Button
+                        variant="link"
                         className="back-button"
                         onClick={() => navigate('/jobs')}
                     >
                         <FaArrowLeft /> Back to Jobs
                     </Button>
-                </Container>
+                </div>
             </section>
 
-            {/* ========================================
-                SUCCESS ALERT
-                ======================================== */}
+            {/* SUCCESS ALERT */}
             {showSuccessAlert && (
                 <Container className="mt-4">
-                    <Alert 
-                        variant="success" 
-                        dismissible 
+                    <Alert
+                        variant="success"
+                        dismissible
                         onClose={() => setShowSuccessAlert(false)}
                         className="alert-custom"
                     >
@@ -130,9 +129,7 @@ export default function JobDetail() {
                 </Container>
             )}
 
-            {/* ========================================
-                MAIN CONTENT
-                ======================================== */}
+            {/* MAIN CONTENT */}
             <Container className="job-detail-container">
                 <Row className="g-4">
                     {/* LEFT COLUMN - Main Content */}
@@ -161,7 +158,7 @@ export default function JobDetail() {
                                     </div>
                                 </div>
                                 <div className="header-actions">
-                                    <button 
+                                    <button
                                         className="action-btn favorite-btn"
                                         onClick={handleFavoriteToggle}
                                         title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -172,7 +169,7 @@ export default function JobDetail() {
                                             <FaRegHeart />
                                         )}
                                     </button>
-                                    <button 
+                                    <button
                                         className="action-btn share-btn"
                                         onClick={handleShare}
                                         title="Share job"
@@ -217,17 +214,21 @@ export default function JobDetail() {
                         </div>
 
                         {/* Benefits */}
-                        <div className="job-section">
-                            <h2 className="section-title">🎁 Benefits</h2>
-                            <div className="benefits-grid">
-                                {job.benefits.map((benefit, idx) => (
-                                    <div key={idx} className="benefit-item">
-                                        <div className="benefit-icon">✨</div>
-                                        <p>{benefit}</p>
-                                    </div>
-                                ))}
+                        {job.benefits && job.benefits.length > 0 && (
+                            <div className="job-section">
+                                <h2 className="section-title">🎁 Benefits</h2>
+                                <div className="benefits-grid">
+                                    {job.benefits.map((benefit, idx) => (
+                                        <div key={idx} className="benefit-item">
+                                            <div className="benefit-icon">
+                                                {benefitIcons[idx % benefitIcons.length]}
+                                            </div>
+                                            <p>{benefit}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Company Info */}
                         <div className="job-section">
@@ -249,7 +250,7 @@ export default function JobDetail() {
                                 </p>
                             </div>
 
-                            <Button 
+                            <Button
                                 className="btn-apply-large"
                                 onClick={handleApply}
                                 disabled={hasApplied}
@@ -278,28 +279,40 @@ export default function JobDetail() {
                             </div>
                         </div>
 
-                        {/* Company Card */}
+                        {/* Company Card - REFINED LAYOUT */}
                         <div className="company-card">
                             <h3 className="card-title">About the Company</h3>
-                            <div className="company-info">
-                                <div className="company-logo-large">
-                                    {job.logo}
+                            <div className="company-card-wrapper">
+                                {/* Logo Section (Left) */}
+                                <div className="company-logo-section">
+                                    <div className="company-logo-large">
+                                        {job.logo}
+                                    </div>
                                 </div>
-                                <h4>{job.company}</h4>
-                                <ListGroup variant="flush">
-                                    <ListGroup.Item>
-                                        <strong>Industry:</strong> Technology
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        <strong>Size:</strong> 10,000+ employees
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        <strong>Founded:</strong> 2010
-                                    </ListGroup.Item>
-                                    <ListGroup.Item>
-                                        <strong>Rating:</strong> ⭐⭐⭐⭐⭐ (4.5/5)
-                                    </ListGroup.Item>
-                                </ListGroup>
+
+                                {/* Content Section (Right) */}
+                                <div className="company-name-section">
+                                    <h4 className="company-title">{job.company}</h4>
+
+                                    <div className="company-info-section">
+                                        <div className="info-item">
+                                            <span className="info-label">Industry:</span>
+                                            <span className="info-value">Technology</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-label">Size:</span>
+                                            <span className="info-value">10,000+ employees</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-label">Founded:</span>
+                                            <span className="info-value">2010</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-label">Rating:</span>
+                                            <span className="info-value">⭐⭐⭐⭐⭐ (4.5/5)</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -308,8 +321,8 @@ export default function JobDetail() {
                             <h3 className="card-title">Similar Jobs</h3>
                             <div className="similar-jobs-list">
                                 {mockJobs.slice(0, 2).map(similarJob => (
-                                    <div 
-                                        key={similarJob.id} 
+                                    <div
+                                        key={similarJob.id}
                                         className="similar-job-item"
                                         onClick={() => navigate(`/jobs/${similarJob.id}`)}
                                     >
@@ -329,49 +342,3 @@ export default function JobDetail() {
         </div>
     );
 }
-
-/*
-📖 อธิบาย JobDetail Component:
-
-1. **useParams Hook:**
-   - ดึง id จาก URL params (/jobs/:id)
-   - ใช้เพื่อค้นหา job จาก mockJobs
-
-2. **useState:**
-   - job = ข้อมูลงาน
-   - isFavorite = สถานะ favorite
-   - hasApplied = ผู้ใช้ apply แล้วหรือยัง
-   - loading = กำลังโหลด
-
-3. **useEffect:**
-   - ทำเมื่อ component mount
-   - ค้นหา job จาก mockJobs
-   - Simulate API delay (500ms)
-
-4. **Event Handlers:**
-   - handleFavoriteToggle() = เปลี่ยน favorite state
-   - handleApply() = submit application
-   - handleShare() = share job (browser share API)
-
-5. **Layout:**
-   - Left Col (lg={8}) = Main content
-   - Right Col (lg={4}) = Sidebar (apply, company info)
-
-6. **Sections:**
-   - Job Header = Title, company, location
-   - Description = Full job description
-   - Requirements = List of requirements
-   - Benefits = List of benefits
-   - Company Info = About company
-   - Apply Card = CTA
-   - Similar Jobs = Recommendations
-
-7. **States:**
-   - Loading state = Spinner
-   - Not found state = Error message
-   - Success state = Alert
-
-8. **Protected:**
-   - Protected route ใน App.jsx
-   - ต้อง login ก่อนเข้า
-*/

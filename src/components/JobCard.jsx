@@ -125,13 +125,6 @@ export default function JobCard({ job, isFavorite, onFavoriteToggle, onViewDetai
                     Apply Now
                 </Button>
             </Card.Footer>
-
-            {/* Hover Effect Overlay (optional) */}
-            {isHovered && (
-                <div className="card-hover-overlay">
-                    <p>Click to view full details</p>
-                </div>
-            )}
         </Card>
     );
 }

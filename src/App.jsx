@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Profilepublic from './pages/ProfilePublic/Profilepublic';
 import JobBrowse from './pages/JobBrowse';
+import JobDetail from './pages/JobDetail';
 import Resumepage from './pages/Resumepage';
 import ProfileEdit from './pages/ProfileEdit';
 import Feed from './pages/Feed/Feed';
@@ -182,6 +183,7 @@ function AppContent() {
 
             {/* 💼 Job Page */}
             <Route path="/jobs" element={<JobBrowse />} />
+            <Route path="/jobs/:id" element={<JobDetail />} />
 
             {/* 📄 Resume Page */}
             <Route path="/resume" element={<ResumepageWrapper />} />

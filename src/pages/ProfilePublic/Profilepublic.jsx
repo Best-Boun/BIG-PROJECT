@@ -1,17 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { ProfileContext } from "../../ProfileContext";
 import './Profilepublic.css';
 import Header2 from '../../components/Header2';
 
 const ProfilePublic = ({ onNavigate }) => {
   const { profileData } = useContext(ProfileContext);
-  const [isUpdated, setIsUpdated] = useState(false);
-
-  
-
-  useEffect(() => {
-    setIsUpdated(!isUpdated);
-  }, [profileData]);
 
   const calculateDuration = (startDate, endDate) => {
     if (!startDate) return '';
@@ -95,7 +88,6 @@ const ProfilePublic = ({ onNavigate }) => {
 
   const hasProfileData = hasRealProfileData();
 
-  // Handle Share Profile
   const handleShareProfile = () => {
     const profileUrl = window.location.href;
 
@@ -103,7 +95,6 @@ const ProfilePublic = ({ onNavigate }) => {
       navigator.clipboard.writeText(profileUrl).then(() => {
         alert('Profile link copied to clipboard!');
       }).catch(() => {
-        // Fallback if clipboard API fails
         const textArea = document.createElement("textarea");
         textArea.value = profileUrl;
         document.body.appendChild(textArea);
@@ -113,20 +104,16 @@ const ProfilePublic = ({ onNavigate }) => {
         alert('Profile link copied to clipboard!');
       });
     } else {
-      // Fallback for browsers that don't support clipboard API
       alert('Profile URL:\n' + profileUrl);
     }
   };
 
   const handleLogout = () => {
-        // ตัวอย่าง: ล้าง token และ redirect
-        localStorage.removeItem('token');
-        window.location.href = '/login'; // หรือใช้ useNavigate
-    };
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
 
-    const currentUser = { username: 'John Doe', role: 'user' };
-
-  
+  const currentUser = { username: 'John Doe', role: 'user' };
 
   if (!profileData) {
     return (
@@ -176,8 +163,7 @@ const ProfilePublic = ({ onNavigate }) => {
               fontWeight: '700',
               cursor: 'pointer',
               fontSize: '16px',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-              transition: 'all 0.3s'
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
             }}
             onMouseEnter={(e) => {
               e.target.style.transform = 'translateY(-2px)';
@@ -200,10 +186,9 @@ const ProfilePublic = ({ onNavigate }) => {
     <>
     <Header2 user={currentUser} onLogout={handleLogout} />
       
-      {/* Header Section */}
       <header className="profile-header">
         <div className="header-container">
-          <div className="profile-picture-container" style={{ cursor: '' }} title="Profile Picture">
+          <div className="profile-picture-container" title="Profile Picture">
             <div className="profile-picture" style={{
               backgroundImage: profileData.profileImage && (profileData.profileImage.startsWith('data:') || profileData.profileImage.startsWith('http'))
                 ? `url(${profileData.profileImage})`
@@ -223,7 +208,7 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
             <div className="social-links">
               {profileData.github && (
-                <a href={profileData.github} target="_blank" rel="noopener noreferrer" className="social-link github-btn">
+                <a href={profileData.github} target="_blank" rel="noopener noreferrer" className="social-link">
                   GitHub
                 </a>
               )}
@@ -232,33 +217,30 @@ const ProfilePublic = ({ onNavigate }) => {
         </div>
       </header>
 
-      {/* Quick Stats */}
       <div className="quick-stats">
         <div className="stat-card">
           <div className="stat-number">{calculateTotalExperience()}+</div>
-          <div className="stat-label">Years Experience</div>
+          <div className="stat-label-profile">Years Experience</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{profileData.projects?.length || '0'}+</div>
-          <div className="stat-label">Projects Completed</div>
+          <div className="stat-label-profile">Projects Completed</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{profileData.certifications?.length || '0'}</div>
-          <div className="stat-label">Certifications</div>
+          <div className="stat-label-profile">Certifications</div>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="content-container">
         <div className="main-column">
 
-          {/* 1. Professional Summary - WITH PRIVACY CHECK */}
           {profileData.privacy?.summary !== false && (
             <div className="section-card">
               <div className="section-header">
                 <h2 className="section-title">Professional Summary</h2>
               </div>
-              <p className="summary-text" style={{ lineHeight: 1.8, color: '#555', overflowWrap: 'break-word', wordWrap: 'break-word', wordBreak: 'break-word' }}>
+              <p className="summary-text" style={{ lineHeight: 1.8, color: '#555' }}>
                 {profileData.summary || profileData.bio || 'Add your professional summary in profile edit'}
               </p>
               {profileData.expertise && typeof profileData.expertise === 'string' && (
@@ -271,7 +253,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 2. Work Experience - WITH PRIVACY CHECK */}
           {profileData.privacy?.experience !== false && profileData.experience && profileData.experience.length > 0 && (
             <div className="section-card">
               <div className="section-header">
@@ -294,7 +275,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 3. Key Expertise Areas - WITH PRIVACY CHECK */}
           {profileData.privacy?.expertise !== false && profileData.expertises && profileData.expertises.length > 0 && (
             <div className="section-card">
               <div className="section-header">
@@ -312,7 +292,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 4. Featured Projects - WITH PRIVACY CHECK */}
           {profileData.privacy?.projects !== false && profileData.projects && profileData.projects.length > 0 && (
             <div className="section-card">
               <div className="section-header">
@@ -338,13 +317,10 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 5. Work Preferences - WITH PRIVACY CHECK */}
           {profileData.privacy?.workPreferences !== false && (
             <div className="section-card">
               <div className="section-header">
-                <h2 className="section-title">
-                  Work Preferences
-                </h2>
+                <h2 className="section-title">Work Preferences</h2>
               </div>
               <div className="work-preferences-grid">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '15px' }}>
@@ -380,13 +356,10 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 6. Certifications - WITH PRIVACY CHECK */}
           {profileData.privacy?.certifications !== false && profileData.certifications && profileData.certifications.length > 0 && (
             <div className="section-card">
               <div className="section-header">
-                <h2 className="section-title">
-                  Certifications
-                </h2>
+                <h2 className="section-title">Certifications</h2>
               </div>
               <div>
                 {profileData.certifications.map((cert) => (
@@ -403,13 +376,10 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 7. Open Source Contributions - WITH PRIVACY CHECK */}
           {profileData.privacy?.openSource !== false && profileData.openSources && profileData.openSources.length > 0 && (
             <div className="section-card">
               <div className="section-header">
-                <h2 className="section-title">
-                  Open Source Contributions
-                </h2>
+                <h2 className="section-title">Open Source Contributions</h2>
               </div>
               <div className="timeline">
                 {profileData.openSources.map((os) => (
@@ -423,13 +393,10 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 8. Technical Publications - WITH PRIVACY CHECK */}
           {profileData.privacy?.publications !== false && profileData.publications && profileData.publications.length > 0 && (
             <div className="section-card">
               <div className="section-header">
-                <h2 className="section-title">
-                  Technical Publications
-                </h2>
+                <h2 className="section-title">Technical Publications</h2>
               </div>
               <div className="timeline">
                 {profileData.publications.map((pub) => (
@@ -444,10 +411,8 @@ const ProfilePublic = ({ onNavigate }) => {
 
         </div>
 
-        {/* SIDEBAR */}
-        <div className="sidebar2">
+        <div className="right-sidebar">
 
-          {/* 9. Quick Info - WITH PRIVACY CHECK */}
           {profileData.privacy?.quickInfo !== false && (
             <div className="sidebar-card">
               <h3 className="sidebar-title">Quick Info</h3>
@@ -483,7 +448,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 10. Action Buttons - WITH SHARE BUTTON */}
           <div className="sidebar-card">
             <div className="action-buttons">
               <button
@@ -498,18 +462,14 @@ const ProfilePublic = ({ onNavigate }) => {
                   cursor: 'pointer',
                   fontSize: '14px',
                   marginBottom: '10px',
-                  transition: 'all 0.3s',
-                  width: '100%',
                   boxShadow: '0 4px 12px rgba(106, 17, 203, 0.3)'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#5208a8';
-                  e.target.style.transform = 'translateY(-2px)';
                   e.target.style.boxShadow = '0 6px 16px rgba(106, 17, 203, 0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = '#6a11cb';
-                  e.target.style.transform = 'translateY(0)';
                   e.target.style.boxShadow = '0 4px 12px rgba(106, 17, 203, 0.3)';
                 }}
               >
@@ -527,18 +487,15 @@ const ProfilePublic = ({ onNavigate }) => {
                   fontWeight: '600',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  transition: 'all 0.3s',
                   width: '100%'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#6a11cb';
                   e.target.style.color = 'white';
-                  e.target.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = 'white';
                   e.target.style.color = '#6a11cb';
-                  e.target.style.transform = 'translateY(0)';
                 }}
               >
                 {hasProfileData ? 'Edit Profile' : 'Create Profile'}
@@ -546,7 +503,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* 11. Contact & Social - WITH PRIVACY CHECK */}
           {profileData.privacy?.contact !== false && (
             <div className="sidebar-card contact-social-card">
               <div className="contact-social-header">
@@ -586,7 +542,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 12. Technical Stack - WITH PRIVACY CHECK */}
           {profileData.privacy?.skills !== false && profileData.skills && profileData.skills.length > 0 && (
             <div className="sidebar-card">
               <h3 className="sidebar-title">Technical Stack</h3>
@@ -601,7 +556,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 13. Education - WITH PRIVACY CHECK */}
           {profileData.privacy?.education !== false && profileData.education && profileData.education.length > 0 && (
             <div className="sidebar-card">
               <h3 className="sidebar-title">Education</h3>
@@ -617,7 +571,6 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {/* 14. Languages - WITH PRIVACY CHECK */}
           {profileData.privacy?.languages !== false && profileData.languages && profileData.languages.length > 0 && (
             <div className="sidebar-card">
               <h3 className="sidebar-title">Languages</h3>

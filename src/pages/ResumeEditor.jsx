@@ -40,7 +40,7 @@ function TemplateThumbnail({ template, isSelected, onClick, selectedColor, data 
     }}
     onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; e.currentTarget.style.borderColor = '#999'; } }}
     onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = '#ddd'; } }}>
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', transform: 'scale(0.15)', transformOrigin: 'top left', pointerEvents: 'none' }}>
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', transform: 'scale(0.70)', transformOrigin: 'top left', pointerEvents: 'none' }}>
         {getPreview()}
       </div>
       <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '4px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
@@ -73,7 +73,7 @@ function ChangeTemplateModal({ show, onHide, onSelectTemplate, onSelectColor, se
           <Col lg={7}>
             <div style={{ border: '3px solid #ddd', borderRadius: '6px', background: '#f5f5f5', padding: '20px', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               <div style={{ width: '460px', height: '650px', background: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: '2px', overflow: 'hidden', fontSize: '5px' }}>
-                <div style={{ transform: 'scale(1)', transformOrigin: 'top left', width: '100%', height: '100%' }}>
+                <div style={{ transform: 'scale(0.58)', transformOrigin: 'top left', width: '100%', height: '100%' }}>
                   {getFullPreview()}
                 </div>
               </div>

@@ -1,43 +1,49 @@
 import ChatBot, { Flow, Params } from 'react-chatbotify';
 
-// This is a faq chatbot example
-// Relevant tutorial: https://www.youtube.com/watch?v=prWgkEbI12U
+
 const FaqBot = () => {
-  // conversation flow
+
+  const themes = [
+		{id: "omen", version: "0.1.0"}
+	]
+  
   const flow = {
-    // default start block (entry point)
+    
     start: {
-      message: 'Hi! What would you like to know about React ChatBotify?',
-      options: ['About', 'Features', 'Support', 'I have more questions'],
+      message: 'สวัสดี! ฉันคือ บอทช่วยเหลือผู้ใช้  คุณต้องการความช่วยเหลือเกี่ยวกับอะไร?',
+      options: ['เคลียร์ผู้ใช้', 'สรุปผล', 'Feedback', 'จัดการผู้ใช้ใหม่'],
       path: 'handle_faq',
     },
-    // handle faq responses
+    
     handle_faq: {
       message: async (params: Params) => {
         const userInput = params.userInput;
         let reply = '';
         switch (userInput.toLowerCase()) {
-          case 'about':
-            reply = 'React ChatBotify is a simple and customizable chatbot library for React applications.';
+          case 'เคลียร์ผู้ใช้':
+            reply = 'เคลียร์ข้อมูลผู้ใช้เรียบร้อยแล้ว';
             break;
-          case 'features':
-            reply = 'It offers features like easy integration, customizable UI, and support for various chat flows.';
+          case 'สรุปผล':
+            reply = 'สรุปผลการดำเนินงาน: ระบบทำงานได้อย่างมีประสิทธิภาพ';
             break;
-          case 'support':
-            reply = 'For support, you can visit our GitHub repository or join our community forums.';
+          case 'Feedback':
+            reply = 'ผู้ใช้ส่วนใหญ่พึงพอใจกับประสบการณ์การใช้งานของระบบ';
+            break;
+            case 'จัดการผู้ใช้ใหม่':
+            reply = 'ผู้ใช้ใหม่ถูกเพิ่มเข้าสู่ระบบเรียบร้อยแล้ว';
             break;
           default:
-            reply = "I'm sorry, I didn't understand that. Please choose from the options provided.";
+            reply = "ขออภัย ฉันไม่เข้าใจคำถามของคุณ กรุณาลองอีกครั้ง";
             break;
         }
         await params.injectMessage(reply);
       },
-      options: ['I have more questions'],
+      options: ['จัดการต่อไป'],
       path: 'start',
       chatDisabled: true,
     },
   };
-  return <ChatBot flow={flow} />;
+  return <ChatBot flow={flow} themes={themes} />;
 };
 
 export default FaqBot;

@@ -85,6 +85,7 @@
 .post-buttons {
   display: flex;
   gap: 10px;
+  
 }
 
 .btn-post-action {
@@ -111,6 +112,7 @@
 .btn-primary-post {
   background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
+   background-color: #3d8bfd !important;   /* สีฟ้า */
   color: white;
   padding: 10px 30px;
   font-weight: 600;
@@ -121,6 +123,7 @@
 .btn-primary-post:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+   background-color: #1b6ff9 !important;   /* ฟ้าเข้มตอน hover */
 }
 
 .post-icon {

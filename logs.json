@@ -135,6 +135,30 @@
       "target": "san",
       "detail": "เป็น user",
       "time": "2025-11-22T16:32:17.437Z"
+    },
+    {
+      "id": "221d3db3-327a-4c96-9dbb-8e8678212579",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "sann",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-24T13:56:27.936Z"
+    },
+    {
+      "id": "8b07ef13-0fe4-4d05-a125-e9a464c05a7a",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น admin",
+      "time": "2025-11-24T14:12:31.852Z"
+    },
+    {
+      "id": "35165d67-c800-4730-b08a-0725a06e13e5",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น user",
+      "time": "2025-11-24T14:12:37.735Z"
     }
   ]
 }

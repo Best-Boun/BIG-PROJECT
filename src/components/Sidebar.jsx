@@ -65,17 +65,10 @@ function Sidebar({ role, onLogout }) {
           id="bot-select"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
-          style={{
-            padding: "8px 12px",
-            fontSize: "16px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
-            backgroundColor: "#f8f8f8",
-            cursor: "pointer",
-          }}
+          className="bot"
         >
           <option value="faqbot">จัดการงาน</option>
-          <option value="browserllmbot">ตรวจสอบ</option>
+          <option value="browserllmbot">BOBA</option>
         </select>
         {Bot ? <Bot /> : null}
       </div>

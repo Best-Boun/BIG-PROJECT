@@ -22,6 +22,8 @@ body {
     backdrop-filter: blur(10px);
     padding: 60px 40px 40px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 10;
 }
 
 .header-container {
@@ -132,7 +134,7 @@ body {
     margin-bottom: 5px;
 }
 
-.stat-label {
+.stat-label-profile {
     font-size: 0.95rem;
     color: #666;
     font-weight: 500;
@@ -464,6 +466,34 @@ body {
     -webkit-box-orient: vertical;
 }
 
+/* Right Sidebar */
+.right-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    position: sticky;
+    top: 140px;
+    align-self: flex-start;
+    height: fit-content;
+}
+
+/* Remove background from sidebar skill items */
+.sidebar-card .skill-item {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.sidebar-card .skill-name {
+    color: #333 !important;
+    font-weight: 600;
+}
+
+.sidebar-card .skill-level-badge {
+    color: #6a11cb !important;
+    font-weight: 600;
+}
+
 /* Sidebar */
 .sidebar2 {
     display: flex;
@@ -498,14 +528,27 @@ body {
 
 .skill-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
+    background: transparent;
+    padding: 0;
 }
 
 .skill-name {
     font-weight: 600;
     color: #333;
     font-size: 0.95rem;
+}
+
+.skill-level-badge {
+    color: #6a11cb;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    padding: 0;
 }
 
 .skill-bar {

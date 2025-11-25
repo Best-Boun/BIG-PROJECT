@@ -91,7 +91,7 @@ function ProfileEdit({ onNavigate }) {
     }, [profileData]);
 
       const handleCustomizeClick = () => {
-    navigate('/feature1'); // ✅ ใช้ navigate โดยตรง
+    navigate('/feature1'); // âœ… à¹ƒà¸Šà¹‰ navigate à¹‚à¸”à¸¢à¸•à¸£à¸‡
   };
 
     const handleInputChange = (e) => {
@@ -346,7 +346,7 @@ function ProfileEdit({ onNavigate }) {
 
                             {/* Profile Picture Upload Section */}
                             <div style={{ marginBottom: '30px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block' }}>Profile Picture</label>
+                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block', color: '#333' }}>Profile Picture</label>
                                 <div
                                     onClick={() => document.getElementById('profile-image-input').click()}
                                     style={{
@@ -415,16 +415,16 @@ function ProfileEdit({ onNavigate }) {
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Full Name</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Full Name</label>
                                     <input type="text" name="name" value={profile.name || ''} onChange={handleInputChange} placeholder="Enter your full name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', backgroundColor: profile.name ? '#fff' : '#fffacd' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Professional Title</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Professional Title</label>
                                     <input type="text" name="title" value={profile.title || ''} onChange={handleInputChange} placeholder="e.g. Senior Software Engineer" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', backgroundColor: profile.title ? '#fff' : '#fffacd' }} />
                                 </div>
                             </div>
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Bio / About Me</label>
+                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Bio / About Me</label>
                                 <textarea name="bio" value={profile.bio || ''} onChange={handleInputChange} placeholder="Tell us about yourself..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', fontFamily: 'inherit' }} />
                             </div>
                         </div>
@@ -440,15 +440,15 @@ function ProfileEdit({ onNavigate }) {
                             />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Age</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Age</label>
                                     <input type="text" name="age" value={profile.age || ''} onChange={handleInputChange} placeholder="32" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Nationality</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Nationality</label>
                                     <input type="text" name="nationality" value={profile.nationality || ''} onChange={handleInputChange} placeholder="American" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}> Work Type</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}> Work Type</label>
                                     <select name="workTypePreference" value={profile.workTypePreference || ''} onChange={handleInputChange} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}>
                                         <option>-- Select --</option>
                                         <option>Remote</option>
@@ -470,7 +470,7 @@ function ProfileEdit({ onNavigate }) {
                                 isPublic={getPrivacyValue('summary')}
                             />
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Your Professional Story</label>
+                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Your Professional Story</label>
                                 <textarea name="summary" value={profile.summary || ''} onChange={handleInputChange} placeholder="Tell your professional story..." rows="8" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', fontFamily: 'inherit' }} />
                             </div>
                         </div>
@@ -904,23 +904,23 @@ function ProfileEdit({ onNavigate }) {
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Employment Type</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Employment Type</label>
                                     <input type="text" name="jobTypes" value={profile.jobTypes || ''} onChange={handleInputChange} placeholder="Full-time, Contract" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Work Locations</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Work Locations</label>
                                     <input type="text" name="workLocations" value={profile.workLocations || ''} onChange={handleInputChange} placeholder="Remote, Onsite" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Salary Range</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Salary Range</label>
                                     <input type="text" name="salaryRange" value={profile.salaryRange || ''} onChange={handleInputChange} placeholder="$180k - $220k" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Availability</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Availability</label>
                                     <input type="text" name="availability" value={profile.availability || ''} onChange={handleInputChange} placeholder="Available now" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Notice Period</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Notice Period</label>
                                     <input type="text" name="noticePeriod" value={profile.noticePeriod || ''} onChange={handleInputChange} placeholder="2 weeks" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                             </div>
@@ -1078,27 +1078,27 @@ function ProfileEdit({ onNavigate }) {
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Email</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Email</label>
                                     <input type="email" name="email" value={profile.email || ''} onChange={handleInputChange} placeholder="alex@example.com" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Phone</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Phone</label>
                                     <input type="tel" name="phone" value={profile.phone || ''} onChange={handleInputChange} placeholder="+1 (555) 123-4567" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Location</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Location</label>
                                     <input type="text" name="location" value={profile.location || ''} onChange={handleInputChange} placeholder="San Francisco, CA" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>Website</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Website</label>
                                     <input type="url" name="website" value={profile.website || ''} onChange={handleInputChange} placeholder="https://yourwebsite.com" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>LinkedIn</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>LinkedIn</label>
                                     <input type="url" name="linkedin" value={profile.linkedin || ''} onChange={handleInputChange} placeholder="https://linkedin.com/in/yourprofile" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                                 <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block' }}>GitHub</label>
+                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>GitHub</label>
                                     <input type="url" name="github" value={profile.github || ''} onChange={handleInputChange} placeholder="https://github.com/yourprofile" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                                 </div>
                             </div>
@@ -1139,7 +1139,7 @@ function ProfileEdit({ onNavigate }) {
                             Customize
                         </button>
 
-                        {/* กลุ่มปุ่มขวา */}
+                        {/* à¸à¸¥à¸¸à¹ˆà¸¡à¸›à¸¸à¹ˆà¸¡à¸‚à¸§à¸² */}
                         <div style={{ display: 'flex', gap: '15px', marginLeft: 'auto' }}>
                             <button
                                 onClick={handleSave}
@@ -1298,7 +1298,7 @@ function ProfileEdit({ onNavigate }) {
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Proficiency</label>
                             <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <option value="Native">Native</option>           {/* â† à¹€à¸žà¸´à¹ˆà¸¡à¹ƒà¸«à¸¡à¹ˆ */}
+                                <option value="Native">Native</option>           {/* Ã¢â€ Â Ã Â¹â‚¬Ã Â¸Å¾Ã Â¸Â´Ã Â¹Ë†Ã Â¸Â¡Ã Â¹Æ’Ã Â¸Â«Ã Â¸Â¡Ã Â¹Ë† */}
                                 <option value="Fluent">Fluent</option>
                                 <option value="Advanced">Advanced</option>
                                 <option value="Intermediate">Intermediate</option>
@@ -1361,7 +1361,7 @@ function ProfileEdit({ onNavigate }) {
                                     </div>
                                 ) : (
                                     <div>
-                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>Ã°Å¸â€“Â¼Ã¯Â¸Â</div>
+                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>ÃƒÂ°Ã…Â¸Ã¢â‚¬â€œÃ‚Â¼ÃƒÂ¯Ã‚Â¸Ã‚Â</div>
                                         <p style={{ color: '#666', marginBottom: '5px', fontWeight: '500' }}>Click to upload project image</p>
                                         <small style={{ color: '#999' }}>PNG, JPG (Max 2MB)</small>
                                     </div>

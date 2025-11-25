@@ -4,7 +4,12 @@ import { Container, Row, Col } from "react-bootstrap";
 import Header2 from "../../components/Header2";
 import { ProfileContext } from "../../ProfileContext";
 import "./Feed.css";
+<<<<<<< HEAD
 import Swal from "sweetalert2";
+=======
+import applex from "../../assets/appleex.png";
+
+>>>>>>> a52c3be5933f4aa7ca308cf7e6d056aeca590e29
 
 const POSTS_KEY = "smartPersonaPosts";
 
@@ -36,9 +41,13 @@ export default function Feed({ user, onLogout }) {
 
   const fileInputRef = useRef();
 
+<<<<<<< HEAD
   // -------------------------------------------
   // Load posts
   // -------------------------------------------
+=======
+  
+>>>>>>> a52c3be5933f4aa7ca308cf7e6d056aeca590e29
   useEffect(() => {
     const loaded = localStorage.getItem(POSTS_KEY);
 
@@ -61,7 +70,11 @@ export default function Feed({ user, onLogout }) {
       {
         id: Date.now() + 101,
         type: "post",
+<<<<<<< HEAD
         user: { name: "Sarah Chen", avatar: "/avatars/2.png" },
+=======
+        user: { name: "Sarah Chen", avatar: applex },
+>>>>>>> a52c3be5933f4aa7ca308cf7e6d056aeca590e29
         text: "Just finished an amazing project with my team!",
         image: null,
         likes: 12,
@@ -306,7 +319,7 @@ export default function Feed({ user, onLogout }) {
                 </button>
 
                 <button
-                  className="btn btn-primary-post"
+                  className="btn btn-primary"
                   onClick={handleCreatePost}
                 >
                   Post
@@ -407,7 +420,7 @@ export default function Feed({ user, onLogout }) {
                 <p>{ad.description}</p>
 
                 <button
-                  className="btn btn-widget w-100"
+                  className="btn btn-widget w-100 btn-warning"
                   onClick={() => setSelectedAd(ad)}
                 >
                   ดูรายละเอียด

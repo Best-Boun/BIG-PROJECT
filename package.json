@@ -13,6 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.79",
     "@rcb-plugins/llm-connector": "^0.4.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",

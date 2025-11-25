@@ -3,7 +3,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(150deg, #5c18fc, #fdbc09); /* สีพื้นหลัง */
+  background: linear-gradient(150deg, #653ef1, #fdbc09); /* สีพื้นหลัง */
   color: white;
 
   /* เพิ่มบรรทัดพวกนี้ */
@@ -60,4 +60,14 @@ nav a.active {
 }
 .AI{
   color: #ffd20b;
+}
+
+.bot {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 2px solid #ffbb00;
+  background-color: #7654f0;
+  cursor: pointer ; 
 }

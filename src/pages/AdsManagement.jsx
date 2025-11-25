@@ -396,7 +396,7 @@ function AdsManagement() {
               {previewAd.image ? (
                 <img
                   src={resolveImageSrc(previewAd.image)}
-                  alt={previewAd.name}
+                  alt={previewAd.name}    
                   className="preview-img"
                 />
               ) : (

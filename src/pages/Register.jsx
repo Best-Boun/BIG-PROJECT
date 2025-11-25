@@ -16,6 +16,14 @@ function Register() {
     return () => document.body.classList.remove("login-page");
   }, []);
 
+  // ==========================
+  //  ตรวจสอบอีเมลแบบ Gmail เท่านั้น
+  // ==========================
+  const isValidGmail = (email) => {
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return gmailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -24,13 +32,16 @@ function Register() {
       return;
     }
 
-    // registerUser should return { success: true, message: "...", user: { id, username, email, role } }
+    // ตรวจว่าเป็น Gmail เท่านั้น
+    if (!isValidGmail(email)) {
+      setMessage("⚠️ กรุณากรอกอีเมลให้ถูกต้อง และต้องเป็น @gmail.com เท่านั้น");
+      return;
+    }
+
     const result = await registerUser(username, email, password);
     setMessage(result.message || "Registered");
 
     if (result.success) {
-      // if API returns user data, we can auto-save or redirect
-      // but we will redirect to login for now
       setTimeout(() => {
         window.location.href = "/";
       }, 1200);

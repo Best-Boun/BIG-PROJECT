@@ -16,6 +16,21 @@ body {
   display: grid;
   grid-template-columns: 350px 1fr;
   gap: 24px;
+  align-items: flex-start;
+}
+
+/* Back button */
+.back-btn {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #ccc;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 20;
 }
 
 /* ============================ SIDEBAR ============================ */
@@ -141,7 +156,6 @@ body {
   font-weight: 700;
 }
 
-/* Export button style */
 .btn.export {
   background: #ffffff;
   border: 1px solid #bbb;
@@ -161,7 +175,7 @@ body {
   overflow: hidden;
 }
 
-/* Header bar of the profile card */
+/* Header bar */
 .preview-header-bar {
   text-align: center;
   padding: 32px;
@@ -215,8 +229,7 @@ body {
   font-size: 13px;
 }
 
-/* ============================ INPUTS ============================ */
-
+/* Inputs */
 select,
 input[type="range"] {
   width: 100%;

@@ -120,21 +120,20 @@ body {
 }
 
 /* ============================================================
-   USER CARD
+   USER CARD - FIXED LAYOUT
 ============================================================ */
 .user-card {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 16px;
   background: #fff;
-  padding: 18px 22px;
+  padding: 20px 24px;
   border-radius: 18px;
   border-left: 6px solid #ccc;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   transition: .25s ease;
-     min-width: unset;
-  width: 100%;     /* ให้กว้างตาม grid */
-  max-width: 100%; /* บังคับไม่ให้เกิน */
+  width: 100%;
+  max-width: 100%;
 }
 .user-card:hover {
   transform: translateY(-4px);
@@ -178,24 +177,32 @@ body {
 }
 
 /* ============================================================
-   ACTION BUTTONS
+   ACTION BUTTONS - FIXED GRID LAYOUT
 ============================================================ */
 .user-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-   flex-wrap: wrap;      /* ไม่ให้ตัดบรรทัด */
-  
+  width: 100%;
 }
 
 .action-btn {
-  padding: 8px 14px;
+  padding: 10px 14px;
   border-radius: 10px;
-  font-size: .8rem;
+  font-size: 8rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: .2s;
+  text-align: center;
+  white-space: nowrap;
 }
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 .action-btn.view {
   background: #eef1ff;
   color: #2f4adf;
@@ -213,13 +220,18 @@ body {
   color: #fff;
 }
 
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ============================================================
    MODAL
 ============================================================ */
 .am-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);  /* ลดความมืด */
+  background: rgba(0,0,0,0.35);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -228,7 +240,7 @@ body {
 
 .am-modal-card {
   width: 420px;
-  background: #ffffff !important; /* บังคับ modal ขาว */
+  background: #ffffff !important;
   color: #000 !important;
   padding: 24px;
   border-radius: 22px;
@@ -247,10 +259,6 @@ body {
 /* ============================================================
    DARK MODE FIXES (ALL TEXT + BUTTONS)
 ============================================================ */
-/* ============================================================
-   DARK MODE — CLEAN & PERFECT VERSION
-============================================================ */
-
 .dark {
   background:#0f172a !important;
 }
@@ -265,7 +273,7 @@ body {
   color: #ffffff !important;
 }
 
-/* ===== TEXT ใช้สีขาวทั้งหมด ===== */
+/* ===== TEXT สีขาวทั้งหมด ===== */
 .dark h1,
 .dark h2,
 .dark h3,
@@ -400,18 +408,15 @@ body {
 }
 
 /* ============================================================
-   MODAL BUTTON FIX — สีปุ่ม + สลับตำแหน่ง + Hover
+   MODAL BUTTON FIX - สีปุ่ม + สลับตำแหน่ง + Hover
 ============================================================ */
-
-/* ปรับ layout ให้ปุ่มอยู่ขวา และสลับตำแหน่ง */
 .am-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  flex-direction: row-reverse; /* ⭐ สลับตำแหน่งปุ่ม */
+  flex-direction: row-reverse;
 }
 
-/* ปุ่มหลัก เช่น Confirm / Change / Delete */
 .am-btn-confirm,
 .am-btn-change,
 .am-btn-delete {
@@ -432,7 +437,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* ปุ่ม Cancel */
 .am-btn-cancel {
   background: #e5e7eb;
   color: #111;
@@ -466,9 +470,6 @@ body {
 }
 
 /* ============================
-   Dark Mode Toggle Button
-============================ */
-/* ============================
    Dark Mode Toggle Switch (FINAL)
 ============================ */
 .dark-toggle-wrapper {
@@ -497,7 +498,7 @@ body {
   padding: 3px;
   display: flex;
   align-items: center;
-  justify-content: flex-start;   /* ⭐ สำคัญสุด */
+  justify-content: flex-start;
   transition: 0.25s;
 }
 
@@ -518,4 +519,3 @@ body {
   transition: 0.25s;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-

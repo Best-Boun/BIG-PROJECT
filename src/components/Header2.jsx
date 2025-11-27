@@ -93,13 +93,6 @@ export default function Header2({ user, onLogout }) {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu align="end">
-                  <Dropdown.Item href="/dashboard">
-                    <FaHome /> Dashboard
-                  </Dropdown.Item>
-                  <Dropdown.Item href="/applications">
-                    📋 Applications
-                  </Dropdown.Item>
-                  <Dropdown.Divider />
                   <Dropdown.Item href="/settings">
                     <FaCog /> Settings
                   </Dropdown.Item>

@@ -342,7 +342,7 @@ const ProfilePublic = ({ onNavigate }) => {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', maxWidth: '66.66%', margin: '0 auto' }}>
                   <div className="work-style-item">
-                    <div className="work-style-icon">⏱️</div>
+                    <div className="work-style-icon">⏰</div>
                     <div className="work-style-title">Availability</div>
                     <div className="work-style-desc">{profileData.availability || ''}</div>
                   </div>
@@ -393,25 +393,10 @@ const ProfilePublic = ({ onNavigate }) => {
             </div>
           )}
 
-          {profileData.privacy?.publications !== false && profileData.publications && profileData.publications.length > 0 && (
-            <div className="section-card">
-              <div className="section-header">
-                <h2 className="section-title">Technical Publications</h2>
-              </div>
-              <div className="timeline">
-                {profileData.publications.map((pub) => (
-                  <div key={pub.id} className="timeline-item">
-                    <div className="timeline-title">{pub.title}</div>
-                    <div className="timeline-description">{pub.subtitle}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
         </div>
 
-        <div className="right-sidebar">
+        <div className="right-sidebar-profile">
 
           {profileData.privacy?.quickInfo !== false && (
             <div className="sidebar-card">
@@ -548,7 +533,7 @@ const ProfilePublic = ({ onNavigate }) => {
               <div className="skill-list">
                 {profileData.skills.slice(0, 5).map((skill) => (
                   <div key={skill.id} className="skill-item">
-                    <div className="skill-name">{skill.name}</div>
+                    <div className=".skill-name-profile">{skill.name}</div>
                     <span className="skill-level-badge">{skill.level}</span>
                   </div>
                 ))}

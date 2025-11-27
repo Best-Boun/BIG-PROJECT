@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import Profilepublic from './pages/ProfilePublic/Profilepublic';
 import JobBrowse from './pages/JobBrowse';
 import JobDetail from './pages/JobDetail';
-import Resumepage from './pages/Resumepage';
+import ResumeEditor from './pages/ResumeEditor';
 import ProfileEdit from './pages/ProfileEdit';
-import Feed from "./pages/Feed/Feed";
-import { ProfileProvider } from './ProfileContext';
+import Feed from './pages/Feed/Feed';
+import { ProfileProvider, ProfileContext } from './ProfileContext';
 import './App.css';
 import Login from "./pages/Login";
 import Register from "./Pages/Register";
@@ -19,7 +19,6 @@ import AdminManagement from "./Pages/AdminManagement";
 import Landing from "./pages/Landing";
 import Feature1 from "./components/Feature1";
 import Feature2 from "./components/Feature2";
-import Feature3 from "./components/Feature3";
 
 
 // ============ WRAPPER COMPONENTS ============
@@ -36,16 +35,33 @@ function ProfilepublicWrapper() {
   return <Profilepublic onNavigate={handleNavigate} />;
 }
 
-// Wrapper for Resumepage with navigation
-function ResumepageWrapper() {
-  const navigate = useNavigate();
+// Wrapper for ResumeEditor with ProfileContext
+function ResumeEditorWrapper({ user, onLogout }) {
+  const context = useContext(ProfileContext);
+  const profileData = context?.profileData || {};
 
-  const handleNavigate = (page) => {
-    if (page === 'profile') navigate('/profile');
-    if (page === 'edit') navigate('/edit-profile');
+  // Convert profile data to resume data (Import mode)
+  const resumeFromProfile = {
+    ...profileData,
+    name: profileData.name || '',
+    title: profileData.title || '',
+    email: profileData.email || '',
+    phone: profileData.phone || '',
+    location: profileData.location || '',
+    summary: profileData.summary || '',
+    profile: profileData.profile || '',
+    employment: profileData.experience || [],
+    education: profileData.education || [],
+    skills: profileData.skills || [],
+    languages: profileData.languages || [],
+    hobbies: profileData.hobbies || [],
+    certificates: profileData.certificates || [],
+    references: profileData.references || '',
+    achievements: profileData.achievements || [],
+    photo: profileData.photo || ''
   };
 
-  return <Resumepage onNavigate={handleNavigate} />;
+  return <ResumeEditor initialData={resumeFromProfile} user={user} onLogout={onLogout} />;
 }
 
 // Wrapper for ProfileEdit with navigation
@@ -186,11 +202,10 @@ function AppContent() {
             <Route path="/jobs/:id" element={<JobDetail />} />
 
             {/* 📄 Resume Page */}
-            <Route path="/resume" element={<ResumepageWrapper />} />
+            <Route path="/resume" element={<ResumeEditorWrapper user={user} onLogout={handleLogout} />} />
 
             <Route path="/feature1" element={<Feature1 />} />
             <Route path="/feature2" element={<Feature2 />} />
-            <Route path="/feature3" element={<Feature3 />} />
 
             {/* Default - Redirect to Feed */}
             <Route path="/" element={<Navigate to="/feed" replace />} />
@@ -204,14 +219,8 @@ function AppContent() {
     );
 }
 
- 
-
-
-
-
 // ============ MAIN APP COMPONENT ============
 
 export default function App() {
   return <AppContent />;
 }
-

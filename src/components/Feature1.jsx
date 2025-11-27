@@ -103,9 +103,49 @@ export default function Feature1() {
     });
   };
 
+  /* ================= RESET ALL ================= */
+  const resetAll = () => {
+    setPrimary("#6A11CB");
+    setSecondary("#2575FC");
+    setHeaderBg("#6A11CB");
+    setBodyBg("#FFFFFF");
+
+    setFontFamily("system");
+    setFontSize(16);
+    setSpacing(28);
+    setRadius(20);
+    setShadowBlur(24);
+    setShadowOpacity(0.32);
+
+    setAvatar("👨‍💻");
+  };
+
+  /* ================= SAVE PROFILE ================= */
+  const saveProfile = () => {
+    const profile = {
+      theme: { primary, secondary, headerBg, bodyBg },
+      settings: { fontFamily, fontSize, spacing, radius, shadowBlur, shadowOpacity },
+      avatar,
+    };
+
+    localStorage.setItem("profile_v1", JSON.stringify(profile));
+    alert("✔️ Profile Saved!");
+  };
+
+  /* ================= BACK TO FRIEND PAGE ================= */
+  const goBack = () => {
+    window.location.href = "/friends"; // เปลี่ยน path ได้ตามโปรเจ็กต์มึง
+  };
+
   /* ===================== JSX ===================== */
   return (
     <div className="feature1-container">
+      
+      {/* Back Button */}
+      <button className="btn2 back-btn" onClick={goBack}>
+        ← Back
+      </button>
+
       {/* ---------------- LEFT SIDEBAR ---------------- */}
       <aside className="sidebar2">
 
@@ -271,9 +311,12 @@ export default function Feature1() {
         <div className="preview-header">
           <div className="preview-title">👁️ Live Preview</div>
 
-          <button className="btn export" onClick={exportPNG}>
-            📦 Export PNG
-          </button>
+          <div className="preview-actions">
+            <button className="btn small" onClick={saveProfile}>⭐ Save</button>
+            <button className="btn small" onClick={resetAll}>♻ Reset</button>
+            <button className="btn export" onClick={exportPNG}>📦 Export PNG</button>
+          </div>
+
         </div>
 
         <div

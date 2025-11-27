@@ -346,7 +346,7 @@ function ProfileEdit({ onNavigate }) {
 
                             {/* Profile Picture Upload Section */}
                             <div style={{ marginBottom: '30px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block' }}>Profile Picture</label>
+                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block', }}>Profile Picture</label>
                                 <div
                                     onClick={() => document.getElementById('profile-image-input').click()}
                                     style={{

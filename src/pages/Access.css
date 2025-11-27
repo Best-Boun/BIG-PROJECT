@@ -132,7 +132,7 @@ body {
   border-left: 6px solid #ccc;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   transition: .25s ease;
-     min-width: 550px;
+     min-width: unset;
   width: 100%;     /* ให้กว้างตาม grid */
   max-width: 100%; /* บังคับไม่ให้เกิน */
 }
@@ -183,8 +183,8 @@ body {
 .user-actions {
   display: flex;
   gap: 10px;
-   flex-wrap: nowrap;      /* ไม่ให้ตัดบรรทัด */
-  white-space: nowrap;    /* บังคับให้อยู่บรรทัดเดียว */
+   flex-wrap: wrap;      /* ไม่ให้ตัดบรรทัด */
+  
 }
 
 .action-btn {

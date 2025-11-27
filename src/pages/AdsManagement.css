@@ -25,6 +25,7 @@
 .sp-header h2 {
   font-size: 1.7rem;
   background: linear-gradient(90deg, #4d5eff, #b44dff);
+  background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }

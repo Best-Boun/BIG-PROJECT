@@ -121,32 +121,7 @@ body {
 }
 
 /* ============================================================
-<<<<<<< HEAD
-   USER CARD
-======================================= ===================== */
-=======
-   USER CARD - FIXED LAYOUT
-============================================================ */
->>>>>>> 483d11018f01f0541e6ae097f5907296400b5752
-.user-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background: #fff;
-  padding: 20px 24px;
-  border-radius: 18px;
-  border-left: 6px solid #ccc;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  transition: .25s ease;
-<<<<<<< HEAD
 
-  min-width: 0;   /* ⭐ ป้องกันบังคับล้น */
-  width: 100%;    /* ⭐ บังคับให้พอดีช่อง */
-=======
-  width: 100%;
-  max-width: 100%;
->>>>>>> 483d11018f01f0541e6ae097f5907296400b5752
-}
 
 
 .user-card:hover {
@@ -197,13 +172,6 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-<<<<<<< HEAD
-  flex-wrap: wrap;       /* ⭐ อนุญาตให้ตัดบรรทัด */
-  white-space: normal;   /* ⭐ ไม่บังคับบรรทัดเดียว */
-  justify-content: flex-end;
-=======
-  width: 100%;
->>>>>>> 483d11018f01f0541e6ae097f5907296400b5752
 }
 
 

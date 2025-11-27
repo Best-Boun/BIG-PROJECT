@@ -4,7 +4,7 @@ body {
   margin: 0;
   font-family: Inter, system-ui;
   background: #ffffff;
-  color: #333;
+  color: #f5f5f5;
 }
 
 /* ============================ MAIN GRID ============================ */
@@ -20,13 +20,13 @@ body {
 }
 
 /* Back button */
-.back-btn {
+.back-btn2 {
   position: fixed;
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #ffffff;
-  border: 1px solid #ccc;
+  background: #d60909;
+  border: 1px solid #ca0000;
   padding: 10px 20px;
   border-radius: 10px;
   cursor: pointer;
@@ -36,7 +36,7 @@ body {
 /* ============================ SIDEBAR ============================ */
 
 .sidebar2 {
-  background: #f5f5f5;
+  background: #d10e0e;
   border: 1px solid #e5e5e5;
   padding: 20px;
   border-radius: 12px;
@@ -101,6 +101,7 @@ body {
   border: 1px solid #ccc;
   background: #ffffff;
   font-size: 14px;
+  margin-top: 10px;
 }
 
 .btn:hover {

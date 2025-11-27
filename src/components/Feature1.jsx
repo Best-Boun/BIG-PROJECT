@@ -145,7 +145,7 @@ export default function Feature1() {
     <div className="feature1-container">
       
       {/* Back Button */}
-      <button className="btn back-btn" onClick={goBack}>
+      <button className="btn2 back-btn" onClick={goBack}>
         ← Back
       </button>
 
@@ -346,6 +346,9 @@ export default function Feature1() {
                 <span>{avatar}</span>
               )}
             </div>
+
+
+
 
             <h2>Alex Johnson</h2>
             <p className="subtitle">Senior Software Engineer</p>

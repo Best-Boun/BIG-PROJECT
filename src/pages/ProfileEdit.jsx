@@ -92,7 +92,7 @@ function ProfileEdit({ onNavigate }) {
     }, [profileData]);
 
       const handleCustomizeClick = () => {
-    navigate('/feature1'); // Ã¢Å“â€¦ Ã Â¹Æ’Ã Â¸Å Ã Â¹â€° navigate Ã Â¹â€šÃ Â¸â€Ã Â¸Â¢Ã Â¸â€¢Ã Â¸Â£Ã Â¸â€¡
+    navigate('/feature1'); 
   };
 
     const handleInputChange = (e) => {
@@ -1082,7 +1082,7 @@ function ProfileEdit({ onNavigate }) {
                             Customize
                         </button>
 
-                        {/* Ã Â¸ÂÃ Â¸Â¥Ã Â¸Â¸Ã Â¹Ë†Ã Â¸Â¡Ã Â¸â€ºÃ Â¸Â¸Ã Â¹Ë†Ã Â¸Â¡Ã Â¸â€šÃ Â¸Â§Ã Â¸Â² */}
+                        
                         <div style={{ display: 'flex', gap: '15px', marginLeft: 'auto' }}>
                             <button
                                 onClick={handleSave}
@@ -1241,7 +1241,7 @@ function ProfileEdit({ onNavigate }) {
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Proficiency</label>
                             <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <option value="Native">Native</option>           {/* ÃƒÂ¢Ã¢â‚¬Â Ã‚Â ÃƒÂ Ã‚Â¹Ã¢â€šÂ¬ÃƒÂ Ã‚Â¸Ã…Â¾ÃƒÂ Ã‚Â¸Ã‚Â´ÃƒÂ Ã‚Â¹Ã‹â€ ÃƒÂ Ã‚Â¸Ã‚Â¡ÃƒÂ Ã‚Â¹Ã†â€™ÃƒÂ Ã‚Â¸Ã‚Â«ÃƒÂ Ã‚Â¸Ã‚Â¡ÃƒÂ Ã‚Â¹Ã‹â€  */}
+                                <option value="Native">Native</option>          
                                 <option value="Fluent">Fluent</option>
                                 <option value="Advanced">Advanced</option>
                                 <option value="Intermediate">Intermediate</option>

@@ -18,9 +18,9 @@ import AdsManagement from "./pages/AdsManagement";
 import AdminManagement from "./Pages/AdminManagement";
 import Landing from "./pages/Landing";
 import Feature1 from "./components/Feature1";
-import Feature2 from "./components/Feature2";
 
-adad
+
+
 // ============ WRAPPER COMPONENTS ============
 
 // Wrapper for Profilepublic with navigation
@@ -205,7 +205,6 @@ function AppContent() {
             <Route path="/resume" element={<ResumeEditorWrapper user={user} onLogout={handleLogout} />} />
 
             <Route path="/feature1" element={<Feature1 />} />
-            <Route path="/feature2" element={<Feature2 />} />
 
             {/* Default - Redirect to Feed */}
             <Route path="/" element={<Navigate to="/feed" replace />} />

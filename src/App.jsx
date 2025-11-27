@@ -20,7 +20,7 @@ import Landing from "./pages/Landing";
 import Feature1 from "./components/Feature1";
 import Feature2 from "./components/Feature2";
 
-
+adad
 // ============ WRAPPER COMPONENTS ============
 
 // Wrapper for Profilepublic with navigation

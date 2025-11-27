@@ -1,264 +1,410 @@
-/* ============================ GLOBAL ============================ */
+/* =========================================================
+   GLOBAL
+========================================================= */
+:root {
+  --feature1-bg: #eef1ff;
+  --feature1-card-bg: rgba(255,255,255,0.55);
+  --feature1-radius: 20px;
+  --feature1-text-dark: #222;
+}
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: Inter, system-ui;
-  background: #ffffff;
-  color: #f5f5f5;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(120,96,255,0.13), transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(168,85,247,0.11), transparent 40%),
+    var(--feature1-bg);
+  font-family: Inter, sans-serif;
 }
 
-/* ============================ MAIN GRID ============================ */
-
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
 .feature1-container {
-  width: 1600px;
-  max-width: 95%;
-  margin: 20px auto;
+  width: 1650px;
+  max-width: 96%;
+  margin: 90px auto 50px;
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 24px;
-  align-items: flex-start;
+  grid-template-columns: 380px 1fr;
+  gap: 34px;
 }
 
-/* Back button */
-.back-btn2 {
+/* =========================================================
+   TOP BAR
+========================================================= */
+.feature1-topbar {
   position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #d60909;
-  border: 1px solid #ca0000;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 20;
-}
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 0 26px;
 
-/* ============================ SIDEBAR ============================ */
-
-.sidebar2 {
-  background: #d10e0e;
-  border: 1px solid #e5e5e5;
-  padding: 20px;
-  border-radius: 12px;
-  height: fit-content;
-}
-
-.card {
-  background: #ffffff;
-  border: 1px solid #e1e1e1;
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-}
-
-.card-title {
-  font-weight: 700;
-  margin-bottom: 12px;
-  font-size: 15px;
-}
-
-/* ============================ PRESET BUTTONS ============================ */
-
-.preset-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.preset-button {
-  background: #fafafa;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  min-width: 100px;
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  z-index: 100;
 }
 
-.preset-button:hover {
-  background: #f0f0f0;
-}
-
-.preset-name {
-  font-size: 13px;
-}
-
-.preset-colors span {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-/* ============================ BUTTONS ============================ */
-
-.btn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  background: #ffffff;
-  font-size: 14px;
-  margin-top: 10px;
-}
-
-.btn:hover {
-  background: #f4f4f4;
-}
-
-.btn.random,
-.btn.save-theme {
-  width: 100%;
-}
-
-/* ============================ SAVED THEMES ============================ */
-
-.saved-themes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.saved-item {
-  width: 48px;
-  height: 34px;
-  border: 1px solid #ddd;
-  background: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.saved-item span {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-/* ============================ PREVIEW AREA ============================ */
-
-.preview-area {
-  padding: 10px;
-}
-
-.preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.preview-title {
+.feature1-top-title {
   font-size: 18px;
   font-weight: 700;
+  color: #333;
 }
 
-.btn.export {
-  background: #ffffff;
-  border: 1px solid #bbb;
-}
-
-.btn.export:hover {
-  background: #f4f4f4;
-}
-
-/* ============================ PREVIEW CARD ============================ */
-
-.preview-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-/* Header bar */
-.preview-header-bar {
-  text-align: center;
-  padding: 32px;
-  color: white;
-}
-
-/* Avatar */
-.avatar-preview {
-  width: 64px;
-  height: 64px;
-  background: rgba(255,255,255,0.4);
-  border-radius: 12px;
-  margin: 0 auto 6px;
+.feature1-top-actions {
   display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.avatar-preview img {
-  width: 58px;
-  height: 58px;
-  border-radius: 10px;
-}
-
-/* Body */
-.preview-body {
-  background: #f7f7f7;
-  padding: 28px;
-}
-
-.preview-body h3 {
-  margin-top: 12px;
-  margin-bottom: 4px;
-}
-
-.preview-body p {
-  margin: 4px 0 10px;
-}
-
-/* Tags */
-.tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tags span {
-  background: #dce7ff;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-}
-
-/* Inputs */
-select,
-input[type="range"] {
-  width: 100%;
-  margin-bottom: 12px;
-}
-
-label {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: block;
-}
-
-/* Avatar picker */
-.avatar-box {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
-.avatar-emoji {
-  width: 60px;
-  height: 60px;
-  font-size: 34px;
+.feature1-top-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.05);
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.feature1-top-btn:hover {
+  transform: translateY(-2px);
+  background: white;
+}
+
+.feature1-top-btn.primary {
+  background: linear-gradient(90deg, #6A11CB, #2575FC);
+  color: white;
+  border: none;
+}
+
+.feature1-top-btn.export {
+  background: #5ee3ff;
+  border: none;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+.feature1-sidebar {
+  position: sticky;
+  top: 94px;
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.feature1-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.feature1-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: rgba(0,0,0,0.12);
+}
+
+/* =========================================================
+   SIDEBAR CARD
+========================================================= */
+.feature1-card {
+  background: var(--feature1-card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: var(--feature1-radius);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.15);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.feature1-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.feature1-btn {
+  padding: 10px 14px;
+  width: 100%;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: 0.15s;
+}
+
+.feature1-btn:hover {
+  transform: translateY(-2px);
+  background: white;
+}
+
+/* =========================================================
+   PRESET COLOR BUTTONS
+========================================================= */
+.feature1-preset-list {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.feature1-preset-button {
+  padding: 10px;
+  min-width: 120px;
+
+  background: rgba(255,255,255,0.85);
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.06);
+
+  display: flex;
   align-items: center;
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+  gap: 10px;
+
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.feature1-preset-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.feature1-preset-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.feature1-preset-colors {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.feature1-preset-colors span {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* =========================================================
+   AVATAR SIDEBAR
+========================================================= */
+.feature1-avatar-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature1-avatar-emoji,
+.feature1-avatar-img {
+  border-radius: 16px;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* =========================================================
+   LAYOUT SWITCHER
+========================================================= */
+.feature1-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+}
+
+.feature1-layout-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.08);
+  text-align: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.15s;
+}
+
+.feature1-layout-card:hover {
+  transform: translateY(-2px);
+}
+
+.feature1-layout-card.active {
+  background: linear-gradient(90deg,#6A11CB,#2575FC);
+  color: white;
+  border: none;
+}
+
+/* =========================================================
+   PREVIEW AREA
+========================================================= */
+.feature1-preview-area {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.feature1-preview-card {
+  width: 100%;
+  max-width: 960px;
+
+  background: white;
+  border-radius: var(--feature1-radius);
+  overflow: hidden;
+
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+
+  transition: 0.25s;
+}
+
+.feature1-preview-card:hover {
+  transform: translateY(-4px);
+}
+
+/* =========================================================
+   HEADER BAR (WITH COVER BEHIND GRADIENT)
+========================================================= */
+.feature1-preview-header-bar {
+  position: relative;
+  padding: 40px 20px 20px;
+  text-align: center;
+  color: white;
+}
+
+/* Avatar inside header */
+.feature1-avatar-preview {
+  border-radius: 16px;
+  background: rgba(255,255,255,0.45);
+  border: 2px solid rgba(255,255,255,0.65);
+  margin: 0 auto 10px;
+
+  display: flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.feature1-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+/* =========================================================
+   PREVIEW BODY
+========================================================= */
+.feature1-preview-body {
+  background: rgba(255,255,255,0.94);
+  padding: 30px;
+}
+
+.feature1-preview-body h3 {
+  margin: 18px 0 10px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.feature1-preview-body p {
+  margin: 6px 0;
+  line-height: 1.55;
+}
+
+.feature1-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Tag */
+.feature1-tags span {
+  background: rgba(0,0,0,0.1);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   LAYOUT TYPES
+========================================================= */
+
+/* CLASSIC */
+.layout-classic .feature1-preview-header-bar {
+  text-align: center;
+}
+
+/* LEFT PROFILE */
+.layout-left .feature1-preview-header-bar {
+  text-align: left;
+  padding-left: 40px;
+}
+
+.layout-left .feature1-avatar-preview {
+  margin-left: 0;
+}
+
+/* SPLIT VIEW */
+.layout-split {
+  display: flex;
+  gap: 0;
+}
+
+.layout-split .feature1-preview-header-bar {
+  width: 40%;
+  text-align: center;
+  padding-top: 32px;
+}
+
+.layout-split .feature1-preview-body {
+  width: 60%;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+.feature1-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+
+  padding: 12px 20px;
+  background: rgba(0,255,120,0.22);
+  color: #064b1f;
+  font-weight: 600;
+
+  border-radius: 14px;
+  opacity: 0;
+  transition: 0.25s;
+}
+
+.feature1-toast.show {
+  opacity: 1;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 1100px) {
+  .feature1-container {
+    grid-template-columns: 1fr;
+    padding-top: 20px;
+  }
+
+  .feature1-sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .feature1-preview-card {
+    max-width: 100%;
+  }
 }

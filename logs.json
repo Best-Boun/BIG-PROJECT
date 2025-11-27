@@ -191,6 +191,38 @@
       "target": "aaaa",
       "detail": "ลบบัญชีผู้ใช้",
       "time": "2025-11-27T15:48:31.351Z"
+    },
+    {
+      "id": "16b213fd-f74c-4657-8505-458dc9ef4414",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "user",
+      "detail": "เป็น admin",
+      "time": "2025-11-27T16:34:28.093Z"
+    },
+    {
+      "id": "d16f7c39-ef4f-4978-8e11-7966ccd418e4",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "rrrr",
+      "detail": "เป็น admin",
+      "time": "2025-11-27T16:34:38.009Z"
+    },
+    {
+      "id": "654c77c4-58be-4a9f-ab10-9a0824ddc483",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "user",
+      "detail": "เป็น user",
+      "time": "2025-11-27T16:34:42.292Z"
+    },
+    {
+      "id": "76d12c44-acbe-4995-a487-9f35d086a721",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "rrrr",
+      "detail": "เป็น user",
+      "time": "2025-11-27T16:37:38.650Z"
     }
   ]
 }

@@ -392,3 +392,68 @@
     max-height: 120px;
   }
 }
+
+/* ========================================= /
+/ DARK MODE TEXT COLORS /
+/ ========================================= /
+
+/ หัวเรื่องของโพสต์ /
+body.dark-mode .post-header h6 {
+  color: #f2f2f2 !important;
+}
+
+/ เวลาโพสต์ /
+body.dark-mode .post-header .text-muted {
+  color: #bbbbbb !important;
+}
+
+/ เนื้อหาโพสต์ /
+body.dark-mode .post-content {
+  color: #e5e5e5 !important;
+}
+
+/ ปุ่มไลก์ / คอมเมนต์ /
+body.dark-mode .btn-action {
+  color: #cccccc !important;
+}
+
+body.dark-mode .btn-action:hover {
+  background: #333 !important;
+  color: var(--theme-color) !important;
+}
+
+/ ตัวเลขสถิติใต้โพสต์ /
+body.dark-mode .post-stats {
+  color: #bbbbbb !important;
+  border-color: #333 !important;
+}
+
+/ ชื่อผู้ใช้ใน feed (สีตาม theme) /
+body.dark-mode .feed-username {
+  color: var(--theme-color) !important;
+}
+body.dark-mode input {
+  color: #ffffff !important;   / สีตัวอักษร input /
+}
+body.dark-mode input::placeholder {
+  color: #b5b5b5 !important;   / สีเทาสว่าง /
+  opacity: 1 !important;       / ป้องกัน browser ลดความเข้ม */
+/* } */
+.feed-page,
+.feed-container,
+.post-card,
+.create-post-box {
+  font-size: var(--font-size) !important;
+}
+.post-card {
+  border-left: 4px solid var(--theme-color) !important;
+}
+
+.feed-title,
+.feed-username,
+.feed-link {
+  color: var(--theme-color) !important;
+}
+body.layout-compact .feed-container {
+  max-width: 900px !important;
+}

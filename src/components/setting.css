@@ -1,37 +1,74 @@
 .settings-container {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
+/* =========================
+   Body / Background
+========================= */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #333;
+}
 
+/* =========================
+   Container
+========================= */
+.settings-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+
+  /* Glass effect */
+  backdrop-filter: blur(10px);
+}
+
+/* =========================
+   Card
+========================= */
 .settings-card {
-  background-color: #ffffff;
+  background: rgba(226, 189, 248, 0.85); /* โปร่งเล็กน้อย */
   max-width: 700px;
   width: 100%;
   padding: 2rem;
   border-radius: 1.5rem;
-  /* ตัวอย่างเงาสีม่วง */
-  box-shadow: 0 10px 25px rgba(24, 39, 253, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(106, 17, 203, 0.25);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  transition: all 0.3s ease;
 }
 
-
-
+/* =========================
+   Section
+========================= */
 .setting-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border: 1px solid #e5e7eb;
   border-radius: 1rem;
-  background-color: #f9fafb;
-  transition: all 0.2s;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
 }
 
 .setting-section:hover {
-  background-color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
+/* =========================
+   Toggle Switch
+========================= */
 .toggle-wrapper {
   position: relative;
   display: inline-block;
@@ -48,25 +85,22 @@
 .toggle-slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: #d1d5db;
   transition: 0.4s;
   border-radius: 9999px;
 }
 
 .toggle-slider:before {
-  position: absolute;
   content: "";
+  position: absolute;
   height: 20px;
   width: 20px;
   left: 2px;
   bottom: 2px;
   background-color: white;
-  transition: 0.4s;
   border-radius: 50%;
+  transition: 0.4s;
 }
 
 input:checked + .toggle-slider {
@@ -77,127 +111,91 @@ input:checked + .toggle-slider:before {
   transform: translateX(22px);
 }
 
-.input-field {
-  width: 100%;
-  padding: 0.5rem;
+/* =========================
+   Inputs / Select
+========================= */
+input, select {
+  padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
   border: 1px solid #d1d5db;
+  background-color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.btn-back {
-  background-color: #1261ff;
-  padding: 0.5rem 1rem;
+input:focus, select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+/* =========================
+   Buttons
+========================= */
+.btn-save, .btn-back-like-save {
+  flex: 1;
+  padding: 0.75rem;
   border-radius: 1rem;
-  border: 1px solid #d1d5db;
+  font-weight: bold;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-back:hover {
-  background-color: #1770f7;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
 .btn-save {
-  flex: 1;
   background-color: #3b82f6;
   color: white;
-  font-weight: bold;
-  padding: 0.75rem;
-  border-radius: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-save:hover {
-  background-color: #2563eb;
-}
-
-.btn-secondary {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 1rem;
-  border: 1px solid #d1d5db;
-  background-color: #f3f4f6;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background-color: #e5e7eb;
-}
-.settings-container {
-  display: flex;               /* ใช้ Flexbox */
-  justify-content: center;     /* กึ่งกลางแนวนอน */
-  align-items: center;         /* กึ่งกลางแนวตั้ง */
-  min-height: 100vh;           /* เต็มความสูงหน้าจอ */
-  background-color: #f3f4f6;   /* สีพื้นหลัง */
-  padding: 1rem;
-}
-
-/* พื้นหลังแบบเดียวกับโปรไฟล์ */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
-    background-size: cover;
-    background-repeat: no-repeat;
-    color: #333;
-}
-
-/* ทำ container โปร่งเพื่อให้เห็นแบ็คกราวด์ */
-.settings-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-
-  /* ใช้แบบ glass effect ให้เข้ากับ style หน้าโปรไฟล์ */
-  backdrop-filter: blur(8px);
-}
-
-/* การ์ดหลักให้ดูโดดเหมือนหน้าโปรไฟล์ */
-.settings-card {
-  background: rgba(226, 189, 248, 0.85);
-  box-shadow: 0 10px 30px rgba(106, 17, 203, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-/* ปุ่ม Save / Back แบบเดียวกัน */
-.btn-save {
-  flex: 1;
-  background-color: #3b82f6;  /* สีน้ำเงิน */
-  color: white;
-  font-weight: bold;
-  padding: 0.75rem;
-  border-radius: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
 .btn-save:hover {
   background-color: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-/* ถ้าต้องการให้ Back เป็นสีเทา แต่สไตล์เหมือนกัน */
 .btn-back-like-save {
-  flex: 1;
-  background-color: #6b7280; /* สีเทา */
+  background-color: #6b7280;
   color: white;
-  font-weight: bold;
-  padding: 0.75rem;
-  border-radius: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
 .btn-back-like-save:hover {
   background-color: #4b5563;
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* =========================
+   Headings
+========================= */
+h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #4f46e5;
+}
+
+h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 768px) {
+  .settings-card {
+    padding: 1.5rem;
+  }
+
+  .setting-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .btn-save, .btn-back-like-save {
+    width: 100%;
+  }
 }

@@ -220,9 +220,6 @@ export default function JobBrowse() {
                 <Col lg={9}>
                     {/* Results Header */}
                     <div className="results-header">
-                        <p className="results-count">
-                            Found <strong>{filteredJobs.length}</strong> jobs
-                        </p>
                         <Button 
                             variant="outline-secondary"
                             size="sm"

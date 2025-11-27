@@ -40,7 +40,7 @@ function TemplateThumbnail({ template, isSelected, onClick, selectedColor, data 
     }}
     onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; e.currentTarget.style.borderColor = '#999'; } }}
     onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = '#ddd'; } }}>
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', transform: 'scale(0.15)', transformOrigin: 'top left', pointerEvents: 'none' }}>
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', transform: 'scale(0.70)', transformOrigin: 'top left', pointerEvents: 'none' }}>
         {getPreview()}
       </div>
       <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(0,0,0,0.7)', color: 'white', padding: '4px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
@@ -73,7 +73,7 @@ function ChangeTemplateModal({ show, onHide, onSelectTemplate, onSelectColor, se
           <Col lg={7}>
             <div style={{ border: '3px solid #ddd', borderRadius: '6px', background: '#f5f5f5', padding: '20px', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               <div style={{ width: '460px', height: '650px', background: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: '2px', overflow: 'hidden', fontSize: '5px' }}>
-                <div style={{ transform: 'scale(1)', transformOrigin: 'top left', width: '100%', height: '100%' }}>
+                <div style={{ transform: 'scale(0.58)', transformOrigin: 'top left', width: '100%', height: '100%' }}>
                   {getFullPreview()}
                 </div>
               </div>
@@ -450,7 +450,7 @@ export default function ResumeEditor({ initialData }) {
                             value={edu.degree} 
                             onChange={(e) => updateEducation(idx, 'degree', e.target.value)} 
                             placeholder="e.g. Bachelor of Science"
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -461,7 +461,7 @@ export default function ResumeEditor({ initialData }) {
                             value={edu.school} 
                             onChange={(e) => updateEducation(idx, 'school', e.target.value)} 
                             placeholder="University name"
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -472,7 +472,7 @@ export default function ResumeEditor({ initialData }) {
                             value={edu.faculty || ''} 
                             onChange={(e) => updateEducation(idx, 'faculty', e.target.value)} 
                             placeholder="e.g. Faculty of Engineering, Faculty of Science"
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Row className="mb-3">
@@ -485,7 +485,7 @@ export default function ResumeEditor({ initialData }) {
                                 value={edu.startDate} 
                                 onChange={(e) => updateEducation(idx, 'startDate', e.target.value)} 
                                 placeholder="e.g. Aug 2011"
-                                className="border-1"
+                                className="border"
                               />
                             </Form.Group>
                           </Col>
@@ -498,7 +498,7 @@ export default function ResumeEditor({ initialData }) {
                                 value={edu.endDate} 
                                 onChange={(e) => updateEducation(idx, 'endDate', e.target.value)} 
                                 placeholder="e.g. Aug 2015"
-                                className="border-1"
+                                className="border"
                               />
                             </Form.Group>
                           </Col>
@@ -529,7 +529,7 @@ export default function ResumeEditor({ initialData }) {
                             value={job.position} 
                             onChange={(e) => updateEmployment(idx, 'position', e.target.value)} 
                             placeholder="e.g. Senior Product Manager"
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -540,7 +540,7 @@ export default function ResumeEditor({ initialData }) {
                             value={job.company} 
                             onChange={(e) => updateEmployment(idx, 'company', e.target.value)} 
                             placeholder="Company name"
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Row className="mb-3">
@@ -553,7 +553,7 @@ export default function ResumeEditor({ initialData }) {
                                 value={job.startDate} 
                                 onChange={(e) => updateEmployment(idx, 'startDate', e.target.value)} 
                                 placeholder="e.g. Jul 2012"
-                                className="border-1"
+                                className="border"
                               />
                             </Form.Group>
                           </Col>
@@ -566,7 +566,7 @@ export default function ResumeEditor({ initialData }) {
                                 value={job.endDate} 
                                 onChange={(e) => updateEmployment(idx, 'endDate', e.target.value)} 
                                 placeholder="e.g. Present"
-                                className="border-1"
+                                className="border"
                               />
                             </Form.Group>
                           </Col>
@@ -580,7 +580,7 @@ export default function ResumeEditor({ initialData }) {
                             value={job.description} 
                             onChange={(e) => updateEmployment(idx, 'description', e.target.value)} 
                             placeholder="Job responsibilities..."
-                            className="border-1"
+                            className="border"
                           />
                         </Form.Group>
                         <Button variant="danger" size="sm" onClick={() => removeEmployment(idx)} className="w-100"><FaTrash /> Delete</Button>

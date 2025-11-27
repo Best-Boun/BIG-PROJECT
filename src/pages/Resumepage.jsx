@@ -3,7 +3,6 @@ import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { ProfileContext } from "../ProfileContext.jsx";
 import ResumeEditor from './ResumeEditor.jsx';
-import './Resumepage.css';
 import Header2 from '../components/Header2';
 
 
@@ -30,7 +29,6 @@ function ChooseModeScreen({ onSelectMode }) {
           <Col md={6}>
             <Card className="mode-card mode-import">
               <Card.Body className="text-center p-5">
-                <div className="mode-icon">👤</div>
                 <h3 className="mt-4 mb-3">Use My Profile</h3>
                 <p className="text-muted mb-4">
                   Import all your profile information including experience, education, and skills. 
@@ -58,7 +56,6 @@ function ChooseModeScreen({ onSelectMode }) {
           <Col md={6}>
             <Card className="mode-card mode-create">
               <Card.Body className="text-center p-5">
-                <div className="mode-icon">✨</div>
                 <h3 className="mt-4 mb-3">Create New Resume</h3>
                 <p className="text-muted mb-4">
                   Start from scratch and create a custom resume. 
@@ -144,8 +141,15 @@ export default function ResumePage() {
   // ============================================
   const handleSelectMode = (selectedMode) => {
     if (selectedMode === 'import') {
-      // ✅ Import Mode: ใช้ข้อมูลจาก profileData โดยตรง
-      setResumeData(profileData);
+      // ✅ Import Mode: แปลง profileData เป็น resumeData
+      const resumeFromProfile = {
+        ...profileData,
+        employment: profileData.experience || [], // แปลง experience → employment
+        education: profileData.education || [],
+        languages: profileData.languages || [],
+        hobbies: profileData.hobbies || [],
+      };
+      setResumeData(resumeFromProfile);
       setMode('editor');
       setAlertMessage('✅ Profile data loaded successfully!');
       setShowAlert(true);

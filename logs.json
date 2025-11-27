@@ -183,6 +183,14 @@
       "target": "aaaa",
       "detail": "เป็น user",
       "time": "2025-11-26T18:26:28.149Z"
+    },
+    {
+      "id": "dce3969c-baed-412b-840e-d4392e1dcc3e",
+      "action": "delete_user",
+      "actor": "admin",
+      "target": "aaaa",
+      "detail": "ลบบัญชีผู้ใช้",
+      "time": "2025-11-27T15:48:31.351Z"
     }
   ]
 }

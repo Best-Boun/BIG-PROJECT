@@ -1,17 +1,11 @@
-// ============================================
-// DESIGN SETTINGS UTILITIES
-// ============================================
-
-// Font Size Multiplier
 const getFontSizeMultiplier = (size) => {
   switch(size) {
     case 'S': return 1.05;
     case 'L': return 1.35;
-    default: return 1.2; // M (เปลี่ยนจาก 1.1 เป็น 1.2)
+    default: return 1.2; // M
   }
 };
 
-// Font Family
 const getFontFamily = (style) => {
   switch(style) {
     case 'SERIF': return "'Georgia', 'Times New Roman', serif";
@@ -20,7 +14,6 @@ const getFontFamily = (style) => {
   }
 };
 
-// Spacing Multiplier
 const getSpacingMultiplier = (spacing) => {
   switch(spacing) {
     case 'S': return 0.8;
@@ -29,7 +22,6 @@ const getSpacingMultiplier = (spacing) => {
   }
 };
 
-// Helper function to calculate sizes
 const getSize = (baseSize, designSettings) => {
   return baseSize * getFontSizeMultiplier(designSettings?.fontSize || 'M');
 };
@@ -369,7 +361,7 @@ export function TemplateCorporatePhoto({ data = {}, color = '#2c3e50', designSet
                     fontSize: `${9 * fsMultiplier}px`,
                     color: '#666',
                     margin: 0,
-                    whiteSpace: 'pre-wrap', wordWrap: 'break-word', lineHeight: 1.6, maxHeight: 'auto', overflow: 'hidden'
+                    whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%', lineHeight: 1.6, maxHeight: 'auto', overflow: 'hidden'
                   }}>
                     {job.description}
                   </p>
@@ -525,139 +517,158 @@ export function TemplateSleekProfessionalPhoto({ data = {}, color = '#16a085', d
         </div>
       </div>
 
-      {/* CONTENT - 2 COLUMNS */}
+      {/* PROFESSIONAL SUMMARY - FULL WIDTH */}
+      {displayData.summary && (
+        <div style={{ 
+          padding: '30px 30px', 
+          boxSizing: 'border-box',
+          borderBottom: `1px solid #e0e0e0`
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            PROFESSIONAL SUMMARY
+          </h3>
+          <p style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.6', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}>
+            {displayData.summary}
+          </p>
+        </div>
+      )}
+
+      {/* CONTENT - FULL WIDTH VERTICAL */}
       <div style={{ 
         padding: '30px 30px', 
         boxSizing: 'border-box', 
-        display: 'flex', 
-        gap: '30px',
+        display: 'flex',
+        flexDirection: 'column',
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden'
       }}>
-        {/* LEFT */}
-        <div style={{ flex: 1 }}>
-          {displayData.summary && (
-            <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                PROFESSIONAL SUMMARY
-              </h3>
-              <p style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.6', margin: 0 }}>
-                {displayData.summary}
-              </p>
-            </div>
-          )}
-
-          {displayData.employment && displayData.employment.filter(e => e.position).length > 0 && (
-            <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                EXPERIENCE
-              </h3>
-              {displayData.employment.filter(e => e.position).map((job, i) => (
-                <div key={i} style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', marginBottom: '8px', lineHeight: 1.6 }}>
-                  <p style={{ margin: '0 0 3px 0', fontWeight: '600' }}>{job.position}</p>
-                  <p style={{ margin: '0 0 2px 0', color }}>{job.company}</p>
-                  {job.description && (
-                    <p style={{ margin: '2px 0 0 0', fontSize: `${9 * fsMultiplier}px`, color: '#999' }}>
-                      {job.description.substring(0, 80)}...
-                    </p>
-                  )}
+        {/* WORK EXPERIENCE */}
+        {displayData.employment && displayData.employment.filter(e => e.position).length > 0 && (
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              WORK EXPERIENCE
+            </h3>
+            {displayData.employment.filter(e => e.position).map((job, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: `${10 * fsMultiplier}px`, fontWeight: '600' }}>{job.position}</span>
+                  <span style={{ fontSize: `${9 * fsMultiplier}px`, color: '#999' }}>{job.startDate} – {job.endDate}</span>
                 </div>
+                <p style={{ fontSize: `${9 * fsMultiplier}px`, color, margin: '0 0 3px 0', fontWeight: '600' }}>
+                  {job.company}
+                </p>
+                {job.description && (
+                  <p style={{ fontSize: `${9 * fsMultiplier}px`, color: '#666', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                    {job.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* EDUCATION */}
+        {displayData.education && displayData.education.length > 0 && (
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, paddingTop: '20px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              EDUCATION
+            </h3>
+            {displayData.education.filter(e => e.degree).map((edu, i) => (
+              <div key={i} style={{ marginBottom: `${10 * spaceMultiplier}px` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: `${10 * fsMultiplier}px`, fontWeight: '600' }}>{edu.degree}</span>
+                  <span style={{ fontSize: `${9 * fsMultiplier}px`, color: '#999' }}>
+                    {edu.startDate} – {edu.endDate}
+                  </span>
+                </div>
+                <p style={{ fontSize: `${9 * fsMultiplier}px`, color: '#777', margin: 0 }}>
+                  {edu.school}
+                </p>
+                {edu.faculty && (
+                  <p style={{ fontSize: `${8.5 * fsMultiplier}px`, color: '#999', margin: '2px 0 0 0' }}>
+                    {edu.faculty}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* SKILLS */}
+        {displayData.skills && (typeof displayData.skills === 'object' && !Array.isArray(displayData.skills)) && (
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, paddingTop: '20px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              SKILLS
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${6 * spaceMultiplier}px`, fontSize: `${10 * fsMultiplier}px`, color: '#555' }}>
+              {Object.entries(displayData.skills).map(([category, content]) => {
+                const skillText = typeof content === 'string' ? content.trim() : '';
+                if (!skillText) return null;
+                
+                const categoryLabels = {
+                  languages: 'Languages',
+                  frontend: 'Frontend',
+                  backend: 'Backend',
+                  databases: 'Databases',
+                  devops: 'Tools & DevOps',
+                  softSkills: 'Soft Skills'
+                };
+                
+                return (
+                  <div key={category} style={{ display: 'flex', alignItems: 'flex-start', gap: `${6 * spaceMultiplier}px`, fontSize: `${10 * fsMultiplier}px` }}>
+                    <span style={{
+                      background: color,
+                      color: 'white',
+                      padding: '2px 6px',
+                      borderRadius: '3px',
+                      fontSize: '8px',
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap',
+                      minWidth: 'fit-content'
+                    }}>
+                      {categoryLabels[category]}
+                    </span>
+                    <span style={{ color: '#555' }}>{skillText}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* LANGUAGES */}
+        {displayData.languages && displayData.languages.length > 0 && (
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, borderTop: `1px solid #e0e0e0`, paddingTop: '20px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              LANGUAGES
+            </h3>
+            <div style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555' }}>
+              {displayData.languages.map((lang, i) => (
+                <p key={i} style={{ margin: '3px 0' }}>{lang.name} - {lang.level}</p>
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {displayData.education && displayData.education.length > 0 && (
-            <div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                EDUCATION
-              </h3>
-              {displayData.education.filter(e => e.degree).map((edu, i) => (
-                <div key={i} style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', marginBottom: '8px', lineHeight: 1.6 }}>
-                  <p style={{ margin: '0 0 3px 0', fontWeight: '600' }}>{edu.degree}</p>
-                  <p style={{ margin: '0', color, fontSize: `${9 * fsMultiplier}px` }}>{edu.school}</p>
-                  {edu.faculty && (
-                    <p style={{ margin: '2px 0 0 0', color: '#999', fontSize: `${8.5 * fsMultiplier}px` }}>{edu.faculty}</p>
-                  )}
-                </div>
+        {/* HOBBIES & INTERESTS */}
+        {displayData.hobbies && displayData.hobbies.length > 0 && displayData.hobbies.some(h => h) && (
+          <div style={{ borderTop: `1px solid #e0e0e0`, paddingTop: '20px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              HOBBIES & INTERESTS
+            </h3>
+            <div style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: 1.6 }}>
+              {displayData.hobbies.filter(h => h).map((hobby, i) => (
+                <p key={i} style={{ margin: '3px 0' }}>• {hobby}</p>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* RIGHT */}
-        <div style={{ flex: 1 }}>
-          {displayData.skills && (typeof displayData.skills === 'object' && !Array.isArray(displayData.skills)) && (
-            <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                SKILLS
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: `${6 * spaceMultiplier}px`, fontSize: `${10 * fsMultiplier}px`, color: '#555' }}>
-                {Object.entries(displayData.skills).map(([category, content]) => {
-                  const skillText = typeof content === 'string' ? content.trim() : '';
-                  if (!skillText) return null;
-                  
-                  const categoryLabels = {
-                    languages: 'Languages',
-                    frontend: 'Frontend',
-                    backend: 'Backend',
-                    databases: 'Databases',
-                    devops: 'Tools & DevOps',
-                    softSkills: 'Soft Skills'
-                  };
-                  
-                  return (
-                    <div key={category} style={{ display: 'flex', alignItems: 'flex-start', gap: `${6 * spaceMultiplier}px`, fontSize: `${10 * fsMultiplier}px` }}>
-                      <span style={{
-                        background: color,
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        fontSize: '8px',
-                        fontWeight: '600',
-                        whiteSpace: 'nowrap',
-                        minWidth: 'fit-content'
-                      }}>
-                        {categoryLabels[category]}
-                      </span>
-                      <span style={{ color: '#555' }}>{skillText}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {displayData.languages && displayData.languages.length > 0 && (
-            <div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                LANGUAGES
-              </h3>
-              <div style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555' }}>
-                {displayData.languages.map((lang, i) => (
-                  <p key={i} style={{ margin: '3px 0' }}>{lang.name} - {lang.level}</p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {displayData.hobbies && displayData.hobbies.length > 0 && displayData.hobbies.some(h => h) && (
-            <div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                HOBBIES & INTERESTS
-              </h3>
-              <div style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: 1.6 }}>
-                {displayData.hobbies.filter(h => h).map((hobby, i) => (
-                  <p key={i} style={{ margin: '3px 0' }}>• {hobby}</p>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 export function TemplateScribdStyle({ data = {}, color = '#667eea', designSettings = {} }) {
   const displayData = (data && Object.keys(data).some(key => {
     if (Array.isArray(data[key])) return data[key].length > 0;
@@ -789,42 +800,60 @@ export function TemplateScribdStyle({ data = {}, color = '#667eea', designSettin
         overflowX: 'hidden'
       }}>
         {displayData.summary && (
-          <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, textTransform: 'uppercase' }}>
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, paddingBottom: `${15 * spaceMultiplier}px`, borderBottom: `3px solid ${color}` }}>
+            <h3 style={{ margin: `0 0 ${12 * spaceMultiplier}px 0`, fontSize: `${13 * fsMultiplier}px`, fontWeight: '800', color, textTransform: 'uppercase', letterSpacing: '1px' }}>
               PROFESSIONAL SUMMARY
             </h3>
-            <p style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.6', margin: 0 }}>
+            <p style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.6', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}>
               {displayData.summary}
             </p>
           </div>
         )}
 
         {displayData.employment && displayData.employment.filter(e => e.position).length > 0 && (
-          <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, textTransform: 'uppercase' }}>
-              PROFESSIONAL EXPERIENCE
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, marginTop: `${20 * spaceMultiplier}px`, paddingTop: `${15 * spaceMultiplier}px`, borderTop: `3px solid ${color}` }}>
+            <h3 style={{ margin: `0 0 ${12 * spaceMultiplier}px 0`, fontSize: `${13 * fsMultiplier}px`, fontWeight: '800', color, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              WORK EXPERIENCE
             </h3>
             {displayData.employment.filter(e => e.position).map((job, i) => (
-              <div key={i} style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.4', marginBottom: `${10 * spaceMultiplier}px` }}>
-                <p style={{ margin: '0 0 3px 0', fontWeight: '600' }}>{job.position}</p>
-                <p style={{ margin: '0 0 3px 0', color }}>{job.company}</p>
-                <p style={{ margin: '0', color: '#999', fontSize: `${9 * fsMultiplier}px` }}>{job.startDate} - {job.endDate}</p>
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: `${10 * fsMultiplier}px`, fontWeight: '600' }}>{job.position}</span>
+                  <span style={{ fontSize: `${9 * fsMultiplier}px`, color: '#999' }}>{job.startDate} - {job.endDate}</span>
+                </div>
+                <p style={{ fontSize: `${9 * fsMultiplier}px`, color, margin: '0 0 3px 0', fontWeight: '600' }}>
+                  {job.company}
+                </p>
+                {job.description && (
+                  <p style={{ fontSize: `${9 * fsMultiplier}px`, color: '#666', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                    {job.description}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         )}
 
         {displayData.education && displayData.education.filter(e => e.degree).length > 0 && (
-          <div style={{ marginBottom: `${15 * spaceMultiplier}px` }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, textTransform: 'uppercase' }}>
+          <div style={{ marginBottom: `${15 * spaceMultiplier}px`, marginTop: `${20 * spaceMultiplier}px`, paddingTop: `${15 * spaceMultiplier}px`, borderTop: `3px solid ${color}` }}>
+            <h3 style={{ margin: `0 0 ${12 * spaceMultiplier}px 0`, fontSize: `${13 * fsMultiplier}px`, fontWeight: '800', color, textTransform: 'uppercase', letterSpacing: '1px' }}>
               EDUCATION
             </h3>
             {displayData.education.filter(e => e.degree).map((edu, i) => (
-              <div key={i} style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: '1.4' }}>
-                <p style={{ margin: '0 0 3px 0', fontWeight: '600' }}>{edu.degree}</p>
-                <p style={{ margin: '0', color: '#999', fontSize: `${9 * fsMultiplier}px` }}>{edu.school}</p>
+              <div key={i} style={{ marginBottom: `${10 * spaceMultiplier}px` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: `${10 * fsMultiplier}px`, fontWeight: '600' }}>{edu.degree}</span>
+                  <span style={{ fontSize: `${9 * fsMultiplier}px`, color: '#999' }}>
+                    {edu.startDate} - {edu.endDate}
+                  </span>
+                </div>
+                <p style={{ fontSize: `${9 * fsMultiplier}px`, color: '#777', margin: 0 }}>
+                  {edu.school}
+                </p>
                 {edu.faculty && (
-                  <p style={{ margin: '2px 0 0 0', color: '#bbb', fontSize: `${8.5 * fsMultiplier}px` }}>{edu.faculty}</p>
+                  <p style={{ fontSize: `${8.5 * fsMultiplier}px`, color: '#999', margin: '2px 0 0 0' }}>
+                    {edu.faculty}
+                  </p>
                 )}
               </div>
             ))}
@@ -832,8 +861,8 @@ export function TemplateScribdStyle({ data = {}, color = '#667eea', designSettin
         )}
 
         {displayData.hobbies && displayData.hobbies.length > 0 && displayData.hobbies.some(h => h) && (
-          <div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: `${11 * fsMultiplier}px`, fontWeight: '700', color, textTransform: 'uppercase' }}>
+          <div style={{ marginTop: `${20 * spaceMultiplier}px`, paddingTop: `${15 * spaceMultiplier}px`, borderTop: `3px solid ${color}` }}>
+            <h3 style={{ margin: `0 0 ${12 * spaceMultiplier}px 0`, fontSize: `${13 * fsMultiplier}px`, fontWeight: '800', color, textTransform: 'uppercase', letterSpacing: '1px' }}>
               HOBBIES & INTERESTS
             </h3>
             <div style={{ fontSize: `${10 * fsMultiplier}px`, color: '#555', lineHeight: 1.6 }}>

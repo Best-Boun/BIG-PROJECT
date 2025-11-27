@@ -19,7 +19,7 @@
       "email": "san@gmail",
       "password": "1",
       "name": "san",
-      "role": "user",
+      "role": "admin",
       "createdAt": "2025-11-22T16:31:11.817Z"
     },
     {
@@ -30,6 +30,15 @@
       "name": "aaaa",
       "role": "user",
       "createdAt": "2025-11-25T10:41:28.508Z"
+    },
+    {
+      "id": "c36d",
+      "username": "rrrr",
+      "email": "awda@gmail.com",
+      "password": "1",
+      "name": "rrrr",
+      "role": "user",
+      "createdAt": "2025-11-25T15:09:52.181Z"
     }
   ],
   "profiles": [],

@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { ProfileContext } from "../ProfileContext";
 import { useNavigate } from 'react-router-dom';
 import './ProfileEdit.css';
+import { EXPERTISE_ICONS } from '../data/Expertiseicons';
 
 
 
@@ -91,7 +92,7 @@ function ProfileEdit({ onNavigate }) {
     }, [profileData]);
 
       const handleCustomizeClick = () => {
-    navigate('/feature1'); // âœ… à¹ƒà¸Šà¹‰ navigate à¹‚à¸”à¸¢à¸•à¸£à¸‡
+    navigate('/feature1'); // Ã¢Å“â€¦ Ã Â¹Æ’Ã Â¸Å Ã Â¹â€° navigate Ã Â¹â€šÃ Â¸â€Ã Â¸Â¢Ã Â¸â€¢Ã Â¸Â£Ã Â¸â€¡
   };
 
     const handleInputChange = (e) => {
@@ -140,8 +141,6 @@ function ProfileEdit({ onNavigate }) {
                                 ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
                                 : modalType === 'opensource'
                                     ? { title: '', subtitle: '', description: '' }
-                                    : modalType === 'publication'
-                                        ? { title: '', subtitle: '' }
                                         : modalType === 'expertise'
                                             ? { icon: '', title: '', description: '' }
                                             : { title: '', description: '', technologies: '', link: '', startDate: '', endDate: '' }
@@ -258,7 +257,6 @@ function ProfileEdit({ onNavigate }) {
         { id: 'certifications', label: ' Certifications' },
         { id: 'workprefs', label: ' Work Preferences' },
         { id: 'opensource', label: ' Open Source' },
-        { id: 'publications', label: ' Publications' },
         { id: 'contact', label: ' Contact & Social' },
     ];
     return (
@@ -984,61 +982,6 @@ function ProfileEdit({ onNavigate }) {
                         </div>
                     )}
                     {/* 13. PUBLICATIONS */}
-                    {activeTab === 'publications' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Technical Publications </h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('publications') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('publications')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('publications') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('publications') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <button onClick={() => openModal('publication')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
-                            </div>
-                            {profileData.publications && profileData.publications.length > 0 ? (
-                                profileData.publications.map((pub) => (
-                                    <div key={pub.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #6a11cb', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 5px 0' }}>{pub.title}</h4>
-                                            <p style={{ color: '#666', margin: '0' }}>{pub.subtitle}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('publication', pub)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('publication', pub.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No publications added yet.</p>
-                            )}
-                        </div>
-                    )}
                     {/* 14. CONTACT & SOCIAL */}
                     {activeTab === 'contact' && (
                         <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
@@ -1139,7 +1082,7 @@ function ProfileEdit({ onNavigate }) {
                             Customize
                         </button>
 
-                        {/* à¸à¸¥à¸¸à¹ˆà¸¡à¸›à¸¸à¹ˆà¸¡à¸‚à¸§à¸² */}
+                        {/* Ã Â¸ÂÃ Â¸Â¥Ã Â¸Â¸Ã Â¹Ë†Ã Â¸Â¡Ã Â¸â€ºÃ Â¸Â¸Ã Â¹Ë†Ã Â¸Â¡Ã Â¸â€šÃ Â¸Â§Ã Â¸Â² */}
                         <div style={{ display: 'flex', gap: '15px', marginLeft: 'auto' }}>
                             <button
                                 onClick={handleSave}
@@ -1197,32 +1140,32 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Experience</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Job Title</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Job Title</label>
                             <input type="text" value={forms.experience.title} onChange={(e) => handleFormChange('experience', 'title', e.target.value)} placeholder="Senior Developer" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Company</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Company</label>
                             <input type="text" value={forms.experience.company} onChange={(e) => handleFormChange('experience', 'company', e.target.value)} placeholder="Company Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Location</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Location</label>
                             <input type="text" value={forms.experience.location} onChange={(e) => handleFormChange('experience', 'location', e.target.value)} placeholder="City, Country" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: '15px', marginBottom: '15px', alignItems: 'flex-end' }}>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Start Date</label>
-                                <input type="month" value={forms.experience.startDate} onChange={(e) => handleFormChange('experience', 'startDate', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Start Date</label>
+                                <input type="month" value={forms.experience.startDate} onChange={(e) => handleFormChange('experience', 'startDate', e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>End Date</label>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <input type="month" value={forms.experience.endDate === 'Present' ? '' : forms.experience.endDate} onChange={(e) => handleFormChange('experience', 'endDate', e.target.value)} style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                                    <button onClick={() => handleFormChange('experience', 'endDate', 'Present')} style={{ padding: '10px 15px', backgroundColor: forms.experience.endDate === 'Present' ? '#6a11cb' : '#e0e0e0', color: forms.experience.endDate === 'Present' ? 'white' : '#333', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', whiteSpace: 'nowrap' }}>Present</button>
+                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>End Date</label>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input type="month" value={forms.experience.endDate === 'Present' ? '' : forms.experience.endDate} onChange={(e) => handleFormChange('experience', 'endDate', e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
+                                    <button onClick={() => handleFormChange('experience', 'endDate', 'Present')} style={{ padding: '8px 16px', backgroundColor: forms.experience.endDate === 'Present' ? '#6a11cb' : '#e0e0e0', color: forms.experience.endDate === 'Present' ? 'white' : '#333', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap' }}>Present</button>
                                 </div>
                             </div>
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Description</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
                             <textarea value={forms.experience.description} onChange={(e) => handleFormChange('experience', 'description', e.target.value)} placeholder="What you did..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -1239,19 +1182,19 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}>" {editingId ? 'Edit' : 'Add'} Education</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Degree</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Degree</label>
                             <input type="text" value={forms.education.degree} onChange={(e) => handleFormChange('education', 'degree', e.target.value)} placeholder="Bachelor of Science" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>School/University</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>School/University</label>
                             <input type="text" value={forms.education.school} onChange={(e) => handleFormChange('education', 'school', e.target.value)} placeholder="University Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Year</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Year</label>
                             <input type="text" value={forms.education.year} onChange={(e) => handleFormChange('education', 'year', e.target.value)} placeholder="2020" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Grade/GPA</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Grade/GPA</label>
                             <input type="text" value={forms.education.grade} onChange={(e) => handleFormChange('education', 'grade', e.target.value)} placeholder="3.8/4.0" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -1267,11 +1210,11 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Skill</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Skill Name</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Skill Name</label>
                             <input type="text" value={forms.skill.name} onChange={(e) => handleFormChange('skill', 'name', e.target.value)} placeholder="e.g. React, Python" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Level</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Level</label>
                             <select value={forms.skill.level} onChange={(e) => handleFormChange('skill', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
                                 <option value="Beginner">Beginner</option>
                                 <option value="Intermediate">Intermediate</option>
@@ -1292,13 +1235,13 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Language</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Language Name</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Language Name</label>
                             <input type="text" value={forms.language.name} onChange={(e) => handleFormChange('language', 'name', e.target.value)} placeholder="e.g. English, Thai" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Proficiency</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Proficiency</label>
                             <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <option value="Native">Native</option>           {/* Ã¢â€ Â Ã Â¹â‚¬Ã Â¸Å¾Ã Â¸Â´Ã Â¹Ë†Ã Â¸Â¡Ã Â¹Æ’Ã Â¸Â«Ã Â¸Â¡Ã Â¹Ë† */}
+                                <option value="Native">Native</option>           {/* ÃƒÂ¢Ã¢â‚¬Â Ã‚Â ÃƒÂ Ã‚Â¹Ã¢â€šÂ¬ÃƒÂ Ã‚Â¸Ã…Â¾ÃƒÂ Ã‚Â¸Ã‚Â´ÃƒÂ Ã‚Â¹Ã‹â€ ÃƒÂ Ã‚Â¸Ã‚Â¡ÃƒÂ Ã‚Â¹Ã†â€™ÃƒÂ Ã‚Â¸Ã‚Â«ÃƒÂ Ã‚Â¸Ã‚Â¡ÃƒÂ Ã‚Â¹Ã‹â€  */}
                                 <option value="Fluent">Fluent</option>
                                 <option value="Advanced">Advanced</option>
                                 <option value="Intermediate">Intermediate</option>
@@ -1318,20 +1261,20 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Certification</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Certification Name</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Certification Name</label>
                             <input type="text" value={forms.certification.name} onChange={(e) => handleFormChange('certification', 'name', e.target.value)} placeholder="e.g. AWS Certified" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Issuer</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Issuer</label>
                             <input type="text" value={forms.certification.issuer} onChange={(e) => handleFormChange('certification', 'issuer', e.target.value)} placeholder="e.g. Amazon Web Services" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Issue Date</label>
+                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Issue Date</label>
                                 <input type="date" value={forms.certification.issueDate} onChange={(e) => handleFormChange('certification', 'issueDate', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                             </div>
                             <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Expiry Date</label>
+                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Expiry Date</label>
                                 <input type="date" value={forms.certification.expiryDate} onChange={(e) => handleFormChange('certification', 'expiryDate', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                             </div>
                         </div>
@@ -1348,11 +1291,11 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Project</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Project Title</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Title</label>
                             <input type="text" value={forms.project.title} onChange={(e) => handleFormChange('project', 'title', e.target.value)} placeholder="Project Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Project Image</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Image</label>
                             <div style={{ border: '2px dashed #6a11cb', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer', backgroundColor: '#f9f7ff' }} onClick={() => document.getElementById('project-image-input').click()}>
                                 {forms.project.image ? (
                                     <div>
@@ -1361,7 +1304,7 @@ function ProfileEdit({ onNavigate }) {
                                     </div>
                                 ) : (
                                     <div>
-                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>ÃƒÂ°Ã…Â¸Ã¢â‚¬â€œÃ‚Â¼ÃƒÂ¯Ã‚Â¸Ã‚Â</div>
+                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>📸</div>
                                         <p style={{ color: '#666', marginBottom: '5px', fontWeight: '500' }}>Click to upload project image</p>
                                         <small style={{ color: '#999' }}>PNG, JPG (Max 2MB)</small>
                                     </div>
@@ -1370,7 +1313,7 @@ function ProfileEdit({ onNavigate }) {
                             </div>
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Description</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
                             <textarea value={forms.project.description} onChange={(e) => handleFormChange('project', 'description', e.target.value)} placeholder="Project description..." rows="3" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -1386,15 +1329,15 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}>' {editingId ? 'Edit' : 'Add'} Open Source</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Project Title</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Title</label>
                             <input type="text" value={forms.opensource.title} onChange={(e) => handleFormChange('opensource', 'title', e.target.value)} placeholder="Project name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Repository</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Repository</label>
                             <input type="text" value={forms.opensource.subtitle} onChange={(e) => handleFormChange('opensource', 'subtitle', e.target.value)} placeholder="GitHub repository link" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Description</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
                             <textarea value={forms.opensource.description} onChange={(e) => handleFormChange('opensource', 'description', e.target.value)} placeholder="Project description..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -1410,11 +1353,11 @@ function ProfileEdit({ onNavigate }) {
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <h3 style={{ marginTop: 0 }}>" {editingId ? 'Edit' : 'Add'} Publication</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Publication Title</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Publication Title</label>
                             <input type="text" value={forms.publication.title} onChange={(e) => handleFormChange('publication', 'title', e.target.value)} placeholder="Article/Paper title" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Publication/Source</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Publication/Source</label>
                             <input type="text" value={forms.publication.subtitle} onChange={(e) => handleFormChange('publication', 'subtitle', e.target.value)} placeholder="Where published" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
@@ -1428,17 +1371,21 @@ function ProfileEdit({ onNavigate }) {
             {modals.expertise && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Expertise</h3>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Icon/Emoji</label>
-                            <input type="text" value={forms.expertise.icon} onChange={(e) => handleFormChange('expertise', 'icon', e.target.value)} placeholder="e.g. " maxLength="2" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Icon</label>
+                            <select value={forms.expertise.icon} onChange={(e) => handleFormChange('expertise', 'icon', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '16px' }}>
+                                <option value="">-- Select Icon --</option>
+                                {EXPERTISE_ICONS.map((icon) => (
+                                    <option key={icon.value} value={icon.value}>{icon.label}</option>
+                                ))}
+                            </select>
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Expertise Title</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Expertise Title</label>
                             <textarea value={forms.expertise.title} onChange={(e) => { handleFormChange('expertise', 'title', e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }} placeholder="e.g. Full Stack Development" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit', resize: 'none', minHeight: '44px', maxHeight: '120px', overflowY: 'auto' }} />
                         </div>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px' }}>Description</label>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
                             <textarea value={forms.expertise.description} onChange={(e) => handleFormChange('expertise', 'description', e.target.value)} placeholder="Describe your expertise..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>

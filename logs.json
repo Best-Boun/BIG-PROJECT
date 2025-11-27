@@ -159,6 +159,30 @@
       "target": "san",
       "detail": "เป็น user",
       "time": "2025-11-24T14:12:37.735Z"
+    },
+    {
+      "id": "e412ced9-e50c-47f3-b78c-576236e39237",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "san",
+      "detail": "เป็น admin",
+      "time": "2025-11-26T18:26:15.330Z"
+    },
+    {
+      "id": "73b056c2-7670-4533-8868-122cd94c9f3c",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "aaaa",
+      "detail": "เป็น admin",
+      "time": "2025-11-26T18:26:22.387Z"
+    },
+    {
+      "id": "5c0ca02c-c33b-4d5f-a655-4a42eedc4672",
+      "action": "change_role",
+      "actor": "admin",
+      "target": "aaaa",
+      "detail": "เป็น user",
+      "time": "2025-11-26T18:26:28.149Z"
     }
   ]
 }

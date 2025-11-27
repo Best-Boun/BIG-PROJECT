@@ -108,10 +108,11 @@ body {
 ============================================================ */
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
   gap: 25px;
   margin-top: 5px;
 }
+
 
 .section-title {
   font-size: 1.4rem;
@@ -121,7 +122,7 @@ body {
 
 /* ============================================================
    USER CARD
-============================================================ */
+======================================= ===================== */
 .user-card {
   display: flex;
   justify-content: space-between;
@@ -132,10 +133,12 @@ body {
   border-left: 6px solid #ccc;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   transition: .25s ease;
-     min-width: unset;
-  width: 100%;     /* ให้กว้างตาม grid */
-  max-width: 100%; /* บังคับไม่ให้เกิน */
+
+  min-width: 0;   /* ⭐ ป้องกันบังคับล้น */
+  width: 100%;    /* ⭐ บังคับให้พอดีช่อง */
 }
+
+
 .user-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 32px rgba(0,0,0,0.12);
@@ -183,9 +186,12 @@ body {
 .user-actions {
   display: flex;
   gap: 10px;
-   flex-wrap: wrap;      /* ไม่ให้ตัดบรรทัด */
-  
+  flex-wrap: wrap;       /* ⭐ อนุญาตให้ตัดบรรทัด */
+  white-space: normal;   /* ⭐ ไม่บังคับบรรทัดเดียว */
+  justify-content: flex-end;
 }
+
+
 
 .action-btn {
   padding: 8px 14px;

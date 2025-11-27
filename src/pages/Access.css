@@ -186,17 +186,20 @@ body {
   width: 100%;
 }
 
+
 .action-btn {
+  width: 100%;
   padding: 10px 14px;
   border-radius: 10px;
-  font-size: 8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: .2s;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;  /* ✅ เปลี่ยนเป็น normal */
 }
+
 
 .action-btn:hover {
   transform: translateY(-2px);

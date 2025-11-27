@@ -108,11 +108,10 @@ body {
 ============================================================ */
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
   gap: 25px;
   margin-top: 5px;
 }
-
 
 .section-title {
   font-size: 1.4rem;
@@ -121,9 +120,21 @@ body {
 }
 
 /* ============================================================
-
-
-
+   USER CARD - FIXED LAYOUT
+============================================================ */
+.user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 18px;
+  border-left: 6px solid #ccc;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: .25s ease;
+  width: 100%;
+  max-width: 100%;
+}
 .user-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 32px rgba(0,0,0,0.12);
@@ -172,9 +183,8 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  width: 100%;
 }
-
-
 
 .action-btn {
   padding: 10px 14px;

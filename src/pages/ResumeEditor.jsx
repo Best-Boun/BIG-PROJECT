@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Card, Accordion, Modal } from 'react-bootstrap';
 import { FaPlus, FaTrash, FaDownload, FaPalette } from 'react-icons/fa';
-import Header2 from '../components/Header2';
 import './ResumeEditor.css';
 import {
   TemplateCorporatePhoto,
@@ -310,7 +309,7 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
 
   return (
     <>
-      <Header2 user={user} onLogout={onLogout} />
+      
       <div className="resume-editor-container">
         <Container fluid>
           <Row className="g-4">

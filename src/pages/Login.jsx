@@ -1,8 +1,7 @@
-// src/pages/Login.jsx
 import React, { useRef, useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { verifyUser } from "../data/user";
+import axios from "axios";
 import "./Login.css";
 
 import RobotCoder from "../components/RobotCoder";
@@ -31,43 +30,57 @@ function Login({ setToken, setRole }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    const username = userRef.current.value.trim();
+
+    const email = userRef.current.value.trim();
     const password = passRef.current.value.trim();
 
-    if (!username || !password) {
+    if (!email || !password) {
       setError("⚠️ กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
       animateError();
       return;
     }
 
-    // verifyUser should return a user object: { id, username, role, token, ... }
-    const user = await verifyUser(username, password);
+    try {
+      const res = await axios.post("http://localhost:3000/api/auth/login", {
+        email: email,
+        password: password,
+      });
 
-    if (user) {
+      const user = res.data.user;
+      const token = res.data.token;
+
       animateSuccess();
 
       setTimeout(() => {
-        // Save authentication info (but DO NOT clear posts)
-        localStorage.setItem("token", user.token || "token-placeholder");
+        // save token
+        localStorage.setItem("token", token);
+
+        // save role
         localStorage.setItem("role", user.role || "user");
 
-        // Save full current user object for feed/profile usage
+        // save user object
         localStorage.setItem("currentUser", JSON.stringify(user));
 
-        // Save userID for per-user keys (important!)
+        // save user สำหรับ feed (สำคัญ)
         localStorage.setItem(
-          "userID",
-          user.id?.toString ? user.id.toString() : String(user.id)
+          "user",
+          JSON.stringify({
+            id: user.id,
+            name: user.name,
+            role: user.role || "user",
+            profileImage: "/default-avatar.png",
+          }),
         );
 
-        // update app state
-        if (setToken) setToken(user.token || "token-placeholder");
+        // save user id
+        localStorage.setItem("userID", user.id.toString());
+
+        if (setToken) setToken(token);
         if (setRole) setRole(user.role || "user");
 
-        // navigate
-        window.location.href = user.role === "admin" ? "/chart" : "/feed";
+        window.location.href = "/feed";
       }, 900);
-    } else {
+    } catch (err) {
       setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       animateError();
     }
@@ -83,7 +96,6 @@ function Login({ setToken, setRole }) {
     setTimeout(() => setSuccess(false), 900);
   };
 
-  /* Username typing animation */
   const onUserChange = () => {
     setTypingUser(true);
 
@@ -94,7 +106,6 @@ function Login({ setToken, setRole }) {
     }, 700);
   };
 
-  /* Password */
   const onPasswordFocus = () => setBlinkEye(true);
   const onPasswordBlur = () => setBlinkEye(false);
 
@@ -106,7 +117,6 @@ function Login({ setToken, setRole }) {
 
   return (
     <div className="login-bg-animated">
-      {/* Floating bubbles */}
       <div className="bubble b1" />
       <div className="bubble b2" />
       <div className="bubble b3" />
@@ -140,7 +150,7 @@ function Login({ setToken, setRole }) {
               <i className="bi bi-envelope" />
               <Form.Control
                 type="text"
-                placeholder="Username"
+                placeholder="Email"
                 ref={userRef}
                 className="animated-input"
                 onChange={onUserChange}

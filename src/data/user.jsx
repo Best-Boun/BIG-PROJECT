@@ -1,81 +1,102 @@
 // src/data/user.jsx
-const API_URL = "http://localhost:3001/users"; // ❗ อย่าใช้ 3002 นะ
 
+const API_URL = "http://localhost:3000/api/auth";
+
+// ============================
+// LOGIN
+// ============================
 export async function verifyUser(username, password) {
   try {
-    console.log("🟣 ตรวจสอบผู้ใช้:", username, password);
+    console.log("🟣 LOGIN:", username);
 
-    const res = await fetch(`${API_URL}?username=${username}&password=${password}`);
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: username,
+        password,
+      }),
+    });
+
     const data = await res.json();
+    console.log("SERVER RESPONSE:", data);
 
-    if (Array.isArray(data) && data.length > 0) {
-      const found = data[0];
-      console.log("✅ พบผู้ใช้:", found);
+    if (data.success) {
+      const user = data.user;
 
-      // ✅ เก็บค่าทั้งหมดใน localStorage ให้ครบ
+      // save token
+      localStorage.setItem("token", data.token || "valid-token");
+
+      // save role
+      localStorage.setItem("role", user.role);
+
+      // save current user (แก้ตรงนี้)
       localStorage.setItem(
         "currentUser",
         JSON.stringify({
-          username: found.username,
-          role: found.role,
+          id: user.id,
+          username: user.username,
+          name: user.username,
+          email: user.email,
+          role: user.role,
           createdAt: new Date().toISOString(),
-        })
+        }),
       );
-      localStorage.setItem("role", found.role); // ❗ fixed ตรงนี้
-      localStorage.setItem("token", "valid-token");
 
-      return { role: found.role, token: "valid-token" };
-    } else {
-      console.warn("❌ ไม่พบผู้ใช้");
-      return null;
+      return {
+        role: user.role,
+        token: data.token || "valid-token",
+      };
     }
+
+    return null;
   } catch (error) {
-    console.error("🚨 verifyUser ERROR:", error);
+    console.error("🚨 LOGIN ERROR:", error);
     return null;
   }
 }
 
-/* ✅ ฟังก์ชันสมัครสมาชิก (Register) */
+// ============================
+// REGISTER
+// ============================
 export async function registerUser(username, email, password) {
   try {
-    console.log("🟢 กำลังตรวจสอบชื่อซ้ำ:", username);
+    console.log("🟢 REGISTER:", username);
 
-    // ตรวจชื่อซ้ำก่อน
-    const resCheck = await fetch(`${API_URL}?username=${username}`);
-    const exist = await resCheck.json();
-    if (exist.length > 0) {
-      console.warn("⚠️ Username already exists:", username);
-      return { success: false, message: "⚠️ Username already exists!" };
-    }
-
-    // เตรียมข้อมูล user ใหม่
-    const newUser = {
-      username,
-      email,
-      password,
-      name: username,
-      role: "user",
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("🟢 เพิ่มผู้ใช้ใหม่:", newUser);
-
-    // ส่งไปบันทึกใน db.json
-    const res = await fetch(API_URL, {
+    const res = await fetch(`${API_URL}/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newUser),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: username, // 🔥 แก้ตรงนี้
+        email,
+        password,
+      }),
     });
 
-    if (res.ok) {
-      console.log("✅ สมัครสมาชิกสำเร็จ!");
-      return { success: true, message: "✅ Register successful!" };
-    } else {
-      console.error("❌ เกิดข้อผิดพลาดขณะสมัคร:", res.status);
-      return { success: false, message: "❌ Failed to register!" };
+    const data = await res.json();
+    console.log("REGISTER RESPONSE:", data);
+
+    if (data.message) {
+      return {
+        success: true,
+        message: "✅ สมัครสมาชิกสำเร็จ",
+      };
     }
+
+    return {
+      success: false,
+      message: data.message || "❌ สมัครไม่สำเร็จ",
+    };
   } catch (error) {
-    console.error("🚨 registerUser ERROR:", error);
-    return { success: false, message: "❌ Failed to register!" };
+    console.error("🚨 REGISTER ERROR:", error);
+
+    return {
+      success: false,
+      message: "❌ ไม่สามารถเชื่อมต่อ server ได้",
+    };
   }
 }

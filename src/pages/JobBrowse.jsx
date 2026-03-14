@@ -5,7 +5,7 @@ import { FaSearch, FaFilter } from 'react-icons/fa';
 import { mockJobs, mockFilters, mockCurrentUser } from '../data/mockDataJob';
 import JobCard from '../components/JobCard';
 import './JobBrowse.css';
-import Header2 from '../components/Header2';
+
 
 
 export default function JobBrowse() {
@@ -122,7 +122,7 @@ export default function JobBrowse() {
 
     return (
         <>
-        <Header2 user={currentUser} onLogout={handleLogout} />
+        
         <Container fluid className="job-browse-container">
             {/* Page Header */}
             <div className="page-header">

@@ -1,253 +1,218 @@
-// src/Pages/AdsManagement/AdsManagement.jsx
 import React, { useEffect, useState } from "react";
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import "./AdsManagement.css";
 
-const API_URL = "http://localhost:3002/adsList";
-const API_UPLOAD = "http://localhost:4000/upload";
+const API_URL = "http://localhost:3000/api/ads";
+const API_UPLOAD = "http://localhost:3000/api/ads/upload";
+const IMAGE_BASE = "http://localhost:3000/upload/";
 
-// ---------------- LOCAL STORAGE (สำหรับเก็บไฟล์รูป) ----------------
-const loadLocal = () => {
-  try {
-    return JSON.parse(localStorage.getItem("localUploads") || "{}");
-  } catch {
-    return {};
-  }
-};
-const saveLocal = (m) =>
-  localStorage.setItem("localUploads", JSON.stringify(m));
-const removeLocal = (filename) => {
-  const m = loadLocal();
-  if (m[filename]) delete m[filename];
-  saveLocal(m);
-};
-
-// ---------------- TOAST แจ้งเตือน ----------------
+// ---------------- TOAST ----------------
 const showToast = (msg, type = "success") => {
   const div = document.createElement("div");
   div.className = `sp-toast ${type}`;
   div.innerText = msg;
   document.body.appendChild(div);
+
   setTimeout(() => div.classList.add("show"), 10);
+
   setTimeout(() => {
     div.classList.remove("show");
     setTimeout(() => div.remove(), 300);
-  }, 1600);
+  }, 1800);
 };
-
-// ===================================================================
 
 function AdsManagement() {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(null);
+
   const [previewAd, setPreviewAd] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-
-        const normalized = data.map((a) => ({
-          id: a.id,
-          name: a.name ?? "Untitled",
-          description: a.description ?? "",
-          image: a.image ?? "",
-          position: a.position ?? "feed",
-          sizePreset: a.sizePreset ?? "medium",
-          date: a.date ?? new Date().toISOString().split("T")[0],
-          active: a.active ?? false,
-        }));
-
-        setAds(normalized);
-      } catch (err) {
-        console.error("fetch fail", err);
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  // ---------------- บันทึกทั้งหมด ----------------
-  const saveAll = async () => {
+  // ================= LOAD ADS =================
+  const loadAds = async () => {
     try {
-      await Promise.all(
-        ads.map((a) =>
-          fetch(`${API_URL}/${a.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(a),
-          })
-        )
-      );
-      setUnsavedChanges(false);
-      showToast("บันทึกทั้งหมดสำเร็จ!", "success");
-    } catch {
-      showToast("บันทึกไม่สำเร็จ", "error");
+      const res = await fetch(`${API_URL}?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+      const list = data.adsList || data;
+
+      const normalized = list.map((a) => ({
+        id: a.id,
+        name: a.name ?? "Untitled",
+        description: a.description ?? "",
+        image: a.image ?? "",
+        position: a.position ?? "feed",
+        sizePreset: a.sizePreset ?? "medium",
+        date: (a.date || "").split("T")[0],
+        active: a.active === 1 || a.active === true,
+      }));
+
+      setAds(normalized);
+    } catch (err) {
+      console.error(err);
+      showToast("โหลดโฆษณาไม่สำเร็จ", "error");
     }
+
+    setLoading(false);
   };
 
-  // ---------------- เพิ่มโฆษณาใหม่ ----------------
+  useEffect(() => {
+    loadAds();
+  }, []);
+
+  // ================= CREATE =================
   const addAd = async () => {
     const newAd = {
-      id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name: "New Ad",
       description: "คำอธิบาย...",
       image: "",
       position: "feed",
       sizePreset: "medium",
       date: new Date().toISOString().split("T")[0],
-      active: false,
+      active: 0,
     };
 
     try {
-      const res = await fetch(API_URL, {
+      await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(newAd),
       });
 
-      const created = await res.json();
-      setAds((s) => [...s, created]);
-    } catch {
-      setAds((s) => [...s, newAd]);
-    }
-
-    setUnsavedChanges(true);
-    showToast("สร้างโฆษณาใหม่สำเร็จ!");
-  };
-
-  // ---------------- ลบโฆษณา ----------------
-  const doDelete = async (id) => {
-    const target = ads.find((a) => a.id === id);
-
-    try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      // eslint-disable-next-line no-unused-vars
+      showToast("สร้างโฆษณาสำเร็จ!");
+      await loadAds();
     } catch (err) {
-      showToast("ลบที่ Server ไม่สำเร็จ แต่จะลบในเครื่องก่อน", "error");
+      console.error(err);
+      showToast("สร้างโฆษณาไม่สำเร็จ", "error");
     }
-
-    if (target && target.image && target.image.startsWith("local_")) {
-      removeLocal(target.image);
-    }
-
-    setAds((s) => s.filter((a) => a.id !== id));
-    setConfirmDelete(null);
-    setUnsavedChanges(true);
-    showToast("ลบโฆษณาสำเร็จ!", "success");
   };
 
-  // ---------------- เปิด/ปิด Active ----------------
+  // ================= DELETE =================
+  const doDelete = async (id) => {
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      showToast("ลบโฆษณาสำเร็จ");
+      await loadAds();
+    } catch {
+      showToast("ลบไม่สำเร็จ", "error");
+    }
+
+    setConfirmDelete(null);
+  };
+
+  // ================= TOGGLE ACTIVE =================
   const toggleActive = async (id) => {
-    const t = ads.find((a) => a.id === id);
-    const updated = { ...t, active: !t.active };
+    const target = ads.find((a) => a.id === id);
+    const newStatus = target.active ? 0 : 1;
 
     try {
       await fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...target,
+          active: newStatus,
+        }),
       });
-    } catch {
-      showToast("อัปเดตสถานะล้มเหลว", "error");
-    }
 
-    setAds((s) => s.map((a) => (a.id === id ? updated : a)));
-    setUnsavedChanges(true);
+      await loadAds();
+    } catch (err) {
+      console.error(err);
+      showToast("อัปเดตสถานะไม่สำเร็จ", "error");
+    }
   };
 
-  // ---------------- เริ่มแก้ไข ----------------
+  // ================= EDIT =================
   const startEdit = (ad) => {
+    setPreviewAd(null);
+    setConfirmDelete(null);
+
     setEditingId(ad.id);
     setEditData({ ...ad });
   };
 
-  // ---------------- บันทึกการแก้ไข ----------------
-  const saveEdit = async (id) => {
+  const saveEdit = async () => {
     try {
-      await fetch(`${API_URL}/${id}`, {
+      await fetch(`${API_URL}/${editingId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editData,
+          date: editData.date.split("T")[0],
+        }),
       });
-      showToast("บันทึกสำเร็จ!");
+
+      showToast("บันทึกสำเร็จ");
+      await loadAds();
     } catch {
-      showToast("บันทึกไม่สำเร็จ!", "error");
+      showToast("บันทึกไม่สำเร็จ", "error");
     }
 
-    setAds((s) => s.map((a) => (a.id === id ? { ...editData } : a)));
     setEditingId(null);
     setEditData(null);
-    setUnsavedChanges(true);
   };
 
-  // ---------------- อัปโหลดรูป ----------------
-  const resolveImageSrc = (img) => {
-    if (!img) return null;
-    if (img.startsWith("http")) return img;
-    return `http://localhost:4000/upload/${img}`;
-  };
-
-  const handleImageFile = async (file) => {
+  // ================= UPLOAD IMAGE =================
+  const uploadImage = async (file) => {
     if (!file) return;
-    const fd = new FormData();
-    fd.append("file", file);
+
+    const formData = new FormData();
+    formData.append("image", file);
 
     try {
-      const res = await fetch(API_UPLOAD, { method: "POST", body: fd });
-      const json = await res.json();
+      const res = await fetch(API_UPLOAD, {
+        method: "POST",
+        body: formData,
+      });
 
-      if (json.filename) {
-        setEditData((s) => ({ ...s, image: json.filename }));
-        showToast("อัปโหลดรูปสำเร็จ!");
-      }
-    } catch {
+      const data = await res.json();
+
+      setEditData((prev) => ({
+        ...prev,
+        image: data.filename,
+      }));
+
+      showToast("อัปโหลดรูปสำเร็จ");
+    } catch (err) {
+      console.error(err);
       showToast("อัปโหลดรูปไม่สำเร็จ", "error");
     }
   };
 
-  const removeImage = () => {
-    setEditData((s) => ({ ...s, image: "" }));
-    showToast("ลบรูปแล้ว", "error");
-    setUnsavedChanges(true);
-  };
-
-  // ---------------- Filter Search ----------------
+  // ================= SEARCH =================
   const filtered = ads.filter((a) => {
     const q = search.toLowerCase();
+
     return (
       a.name.toLowerCase().includes(q) ||
       a.description.toLowerCase().includes(q)
     );
   });
 
+  // ================= UI =================
   return (
-    <motion.div
-      className="sp-page-container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      {/* HEADER */}
+    <motion.div className="sp-page-container">
       <div className="sp-header">
-        <h2>📢 SmartPersona — Ads (Feed)</h2>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button className="sp-btn sp-btn-add" onClick={addAd}>
-            + Create Ad
-          </button>
-          <button
-            className="sp-btn sp-btn-save"
-            disabled={!unsavedChanges}
-            onClick={saveAll}
-          >
-            💾 Save All
-          </button>
-        </div>
+        <h2>📢 SmartPersona — Ads Manager</h2>
+
+        <button className="sp-btn sp-btn-add" onClick={addAd}>
+          + Create Ad
+        </button>
       </div>
 
       <input
@@ -257,93 +222,30 @@ function AdsManagement() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* ADS LIST */}
       {loading ? (
         <div style={{ padding: 20 }}>Loading...</div>
       ) : (
         filtered.map((ad) => (
           <div className="sp-ad-card" key={ad.id}>
-            {/* LEFT IMAGE */}
-            <div className="sp-left">
-              {ad.image ? (
-                <img
-                  className="sp-img medium"
-                  src={resolveImageSrc(ad.image)}
-                  alt={ad.name}
-                />
-              ) : (
-                <div className="sp-no-image">พื้นที่โฆษณา</div>
-              )}
-            </div>
-
-            {/* MAIN CONTENT */}
             <div className="sp-middle">
               <h3>{ad.name}</h3>
-              <div className="sp-desc">{ad.description}</div>
-              <div className="sp-date">สร้าง: {ad.date}</div>
 
-              {/* EDIT MODE */}
-              {editingId === ad.id && editData && (
-                <div className="sp-edit-box">
-                  <input
-                    className="sp-input"
-                    value={editData.name}
-                    onChange={(e) =>
-                      setEditData((s) => ({ ...s, name: e.target.value }))
-                    }
-                  />
-
-                  <textarea
-                    rows={3}
-                    className="sp-input"
-                    value={editData.description}
-                    onChange={(e) =>
-                      setEditData((s) => ({
-                        ...s,
-                        description: e.target.value,
-                      }))
-                    }
-                  />
-
-                  <div className="sp-edit-actions">
-                    <label className="sp-file-label">
-                      Upload Image
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageFile(e.target.files?.[0])}
-                      />
-                    </label>
-
-                    <button
-                      className="sp-btn sp-btn-save-small"
-                      onClick={() => saveEdit(ad.id)}
-                    >
-                      Save
-                    </button>
-
-                    <button
-                      className="sp-btn sp-btn-cancel-small"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditData(null);
-                      }}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      className="sp-btn sp-btn-remove-img"
-                      onClick={removeImage}
-                    >
-                      Remove Img
-                    </button>
-                  </div>
-                </div>
+              {ad.image && (
+                <img
+                  src={`${IMAGE_BASE}${ad.image}`}
+                  alt=""
+                  style={{
+                    width: 120,
+                    borderRadius: 8,
+                  }}
+                />
               )}
+
+              <div className="sp-desc">{ad.description}</div>
+
+              <div className="sp-date">{ad.date}</div>
             </div>
 
-            {/* RIGHT BUTTONS */}
             <div className="sp-right">
               <button
                 className={`sp-status ${ad.active ? "active" : "inactive"}`}
@@ -355,7 +257,11 @@ function AdsManagement() {
               <div className="sp-row">
                 <button
                   className="sp-btn sp-btn-view"
-                  onClick={() => setPreviewAd(ad)}
+                  onClick={() => {
+                    setEditingId(null);
+                    setConfirmDelete(null);
+                    setPreviewAd(ad);
+                  }}
                 >
                   Preview
                 </button>
@@ -369,7 +275,11 @@ function AdsManagement() {
 
                 <button
                   className="sp-btn sp-btn-delete"
-                  onClick={() => setConfirmDelete(ad)}
+                  onClick={() => {
+                    setPreviewAd(null);
+                    setEditingId(null);
+                    setConfirmDelete(ad);
+                  }}
                 >
                   Delete
                 </button>
@@ -379,74 +289,157 @@ function AdsManagement() {
         ))
       )}
 
-      {/* PREVIEW MODAL */}
+      {/* ================= PREVIEW POPUP ================= */}
+
       <AnimatePresence>
         {previewAd && (
           <motion.div
-            className="sp-modal-backdrop"
+            className="sp-preview-bg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setPreviewAd(null)}
           >
             <motion.div
-              className="sp-modal-card"
+              className="sp-preview-card"
+              initial={{ scale: 0.85, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 220,
+                damping: 18,
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               {previewAd.image ? (
                 <img
-                  src={resolveImageSrc(previewAd.image)}
-                  alt={previewAd.name}    
-                  className="preview-img"
+                  src={`${IMAGE_BASE}${previewAd.image}`}
+                  className="sp-preview-img"
+                  alt=""
                 />
               ) : (
-                <div className="sp-no-image big">พื้นที่โฆษณา</div>
+                <div className="sp-no-image big">NO IMAGE</div>
               )}
 
-              <h3>{previewAd.name}</h3>
-              <p>{previewAd.description}</p>
+              <div className="sp-preview-content">
+                <h2 className="sp-preview-title">{previewAd.name}</h2>
+
+                <p className="sp-preview-desc">{previewAd.description}</p>
+              </div>
 
               <button
-                className="sp-btn sp-btn-cancel-small"
+                className="sp-preview-action"
                 onClick={() => setPreviewAd(null)}
               >
-                Close
+                ปิด
               </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* DELETE CONFIRM */}
+      {/* ================= DELETE ================= */}
+
       <AnimatePresence>
         {confirmDelete && (
-          <motion.div
-            className="sp-modal-backdrop"
-            onClick={() => setConfirmDelete(null)}
-          >
-            <motion.div
-              className="sp-modal-card"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3>🗑 Delete Ad</h3>
-              <p>
-                ต้องการลบ <b>{confirmDelete.name}</b> ใช่ไหม?
-              </p>
+          <motion.div className="sp-modal-bg">
+            <motion.div className="sp-modal">
+              <h3>ลบโฆษณา ?</h3>
 
-              <div style={{ textAlign: "right" }}>
+              <p>{confirmDelete.name}</p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                }}
+              >
                 <button
-                  className="sp-btn sp-btn-cancel-small"
+                  className="sp-btn sp-btn-delete"
+                  onClick={() => doDelete(confirmDelete.id)}
+                >
+                  Delete
+                </button>
+
+                <button
+                  className="sp-btn"
                   onClick={() => setConfirmDelete(null)}
                 >
                   Cancel
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ================= EDIT ================= */}
+
+      <AnimatePresence>
+        {editingId && editData && (
+          <motion.div className="sp-modal-bg">
+            <motion.div className="sp-modal">
+              <h3>Edit Ad</h3>
+
+              <input
+                value={editData.name}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    name: e.target.value,
+                  })
+                }
+              />
+
+              <textarea
+                value={editData.description}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    description: e.target.value,
+                  })
+                }
+              />
+
+              <input
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) uploadImage(file);
+                }}
+              />
+
+              {editData.image && (
+                <img
+                  src={`${IMAGE_BASE}${editData.image}`}
+                  alt=""
+                  style={{
+                    width: 150,
+                    marginTop: 10,
+                  }}
+                />
+              )}
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  marginTop: 10,
+                }}
+              >
+                <button className="sp-btn sp-btn-save" onClick={saveEdit}>
+                  Save
+                </button>
 
                 <button
-                  className="sp-btn sp-btn-delete"
-                  onClick={() => doDelete(confirmDelete.id)}
-                  style={{ marginLeft: 10 }}
+                  className="sp-btn"
+                  onClick={() => {
+                    setEditingId(null);
+                    setEditData(null);
+                  }}
                 >
-                  Delete
+                  Cancel
                 </button>
               </div>
             </motion.div>

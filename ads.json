@@ -22,8 +22,8 @@
     },
     {
       "id": "1763549710234_g5to",
-      "name": "Hii",
-      "description": "คำอธิบาย...",
+      "name": "SmartPersona – Resume Builder",
+      "description": "",
       "image": "",
       "position": "feed",
       "sizePreset": "medium",
@@ -52,6 +52,16 @@
       "customWidth": "",
       "customHeight": "",
       "date": "2025-11-22",
+      "active": false
+    },
+    {
+      "id": "1764370601725_tcv9",
+      "name": "New Ad",
+      "description": "คำอธิบาย...",
+      "image": "",
+      "position": "feed",
+      "sizePreset": "medium",
+      "date": "2025-11-28",
       "active": false
     }
   ]

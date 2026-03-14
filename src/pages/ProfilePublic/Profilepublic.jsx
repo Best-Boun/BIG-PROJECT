@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { ProfileContext } from "../../ProfileContext";
 import './Profilepublic.css';
-import Header2 from '../../components/Header2';
 
 const ProfilePublic = ({ onNavigate }) => {
   const { profileData } = useContext(ProfileContext);
@@ -135,7 +134,7 @@ const ProfilePublic = ({ onNavigate }) => {
   if (!hasProfileData) {
     return (
       <>
-      <Header2 user={currentUser} onLogout={handleLogout} />
+      
       <div style={{
         background: 'linear-gradient(135deg, rgba(106, 17, 203, 0.95) 0%, rgba(37, 117, 252, 0.95) 100%)',
         color: 'white',

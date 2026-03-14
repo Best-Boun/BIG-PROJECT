@@ -16,9 +16,7 @@ function Register() {
     return () => document.body.classList.remove("login-page");
   }, []);
 
-  // ==========================
-  //  ตรวจสอบอีเมลแบบ Gmail เท่านั้น
-  // ==========================
+  // ตรวจสอบ Gmail เท่านั้น
   const isValidGmail = (email) => {
     const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     return gmailRegex.test(email);
@@ -32,19 +30,26 @@ function Register() {
       return;
     }
 
-    // ตรวจว่าเป็น Gmail เท่านั้น
     if (!isValidGmail(email)) {
       setMessage("⚠️ กรุณากรอกอีเมลให้ถูกต้อง และต้องเป็น @gmail.com เท่านั้น");
       return;
     }
 
-    const result = await registerUser(username, email, password);
-    setMessage(result.message || "Registered");
+    try {
+      const result = await registerUser(username, email, password);
 
-    if (result.success) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1200);
+      if (result.success) {
+        setMessage("✅ สมัครสมาชิกสำเร็จ");
+
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1200);
+      } else {
+        setMessage(result.message || "❌ สมัครสมาชิกไม่สำเร็จ");
+      }
+    } catch (error) {
+      setMessage("❌ เกิดข้อผิดพลาดในการสมัครสมาชิก");
+      console.error(error);
     }
   };
 
@@ -95,6 +100,7 @@ function Register() {
               style={{
                 color: message.includes("✅") ? "#4ef037" : "#ff7070",
                 marginTop: "10px",
+                fontWeight: "500",
               }}
             >
               {message}

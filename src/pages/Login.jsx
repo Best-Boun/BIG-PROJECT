@@ -75,10 +75,20 @@ function Login({ setToken, setRole }) {
         // save user id
         localStorage.setItem("userID", user.id.toString());
 
+        // save user name
+        localStorage.setItem("userName", user.name);
+
         if (setToken) setToken(token);
         if (setRole) setRole(user.role || "user");
 
-        window.location.href = "/feed";
+        // redirect by role
+        if (user.role === "employer") {
+          window.location.href = "/jobs/manage";
+        } else if (user.role === "seeker") {
+          window.location.href = "/jobs";
+        } else {
+          window.location.href = "/feed";
+        }
       }, 900);
     } catch (err) {
       setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");

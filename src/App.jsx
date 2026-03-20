@@ -5,6 +5,7 @@ import Header2 from "./components/Header2";
 import Profilepublic from "./pages/ProfilePublic/Profilepublic";
 import JobBrowse from "./pages/JobBrowse";
 import JobDetail from "./pages/JobDetail";
+import JobManage from "./pages/JobManage";
 import ResumeEditor from "./pages/ResumeEditor";
 import ProfileEdit from "./pages/ProfileEdit";
 import Feed from "./pages/Feed/Feed";
@@ -17,6 +18,11 @@ import AdsManagement from "./pages/AdsManagement";
 import AdminManagement from "./Pages/AdminManagement";
 import Landing from "./pages/Landing";
 import Feature1 from "./components/Feature1";
+import ManageApplicants from "./pages/ManageApplicants";
+import ApplicantProfile from "./pages/ApplicantProfile";
+import Applications from "./pages/Applications";
+import Unauthorized from "./pages/Unauthorized";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function ProfilepublicWrapper() {
   const navigate = useNavigate();
@@ -29,7 +35,7 @@ function ProfilepublicWrapper() {
   return <Profilepublic onNavigate={handleNavigate} />;
 }
 
-function ResumeEditorWrapper({ user, onLogout }) {
+function ResumeEditorWrapper({ onLogout }) {
   const context = useContext(ProfileContext);
   const profileData = context?.profileData || {};
 
@@ -56,7 +62,6 @@ function ResumeEditorWrapper({ user, onLogout }) {
   return (
     <ResumeEditor
       initialData={resumeFromProfile}
-      user={user}
       onLogout={onLogout}
     />
   );
@@ -80,11 +85,6 @@ function AppContent() {
 
   const navigate = useNavigate();
 
-  const [user] = useState({
-    name: "Alex Johnson",
-    profileImage: "👤",
-    email: "alex@example.com",
-  });
 
   useEffect(() => {
     const savedRole = localStorage.getItem("role");
@@ -95,8 +95,7 @@ function AppContent() {
       setToken(savedToken);
     }
 
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -154,25 +153,55 @@ function AppContent() {
   return (
     <ProfileProvider>
       <div className="app user-layout">
-        <Header2 user={user} role={role} onLogout={handleLogout} />
+        <Header2 role={role} onLogout={handleLogout} />
 
         <main className="app-main">
           <Routes>
             <Route
               path="/feed"
-              element={<Feed user={user} onLogout={handleLogout} />}
+              element={<Feed onLogout={handleLogout} />}
             />
 
             <Route path="/profile" element={<ProfilepublicWrapper />} />
             <Route path="/edit-profile" element={<ProfileEditWrapper />} />
 
             <Route path="/jobs" element={<JobBrowse />} />
+
+            <Route path="/jobs/manage" element={
+              <ProtectedRoute allowedRole="employer">
+                <JobManage />
+              </ProtectedRoute>
+            } />
+            <Route path="/jobs/:jobId/applicants" element={
+              <ProtectedRoute allowedRole="employer">
+                <ManageApplicants />
+              </ProtectedRoute>
+            } />
+            <Route path="/manage-jobs/:jobId/applicants" element={
+              <ProtectedRoute allowedRole="employer">
+                <ManageApplicants />
+              </ProtectedRoute>
+            } />
+            <Route path="/applicant/:userId" element={
+              <ProtectedRoute allowedRole="employer">
+                <ApplicantProfile />
+              </ProtectedRoute>
+            } />
+
             <Route path="/jobs/:id" element={<JobDetail />} />
+
+            <Route path="/applications" element={
+              <ProtectedRoute allowedRole="seeker">
+                <Applications />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
             <Route
               path="/resume"
               element={
-                <ResumeEditorWrapper user={user} onLogout={handleLogout} />
+                <ResumeEditorWrapper onLogout={handleLogout} />
               }
             />
 

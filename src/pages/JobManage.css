@@ -1,0 +1,462 @@
+/* ── JobManage Page ─────────────────────────────────────────── */
+
+.jm-page {
+  background: var(--color-bg);
+  min-height: calc(100vh - 64px);
+  padding-bottom: var(--space-12);
+}
+
+.jm-container {
+  max-width: 1100px;
+  padding-top: var(--space-10);
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+
+.jm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-8);
+}
+
+.jm-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.jm-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+
+.jm-btn-post {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-text-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+.jm-btn-post:hover { opacity: 0.82; }
+
+.jm-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jm-btn-icon:hover {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+}
+
+.jm-btn-delete:hover {
+  background: #FEF2F2;
+  color: var(--color-error);
+  border-color: #FECACA;
+}
+
+/* ── Loading / Empty ─────────────────────────────────────────── */
+
+.jm-loading,
+.jm-empty {
+  text-align: center;
+  padding: var(--space-16);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+.jm-empty p { margin-bottom: var(--space-4); }
+
+/* ── Table ───────────────────────────────────────────────────── */
+
+.jm-table-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.jm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jm-table thead tr {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.jm-table th {
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.jm-table td {
+  padding: 14px 16px;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.jm-table tbody tr:last-child td { border-bottom: none; }
+
+.jm-table tbody tr:hover { background: #fafafa; }
+
+.jm-row-inactive td { opacity: 0.55; }
+
+/* ── Table Cells ─────────────────────────────────────────────── */
+
+.jm-job-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.jm-logo {
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.jm-job-title {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.jm-job-company {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.jm-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  margin-right: 4px;
+}
+.jm-badge-gray {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.jm-text-secondary { color: var(--color-text-secondary); }
+
+.jm-salary {
+  font-weight: var(--font-semibold);
+  color: var(--color-success);
+}
+
+.jm-applicants {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.jm-status-toggle {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+.jm-active {
+  background: #D1FAE5;
+  color: #065F46;
+}
+.jm-active:hover { background: #A7F3D0; }
+.jm-inactive {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+.jm-inactive:hover { background: var(--color-border); }
+
+.jm-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ── Overlay / Modal ─────────────────────────────────────────── */
+
+.jm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.jm-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+}
+
+.jm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.jm-modal-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.jm-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+.jm-modal-close:hover { color: var(--color-text-primary); background: var(--color-bg); }
+
+.jm-modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.jm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* ── Form ────────────────────────────────────────────────────── */
+
+.jm-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.jm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.jm-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.jm-field-full {
+  grid-column: 1 / -1;
+}
+
+.jm-field label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+}
+
+.jm-hint {
+  font-weight: var(--font-normal);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.jm-field input,
+.jm-field select,
+.jm-field textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  resize: vertical;
+}
+
+.jm-field input:focus,
+.jm-field select:focus,
+.jm-field textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-light);
+}
+
+.jm-field input::placeholder,
+.jm-field textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.jm-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-normal) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.jm-btn-cancel {
+  padding: 9px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jm-btn-cancel:hover { background: var(--color-bg); }
+
+.jm-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 20px;
+  background: var(--color-text-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.jm-btn-save:hover:not(:disabled) { opacity: 0.82; }
+.jm-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Delete Confirm ──────────────────────────────────────────── */
+
+.jm-confirm {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+}
+
+.jm-confirm h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.jm-confirm p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.jm-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.jm-btn-delete-confirm {
+  padding: 9px 20px;
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.jm-btn-delete-confirm:hover { opacity: 0.85; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .jm-header {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .jm-table-wrap {
+    overflow-x: auto;
+  }
+
+  .jm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jm-field-full {
+    grid-column: 1;
+  }
+}

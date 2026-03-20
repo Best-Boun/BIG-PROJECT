@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { ProfileContext } from "../ProfileContext.jsx";
@@ -144,10 +144,14 @@ export default function ResumePage() {
       // ✅ Import Mode: แปลง profileData เป็น resumeData
       const resumeFromProfile = {
         ...profileData,
-        employment: profileData.experience || [], // แปลง experience → employment
+        employment: profileData.experience || [],  // experience → employment
         education: profileData.education || [],
         languages: profileData.languages || [],
         hobbies: profileData.hobbies || [],
+        currentStatus: profileData.employmentStatus || '',
+        currentCompany: profileData.currentCompany || '',
+        currentRole: profileData.currentRole || '',
+        openToWork: profileData.openToWork || false,
       };
       setResumeData(resumeFromProfile);
       setMode('editor');

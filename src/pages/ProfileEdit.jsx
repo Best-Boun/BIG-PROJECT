@@ -1,55 +1,120 @@
-import React, { useState, useContext } from 'react';
-import { ProfileContext } from "../ProfileContext";
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ProfileEdit.css';
-import { EXPERTISE_ICONS } from '../data/Expertiseicons';
 
-
-
+/* ── SectionHeader ─────────────────────────────────────────── */
 const SectionHeader = ({ title, sectionName, togglePrivacy, isPublic }) => (
-    <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>
-            {title}
-        </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                {isPublic ? ' Public' : ' Private'}
+    <div className="pe-section-header">
+        <h3 className="pe-section-title">{title}</h3>
+        <div className="pe-privacy-row">
+            <label className="pe-privacy-label">
+                {isPublic ? 'Public' : 'Private'}
             </label>
+            {/* Toggle track background is dynamic → keep inline */}
             <button
                 onClick={() => togglePrivacy(sectionName)}
-                style={{
-                    width: '50px',
-                    height: '26px',
-                    borderRadius: '13px',
-                    border: 'none',
-                    background: isPublic ? '#27ae60' : '#bdc3c7',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    transition: 'all 0.3s'
-                }}
+                className="pe-toggle-track"
+                style={{ background: isPublic ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
             >
-                <div style={{
-                    width: '22px',
-                    height: '22px',
-                    borderRadius: '50%',
-                    background: 'white',
-                    position: 'absolute',
-                    top: '2px',
-                    left: isPublic ? '26px' : '2px',
-                    transition: 'left 0.3s'
-                }} />
+                {/* Thumb position is dynamic → keep inline */}
+                <div
+                    className="pe-toggle-thumb"
+                    style={{ left: isPublic ? '26px' : '2px' }}
+                />
             </button>
         </div>
     </div>
 );
+
+/* ── PrivacyToggleInline (used in sections that need custom layout) ── */
+const PrivacyToggleInline = ({ sectionName, getPrivacyValue, handlePrivacyToggle }) => (
+    <div className="pe-privacy-row">
+        <label className="pe-privacy-label">
+            {getPrivacyValue(sectionName) ? 'Public' : 'Private'}
+        </label>
+        <button
+            onClick={() => handlePrivacyToggle(sectionName)}
+            className="pe-toggle-track"
+            style={{ background: getPrivacyValue(sectionName) ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+        >
+            <div
+                className="pe-toggle-thumb"
+                style={{ left: getPrivacyValue(sectionName) ? '26px' : '2px' }}
+            />
+        </button>
+    </div>
+);
+
+/* ── ItemEditButtons ─────────────────────────────────────────── */
+const ItemEditButtons = ({ onEdit, onDelete }) => (
+    <div className="pe-item-actions">
+        <button onClick={onEdit} className="pe-edit-btn">Edit</button>
+        <button onClick={onDelete} className="pe-delete-btn">Delete</button>
+    </div>
+);
+
+/* ── Modal wrapper ───────────────────────────────────────────── */
+const Modal = ({ children }) => (
+    <div className="pe-modal-overlay">
+        <div className="pe-modal-content">
+            {children}
+        </div>
+    </div>
+);
+
+/* ── Modal footer ────────────────────────────────────────────── */
+const ModalFooter = ({ onSave, onCancel }) => (
+    <div className="pe-modal-footer">
+        <button onClick={onSave} className="pe-modal-save-btn">Save</button>
+        <button onClick={onCancel} className="pe-modal-cancel-btn">Cancel</button>
+    </div>
+);
+
+/* ══════════════════════════════════════════════════════════════
+   ProfileEdit Component
+   ══════════════════════════════════════════════════════════════ */
 function ProfileEdit({ onNavigate }) {
     const navigate = useNavigate();
-    const { profileData, updateProfile, addArrayItem, updateArrayItem, removeArrayItem } = useContext(ProfileContext);
-    const [profile, setProfile] = useState(profileData || {});
-    const [originalProfile, setOriginalProfile] = useState(profileData || {});
+    const [profileData, setProfileData] = useState({});
+    const [profile, setProfile] = useState({});
+    const [originalProfile, setOriginalProfile] = useState({});
+
+    const updateProfile = (updates) => {
+        setProfileData(prev => ({ ...prev, ...updates }));
+    };
+    const addArrayItem = (arrayName, item) => {
+        const newItem = { ...item, id: Date.now() };
+        setProfileData(prev => ({ ...prev, [arrayName]: [...(prev[arrayName] || []), newItem] }));
+    };
+    const updateArrayItem = (arrayName, id, updates) => {
+        setProfileData(prev => ({
+            ...prev,
+            [arrayName]: (prev[arrayName] || []).map(item => item.id === id ? { ...item, ...updates } : item),
+        }));
+    };
+    const removeArrayItem = (arrayName, id) => {
+        setProfileData(prev => ({ ...prev, [arrayName]: (prev[arrayName] || []).filter(item => item.id !== id) }));
+    };
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
-    // Modal states
+    const [uploading, setUploading] = useState(false);
+
+    const uploadImage = async (file) => {
+        if (file.size > 2 * 1024 * 1024) throw new Error('File too large');
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error('Upload failed');
+            const data = await res.json();
+            return `${import.meta.env.VITE_API_URL}${data.url}`;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    // Modal states (unchanged)
     const [modals, setModals] = useState({
         experience: false,
         education: false,
@@ -57,73 +122,71 @@ function ProfileEdit({ onNavigate }) {
         language: false,
         certification: false,
         project: false,
-        opensource: false,
         publication: false,
-        expertise: false
     });
 
-    // Form states
+    // Form states (unchanged)
     const [forms, setForms] = useState({
         experience: { title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
         education: { degree: '', school: '', year: '', grade: '' },
-        skill: { name: '', level: 'Intermediate' },
+        skill: { name: '' },
         language: { name: '', level: 'Intermediate' },
         certification: { name: '', issuer: '', issueDate: '', expiryDate: '' },
-        project: { title: '', description: '', image: '' },
-        opensource: { title: '', subtitle: '', description: '' },
+        project: { name: '', image: '', description: '', url: '', techStack: '' },
         publication: { title: '', subtitle: '' },
-        expertise: { icon: '', title: '', description: '' }
     });
     const [editingId, setEditingId] = useState(null);
-    React.useEffect(() => {
-        if (profileData) {
-            setProfile(profileData);
-            setOriginalProfile(JSON.parse(JSON.stringify(profileData)));
 
-            
-            const isGitHubConnected = localStorage.getItem('github_connected') === 'true';
-            if (isGitHubConnected) {
-                setProfile(prevProfile => ({
-                    ...prevProfile,
-                    githubConnected: true
-                }));
-            }
-        }
-    }, [profileData]);
+    useEffect(() => {
+        const userId = localStorage.getItem('userID');
+        if (!userId) return;
+        fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
+            .then(r => r.json())
+            .then(data => {
+                const p = Array.isArray(data) ? data[0] : data;
+                if (p) {
+                    const transformed = {
+                        ...p,
+                        skills: (p.skills || []).map((s, i) =>
+                            typeof s === 'string' ? { id: i + 1, name: s } : { ...s, id: i + 1 }
+                        ),
+                        experience: (p.experience || []).map((e, i) => ({ ...e, id: i + 1, title: e.role || '' })),
+                        education: (p.education || []).map((e, i) => ({ ...e, id: i + 1, school: e.institution || '', year: e.startDate || '' })),
+                        languages: (p.languages || []).map((l, i) => ({ ...l, id: i + 1, name: l.language || l.name || '' })),
+                        certifications: (p.certifications || []).map((c, i) => ({ ...c, id: i + 1, issueDate: c.date || '' })),
+                        projects: (p.projects || []).map((proj, i) => ({ ...proj, id: i + 1 })),
+                    };
+                    setProfileData(transformed);
+                    setProfile(transformed);
+                    setOriginalProfile(JSON.parse(JSON.stringify(transformed)));
+                }
+            })
+            .catch(err => console.error('Load profile failed:', err));
+    }, []);
 
-      const handleCustomizeClick = () => {
-    navigate('/feature1'); 
-  };
+    const handleCustomizeClick = () => navigate('/feature1');
 
+    // Input handlers (unchanged)
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setProfile({ ...profile, [name]: value });
     };
+
     const handleFormChange = (formType, field, value) => {
-        setForms({
-            ...forms,
-            [formType]: { ...forms[formType], [field]: value }
-        });
+        setForms({ ...forms, [formType]: { ...forms[formType], [field]: value } });
     };
-    // NEW: Independent Privacy Toggle ( Save)
+
     const handlePrivacyToggle = (sectionName) => {
         const currentPrivacy = profileData.privacy || {};
-        const newPrivacy = {
-            ...currentPrivacy,
-            [sectionName]: !currentPrivacy[sectionName]
-        };
+        const newPrivacy = { ...currentPrivacy, [sectionName]: !currentPrivacy[sectionName] };
+        updateProfile({ ...profileData, privacy: newPrivacy });
+    };
 
-        const completeProfile = {
-            ...profileData,
-            privacy: newPrivacy
-        };
-        updateProfile(completeProfile);
-    };
-    // NEW: Get Privacy Value with Default to PUBLIC
     const getPrivacyValue = (sectionName) => {
-        const currentPrivacy = profileData.privacy?.[sectionName];
-        return currentPrivacy !== undefined ? currentPrivacy : true; // Default = PUBLIC (true)
+        const val = profileData.privacy?.[sectionName];
+        return val !== undefined ? val : true;
     };
+
     const openModal = (modalType, item = null) => {
         if (item) {
             setForms({ ...forms, [modalType]: item });
@@ -139,56 +202,35 @@ function ProfileEdit({ onNavigate }) {
                             ? { name: '', level: 'Intermediate' }
                             : modalType === 'certification'
                                 ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
-                                : modalType === 'opensource'
-                                    ? { title: '', subtitle: '', description: '' }
-                                        : modalType === 'expertise'
-                                            ? { icon: '', title: '', description: '' }
-                                            : { title: '', description: '', technologies: '', link: '', startDate: '', endDate: '' }
+                                : { name: '', image: '', description: '', url: '', techStack: '' }
             });
             setEditingId(null);
         }
         setModals({ ...modals, [modalType]: true });
     };
+
     const closeModal = (modalType) => {
         setModals({ ...modals, [modalType]: false });
         setEditingId(null);
     };
+
     const handleSaveItem = (itemType) => {
         const isEmpty = () => {
             const item = forms[itemType];
-            if (itemType === 'expertise') {
-                return !item.title || !item.description;
-            } else if (itemType === 'project') {
-                return !item.title;
-            } else if (itemType === 'opensource') {
-                return !item.title || !item.subtitle;
-            } else if (itemType === 'publication') {
-                return !item.title || !item.subtitle;
-            } else if (itemType === 'skill' || itemType === 'language') {
-                return !item.name;
-            } else if (itemType === 'experience') {
-                return !item.title || !item.company;
-            } else if (itemType === 'education') {
-                return !item.degree || !item.school;
-            } else if (itemType === 'certification') {
-                return !item.name;
-            }
+            if (itemType === 'project')      return !item.name;
+            if (itemType === 'publication')  return !item.title || !item.subtitle;
+            if (itemType === 'skill' || itemType === 'language') return !item.name;
+            if (itemType === 'experience')   return !item.title || !item.company;
+            if (itemType === 'education')    return !item.degree || !item.school;
+            if (itemType === 'certification')return !item.name;
             return false;
         };
-        if (isEmpty()) {
-            alert('Please fill in required fields');
-            return;
-        }
+        if (isEmpty()) { alert('Please fill in required fields'); return; }
+
         const arrayNames = {
-            'experience': 'experience',
-            'education': 'education',
-            'skill': 'skills',
-            'language': 'languages',
-            'certification': 'certifications',
-            'project': 'projects',
-            'opensource': 'openSources',
-            'publication': 'publications',
-            'expertise': 'expertises'
+            experience: 'experience', education: 'education', skill: 'skills',
+            language: 'languages', certification: 'certifications', project: 'projects',
+            publication: 'publications',
         };
         if (editingId) {
             updateArrayItem(arrayNames[itemType], editingId, forms[itemType]);
@@ -197,258 +239,208 @@ function ProfileEdit({ onNavigate }) {
         }
         closeModal(itemType);
     };
+
     const handleDeleteItem = (itemType, id) => {
         if (window.confirm('Delete this item?')) {
             const arrayNames = {
-                'experience': 'experience',
-                'education': 'education',
-                'skill': 'skills',
-                'language': 'languages',
-                'certification': 'certifications',
-                'project': 'projects',
-                'opensource': 'openSources',
-                'publication': 'publications',
-                'expertise': 'expertises'
+                experience: 'experience', education: 'education', skill: 'skills',
+                language: 'languages', certification: 'certifications', project: 'projects',
+                publication: 'publications',
             };
             removeArrayItem(arrayNames[itemType], id);
         }
     };
-    const handleSave = () => {
-        // Detect changes
-        const changedFields = {};
-        const allKeys = new Set([...Object.keys(profile), ...Object.keys(originalProfile)]);
 
-        allKeys.forEach(key => {
-            const newValue = profile[key];
-            const oldValue = originalProfile[key];
+    const handleSave = async () => {
+        const userId = localStorage.getItem('userID');
+        if (!userId) return;
 
-            // Compare values
-            if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-                changedFields[key] = newValue;
-            }
-        });
-
-        // If no changes, show alert
-        if (Object.keys(changedFields).length === 0) {
-            alert('No changes to save');
-            return;
-        }
-
-        // Merge profile state with profileData from context (only changed fields + array data)
-        const completeProfile = {
+        const saveData = {
             ...profileData,
-            ...changedFields
+            ...profile,
+            skills: (profileData.skills || []).map(s => typeof s === 'string' ? s : (s.name || '')),
+            experience: (profileData.experience || []).map(e => ({
+                company: e.company, role: e.title || e.role,
+                startDate: e.startDate, endDate: e.endDate, description: e.description,
+            })),
+            education: (profileData.education || []).map(e => ({
+                institution: e.school || e.institution, degree: e.degree,
+                field: e.field || '', startDate: e.year || e.startDate, endDate: e.endDate,
+                grade: e.grade || null,
+            })),
+            languages: (profileData.languages || []).map(l => ({ language: l.name || l.language, level: l.level })),
+            certifications: (profileData.certifications || []).map(c => ({
+                name: c.name, issuer: c.issuer, date: c.issueDate || c.date, url: c.url,
+            })),
+            projects: (profileData.projects || []).map(p => ({
+                name: p.name || null,
+                image: p.image || null,
+                description: p.description || null,
+                url: p.url || null,
+                techStack: p.techStack || null,
+            })),
         };
-        updateProfile(completeProfile);
-        setOriginalProfile(JSON.parse(JSON.stringify(profile)));
-        setShowSuccessAlert(true);
-        setTimeout(() => setShowSuccessAlert(false), 3000);
+
+        try {
+            await fetch(`http://localhost:3000/api/profiles/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveData),
+            });
+            setOriginalProfile(JSON.parse(JSON.stringify({ ...profileData, ...profile })));
+            setShowSuccessAlert(true);
+            setTimeout(() => setShowSuccessAlert(false), 3000);
+        } catch (err) {
+            console.error('Save failed:', err);
+        }
     };
+
     const tabs = [
-        { id: 'basic', label: ' Basic Info' },
-        { id: 'quickinfo', label: ' Quick Info' },
-        { id: 'summary', label: ' Summary' },
-        { id: 'experience', label: ' Experience' },
-        { id: 'education', label: ' Education' },
-        { id: 'skills', label: ' Skills' },
-        { id: 'languages', label: ' Languages' },
-        { id: 'expertise', label: ' Expertise' },
-        { id: 'projects', label: ' Projects' },
-        { id: 'certifications', label: ' Certifications' },
-        { id: 'workprefs', label: ' Work Preferences' },
-        { id: 'opensource', label: ' Open Source' },
-        { id: 'contact', label: ' Contact & Social' },
+        { id: 'basic',          label: 'Basic Info' },
+        { id: 'quickinfo',      label: 'Quick Info' },
+        { id: 'currentStatus',  label: 'Current Status' },
+        { id: 'summary',        label: 'Summary' },
+        { id: 'experience',     label: 'Experience' },
+        { id: 'education',      label: 'Education' },
+        { id: 'skills',         label: 'Skills' },
+        { id: 'languages',      label: 'Languages' },
+        { id: 'projects',       label: 'Projects' },
+        { id: 'certifications', label: 'Certifications' },
+        { id: 'workprefs',      label: 'Work Prefs' },
+        { id: 'contact',        label: 'Contact & Social' },
     ];
+
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <div className="pe-page">
             {/* Header */}
-            <div style={{
-                background: 'linear-gradient(135deg, rgba(106, 17, 203, 0.95) 0%, rgba(37, 117, 252, 0.95) 100%)',
-                color: 'white',
-                padding: '60px 40px 40px',
-                marginBottom: '40px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
-            }}>
-                <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '10px' }}> Edit Profile</h1>
-                    <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>Update your professional information</p>
+            <div className="pe-header">
+                <div className="pe-header-inner">
+                    <h1 className="pe-header-title">Edit Profile</h1>
+                    <p className="pe-header-subtitle">Update your professional information</p>
                 </div>
             </div>
+
             {/* Success Alert */}
             {showSuccessAlert && (
-                <div style={{
-                    maxWidth: '1400px',
-                    margin: '0 auto 20px',
-                    padding: '15px 20px',
-                    backgroundColor: '#d4edda',
-                    color: '#155724',
-                    borderRadius: '8px',
-                    border: '1px solid #c3e6cb'
-                }}>
+                <div className="pe-success-alert">
                     Profile updated successfully!
                 </div>
             )}
-            {/* Main Content */}
-            <div style={{
-                maxWidth: '1400px',
-                margin: '0 auto',
-                padding: '0 40px 40px',
-                display: 'grid',
-                gridTemplateColumns: '200px 1fr',
-                gap: '30px'
-            }}>
-                {/* Sidebar Tabs */}
-                <div>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        maxHeight: '700px',
-                        overflowY: 'auto',
-                        paddingRight: '10px'
-                    }}>
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                style={{
-                                    padding: '12px 15px',
-                                    backgroundColor: activeTab === tab.id ? '#6a11cb' : 'white',
-                                    color: activeTab === tab.id ? 'white' : '#333',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
-                                    fontWeight: activeTab === tab.id ? '600' : '500',
-                                    fontSize: '13px',
-                                    transition: 'all 0.3s',
-                                    boxShadow: activeTab === tab.id ? '0 4px 15px rgba(106, 17, 203, 0.3)' : '0 2px 8px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                {/* Main Content */}
-                <div>
-                    {/* 1. BASIC INFORMATION */}
-                    {activeTab === 'basic' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <SectionHeader
-                                title="Basic Information"
-                                sectionName="basicInfo"
-                                togglePrivacy={handlePrivacyToggle}
-                                isPublic={getPrivacyValue('basicInfo')}
-                            />
 
-                            {/* Profile Picture Upload Section */}
-                            <div style={{ marginBottom: '30px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '12px', display: 'block', color: '#333' }}>Profile Picture</label>
+            {/* Main Layout */}
+            <div className="pe-layout">
+                {/* Sidebar */}
+                <aside className="pe-sidebar">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`pe-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </aside>
+
+                {/* Content */}
+                <div className="pe-content">
+
+                    {/* 1. BASIC INFO */}
+                    {activeTab === 'basic' && (
+                        <div className="pe-panel">
+                            <SectionHeader title="Basic Information" sectionName="basicInfo" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('basicInfo')} />
+
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Profile Picture</label>
                                 <div
+                                    className="pe-image-upload-area"
                                     onClick={() => document.getElementById('profile-image-input').click()}
-                                    style={{
-                                        border: '2px dashed #6a11cb',
-                                        borderRadius: '12px',
-                                        padding: '30px 20px',
-                                        textAlign: 'center',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s',
-                                        backgroundColor: '#f9f7ff',
-                                        minHeight: '200px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#f0ebff';
-                                        e.currentTarget.style.borderColor = '#9b59b6';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#f9f7ff';
-                                        e.currentTarget.style.borderColor = '#6a11cb';
-                                    }}
+                                    style={uploading ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                                 >
                                     {profile.profileImage ? (
-                                        <div style={{ textAlign: 'center' }}>
-                                            <img
-                                                src={profile.profileImage}
-                                                alt="Profile"
-                                                style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', marginBottom: '15px' }}
-                                            />
-                                            <p style={{ margin: '10px 0 0 0', color: '#6a11cb', fontSize: '14px', fontWeight: '600' }}>Click to change photo</p>
-                                            <small style={{ color: '#999' }}>PNG, JPG (Max 2MB)</small>
+                                        <div className="pe-image-preview">
+                                            <img src={profile.profileImage} alt="Profile" className="pe-profile-img" />
+                                            <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to change photo'}</p>
+                                            <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
                                         </div>
                                     ) : (
-                                        <div>
-                                            <div style={{ fontSize: '3rem', marginBottom: '15px' }}></div>
-                                            <p style={{ color: '#666', marginBottom: '8px', fontWeight: '500' }}>Click to upload profile picture</p>
-                                            <small style={{ color: '#999' }}>PNG, JPG (Max 2MB)</small>
+                                        <div className="pe-upload-placeholder">
+                                            <div className="pe-upload-icon">📷</div>
+                                            <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to upload profile picture'}</p>
+                                            <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
                                         </div>
                                     )}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => {
+                                        disabled={uploading}
+                                        onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (!file) return;
-                                            if (file.size > 2 * 1024 * 1024) {
-                                                alert('Image must be less than 2MB');
-                                                return;
-                                            }
-                                            const reader = new FileReader();
-                                            reader.onloadend = () => {
-                                                setProfile({
-                                                    ...profile,
-                                                    profileImage: reader.result
-                                                });
-                                            };
-                                            reader.readAsDataURL(file);
                                             e.target.value = '';
+                                            try {
+                                                const url = await uploadImage(file);
+                                                setProfile({ ...profile, profileImage: url });
+                                            } catch {
+                                                alert('Image upload failed. Please try again.');
+                                            }
                                         }}
                                         style={{ display: 'none' }}
                                         id="profile-image-input"
                                     />
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Full Name</label>
-                                    <input type="text" name="name" value={profile.name || ''} onChange={handleInputChange} placeholder="Enter your full name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', backgroundColor: profile.name ? '#fff' : '#fffacd' }} />
+
+                            <div className="pe-form-grid">
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Full Name</label>
+                                    <input type="text" name="name" value={profile.name || ''} onChange={handleInputChange} placeholder="Enter your full name" className="pe-form-input"
+                                        style={{ backgroundColor: profile.name ? 'var(--color-surface)' : '#fffacd' }} />
                                 </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Professional Title</label>
-                                    <input type="text" name="title" value={profile.title || ''} onChange={handleInputChange} placeholder="e.g. Senior Software Engineer" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', backgroundColor: profile.title ? '#fff' : '#fffacd' }} />
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Professional Title</label>
+                                    <input type="text" name="title" value={profile.title || ''} onChange={handleInputChange} placeholder="e.g. Senior Software Engineer" className="pe-form-input"
+                                        style={{ backgroundColor: profile.title ? 'var(--color-surface)' : '#fffacd' }} />
                                 </div>
                             </div>
-                            <div style={{ marginBottom: '20px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Bio / About Me</label>
-                                <textarea name="bio" value={profile.bio || ''} onChange={handleInputChange} placeholder="Tell us about yourself..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', fontFamily: 'inherit' }} />
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Bio / About Me</label>
+                                <textarea name="bio" value={profile.bio || ''} onChange={handleInputChange} placeholder="Tell us about yourself..." rows="4" className="pe-form-input" />
                             </div>
                         </div>
                     )}
+
                     {/* 2. QUICK INFO */}
                     {activeTab === 'quickinfo' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <SectionHeader
-                                title="Quick Information"
-                                sectionName="quickInfo"
-                                togglePrivacy={handlePrivacyToggle}
-                                isPublic={getPrivacyValue('quickInfo')}
-                            />
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Age</label>
-                                    <input type="text" name="age" value={profile.age || ''} onChange={handleInputChange} placeholder="32" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
+                        <div className="pe-panel">
+                            <SectionHeader title="Quick Information" sectionName="quickInfo" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('quickInfo')} />
+                            <div className="pe-form-grid">
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Date of Birth</label>
+                                    <input type="date" name="dateOfBirth" value={profile.dateOfBirth || ''} onChange={handleInputChange} className="pe-form-input" />
                                 </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Nationality</label>
-                                    <input type="text" name="nationality" value={profile.nationality || ''} onChange={handleInputChange} placeholder="American" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Age (manual fallback)</label>
+                                    <input type="text" name="age" value={profile.age || ''} onChange={handleInputChange} placeholder="32" className="pe-form-input" />
                                 </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}> Work Type</label>
-                                    <select name="workTypePreference" value={profile.workTypePreference || ''} onChange={handleInputChange} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}>
-                                        <option>-- Select --</option>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Gender</label>
+                                    <select name="gender" value={profile.gender || ''} onChange={handleInputChange} className="pe-form-input">
+                                        <option value="">-- Select --</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                        <option>Non-binary</option>
+                                        <option>Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Nationality</label>
+                                    <input type="text" name="nationality" value={profile.nationality || ''} onChange={handleInputChange} placeholder="American" className="pe-form-input" />
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Work Type</label>
+                                    <select name="workTypePreference" value={profile.workTypePreference || ''} onChange={handleInputChange} className="pe-form-input">
+                                        <option value="">-- Select --</option>
                                         <option>Remote</option>
                                         <option>On-site</option>
                                         <option>Hybrid</option>
@@ -458,944 +450,479 @@ function ProfileEdit({ onNavigate }) {
                             </div>
                         </div>
                     )}
-                    {/* 3. SUMMARY */}
+
+                    {/* 3. CURRENT STATUS */}
+                    {activeTab === 'currentStatus' && (
+                        <div className="pe-panel">
+                            <SectionHeader title="Current Status" sectionName="currentStatus" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('currentStatus')} />
+                            <div className="pe-form-grid">
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Employment Status</label>
+                                    <select name="employmentStatus" value={profile.employmentStatus || ''} onChange={handleInputChange} className="pe-form-input">
+                                        <option value="">-- Select --</option>
+                                        <option value="employed">Employed</option>
+                                        <option value="unemployed">Unemployed</option>
+                                        <option value="freelance">Freelance</option>
+                                        <option value="student">Student</option>
+                                        <option value="retired">Retired</option>
+                                    </select>
+                                </div>
+
+                                {(profile.employmentStatus === 'employed') && (
+                                    <div className="pe-form-group">
+                                        <label className="pe-form-label">Current Company</label>
+                                        <input type="text" name="currentCompany" value={profile.currentCompany || ''} onChange={handleInputChange} placeholder="e.g. Google" className="pe-form-input" />
+                                    </div>
+                                )}
+
+                                {(profile.employmentStatus === 'employed' || profile.employmentStatus === 'freelance') && (
+                                    <div className="pe-form-group">
+                                        <label className="pe-form-label">Current Role</label>
+                                        <input type="text" name="currentRole" value={profile.currentRole || ''} onChange={handleInputChange} placeholder="e.g. Senior Engineer" className="pe-form-input" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pe-form-group" style={{ marginTop: '12px' }}>
+                                <div className="pe-privacy-row">
+                                    <label className="pe-privacy-label">
+                                        {profile.openToWork ? 'Open to Work' : 'Not Looking'}
+                                    </label>
+                                    {/* Dynamic toggle → keep inline */}
+                                    <button
+                                        onClick={() => setProfile({ ...profile, openToWork: !profile.openToWork })}
+                                        className="pe-toggle-track"
+                                        style={{ background: profile.openToWork ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+                                    >
+                                        <div className="pe-toggle-thumb" style={{ left: profile.openToWork ? '26px' : '2px' }} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {profile.openToWork && (
+                                <div className="pe-form-grid" style={{ marginTop: '12px' }}>
+                                    <div className="pe-form-group">
+                                        <label className="pe-form-label">Available From</label>
+                                        <input type="date" name="availableFrom" value={profile.availableFrom || ''} onChange={handleInputChange} className="pe-form-input" />
+                                    </div>
+                                    <div className="pe-form-group">
+                                        <label className="pe-form-label">Notice Period</label>
+                                        <input type="text" name="noticePeriod" value={profile.noticePeriod || ''} onChange={handleInputChange} placeholder="e.g. 2 weeks" className="pe-form-input" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 4. SUMMARY */}
                     {activeTab === 'summary' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <SectionHeader
-                                title="Professional Summary"
-                                sectionName="summary"
-                                togglePrivacy={handlePrivacyToggle}
-                                isPublic={getPrivacyValue('summary')}
-                            />
-                            <div style={{ marginBottom: '20px' }}>
-                                <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Your Professional Story</label>
-                                <textarea name="summary" value={profile.summary || ''} onChange={handleInputChange} placeholder="Tell your professional story..." rows="8" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', fontFamily: 'inherit' }} />
+                        <div className="pe-panel">
+                            <SectionHeader title="Professional Summary" sectionName="summary" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('summary')} />
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Your Professional Story</label>
+                                <textarea name="summary" value={profile.summary || ''} onChange={handleInputChange} placeholder="Tell your professional story..." rows="8" className="pe-form-input" />
                             </div>
                         </div>
                     )}
+
                     {/* 4. EXPERIENCE */}
                     {activeTab === 'experience' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Work Experience</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('experience') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('experience')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('experience') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('experience') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Work Experience</h3>
+                                    <PrivacyToggleInline sectionName="experience" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('experience')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('experience')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.experience && profileData.experience.length > 0 ? (
                                 profileData.experience.map((exp) => (
-                                    <div key={exp.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #6a11cb', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 5px 0' }}>{exp.title}</h4>
-                                            <p style={{ color: '#666', margin: '5px 0' }}>{exp.company}</p>
-                                            <small style={{ color: '#999' }}>{exp.startDate} - {exp.endDate}</small>
+                                    <div key={exp.id} className="pe-item-card pe-item-card-purple">
+                                        <div className="pe-item-info">
+                                            <h4 className="pe-item-title">{exp.title}</h4>
+                                            <p className="pe-item-sub">{exp.company}</p>
+                                            <small className="pe-item-meta">{exp.startDate} - {exp.endDate}</small>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('experience', exp)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('experience', exp.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('experience', exp)} onDelete={() => handleDeleteItem('experience', exp.id)} />
                                     </div>
                                 ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No experience added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No experience added yet.</p>}
                         </div>
                     )}
+
                     {/* 5. EDUCATION */}
                     {activeTab === 'education' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Education</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('education') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('education')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('education') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('education') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Education</h3>
+                                    <PrivacyToggleInline sectionName="education" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('education')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('education')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.education && profileData.education.length > 0 ? (
                                 profileData.education.map((edu) => (
-                                    <div key={edu.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #27ae60', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 5px 0' }}>{edu.degree}</h4>
-                                            <p style={{ color: '#666', margin: '5px 0' }}>{edu.school}</p>
-                                            <small style={{ color: '#999' }}>{edu.year}</small>
+                                    <div key={edu.id} className="pe-item-card pe-item-card-green">
+                                        <div className="pe-item-info">
+                                            <h4 className="pe-item-title">{edu.degree}</h4>
+                                            <p className="pe-item-sub">{edu.school}</p>
+                                            <small className="pe-item-meta">{edu.year}</small>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('education', edu)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('education', edu.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('education', edu)} onDelete={() => handleDeleteItem('education', edu.id)} />
                                     </div>
                                 ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No education added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No education added yet.</p>}
                         </div>
                     )}
+
                     {/* 6. SKILLS */}
                     {activeTab === 'skills' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Skills</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('skills') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('skills')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('skills') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('skills') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Skills</h3>
+                                    <PrivacyToggleInline sectionName="skills" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('skill')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('skill')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.skills && profileData.skills.length > 0 ? (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                <div className="pe-skills-wrap">
                                     {profileData.skills.map((skill) => (
-                                        <div key={skill.id} style={{ padding: '10px 15px', backgroundColor: '#6a11cb', color: 'white', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <span>{skill.name} ({skill.level})</span>
-                                            <button onClick={() => handleDeleteItem('skill', skill.id)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '16px', padding: '0' }}></button>
+                                        <div key={skill.id} className="pe-skill-tag">
+                                            <span>{skill.name}</span>
+                                            <button onClick={() => handleDeleteItem('skill', skill.id)} className="pe-skill-remove">×</button>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <p style={{ color: '#999' }}>No skills added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No skills added yet.</p>}
                         </div>
                     )}
+
                     {/* 7. LANGUAGES */}
                     {activeTab === 'languages' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Languages</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('languages') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('languages')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('languages') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('languages') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Languages</h3>
+                                    <PrivacyToggleInline sectionName="languages" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('language')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('language')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.languages && profileData.languages.length > 0 ? (
                                 profileData.languages.map((lang) => (
-                                    <div key={lang.id} style={{ marginBottom: '10px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <p style={{ margin: '0', fontWeight: '600' }}>{lang.name}</p>
-                                            <small style={{ color: '#666' }}>{lang.level}</small>
+                                    <div key={lang.id} className="pe-item-card pe-item-card-flat">
+                                        <div className="pe-item-info">
+                                            <p className="pe-item-title" style={{ margin: 0 }}>{lang.name}</p>
+                                            <small className="pe-item-meta">{lang.level}</small>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('language', lang)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('language', lang.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('language', lang)} onDelete={() => handleDeleteItem('language', lang.id)} />
                                     </div>
                                 ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No languages added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No languages added yet.</p>}
                         </div>
                     )}
-                    {/* 8. EXPERTISE */}
-                    {activeTab === 'expertise' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)', maxWidth: '100%', overflow: 'hidden' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Key Expertise Areas</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('expertise') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('expertise')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('expertise') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('expertise') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <button onClick={() => openModal('expertise')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
-                            </div>
-                            {profileData.expertises && profileData.expertises.length > 0 ? (
-                                profileData.expertises.map((exp) => (
-                                    <div key={exp.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #6a11cb', display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '15px', maxWidth: '100%', overflow: 'hidden' }}>
-                                        <div style={{ flex: 1, minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                                            <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: '700', wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{exp.icon} {exp.title}</h4>
-                                            <p style={{ color: '#666', margin: '0', lineHeight: '1.5', wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>{exp.description}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '8px', marginLeft: '15px', flexShrink: 0 }}>
-                                            <button onClick={() => openModal('expertise', exp)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('expertise', exp.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No expertise added yet.</p>
-                            )}
-                        </div>
-                    )}
-                    {/* 9. PROJECTS */}
+
+                    {/* 8. PROJECTS */}
                     {activeTab === 'projects' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Featured Projects</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('projects') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('projects')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('projects') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('projects') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Featured Projects</h3>
+                                    <PrivacyToggleInline sectionName="projects" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('project')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('project')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.projects && profileData.projects.length > 0 ? (
                                 profileData.projects.map((proj) => (
-                                    <div key={proj.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #f39c12', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 5px 0' }}>{proj.title}</h4>
-                                            <p style={{ color: '#666', margin: '5px 0' }}>{proj.description}</p>
+                                    <div key={proj.id} className="pe-item-card pe-item-card-yellow">
+                                        <div className="pe-item-info">
+                                            <h4 className="pe-item-title">{proj.name}</h4>
+                                            <p className="pe-item-sub">{proj.description}</p>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('project', proj)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('project', proj.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('project', proj)} onDelete={() => handleDeleteItem('project', proj.id)} />
                                     </div>
                                 ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No projects added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No projects added yet.</p>}
                         </div>
                     )}
+
                     {/* 10. CERTIFICATIONS */}
                     {activeTab === 'certifications' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Certifications </h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('certifications') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('certifications')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('certifications') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('certifications') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Certifications</h3>
+                                    <PrivacyToggleInline sectionName="certifications" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
-                                <button onClick={() => openModal('certification')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
+                                <button onClick={() => openModal('certification')} className="pe-add-btn">+ Add</button>
                             </div>
                             {profileData.certifications && profileData.certifications.length > 0 ? (
                                 profileData.certifications.map((cert) => (
-                                    <div key={cert.id} style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#f0f4ff', borderRadius: '8px', borderLeft: '3px solid #9b59b6', display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px', overflow: 'hidden' }}>
-                                        <div style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordWrap: 'break-word', wordBreak: 'break-word' }}>
-                                            <p style={{ margin: '0', fontWeight: 600, overflowWrap: 'break-word', wordWrap: 'break-word', wordBreak: 'break-word' }}>{cert.name}</p>
-                                            <p style={{ margin: '5px 0 0 0', fontSize: '13px', color: '#666', overflowWrap: 'break-word', wordWrap: 'break-word', wordBreak: 'break-word' }}>{cert.issuer}</p>
+                                    <div key={cert.id} className="pe-item-card pe-item-card-violet pe-item-overflow">
+                                        <div className="pe-item-info pe-item-overflow">
+                                            <p className="pe-item-title pe-item-overflow" style={{ margin: 0 }}>{cert.name}</p>
+                                            <p className="pe-item-sub pe-item-overflow">{cert.issuer}</p>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('certification', cert)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('certification', cert.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('certification', cert)} onDelete={() => handleDeleteItem('certification', cert.id)} />
                                     </div>
                                 ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No certifications added yet.</p>
-                            )}
+                            ) : <p className="pe-empty-text">No certifications added yet.</p>}
                         </div>
                     )}
+
                     {/* 11. WORK PREFERENCES */}
                     {activeTab === 'workprefs' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Work Preferences </h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('workPreferences') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('workPreferences')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('workPreferences') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('workPreferences') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Work Preferences</h3>
+                                    <PrivacyToggleInline sectionName="workPreferences" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Employment Type</label>
-                                    <input type="text" name="jobTypes" value={profile.jobTypes || ''} onChange={handleInputChange} placeholder="Full-time, Contract" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Work Locations</label>
-                                    <input type="text" name="workLocations" value={profile.workLocations || ''} onChange={handleInputChange} placeholder="Remote, Onsite" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Salary Range</label>
-                                    <input type="text" name="salaryRange" value={profile.salaryRange || ''} onChange={handleInputChange} placeholder="$180k - $220k" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Availability</label>
-                                    <input type="text" name="availability" value={profile.availability || ''} onChange={handleInputChange} placeholder="Available now" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Notice Period</label>
-                                    <input type="text" name="noticePeriod" value={profile.noticePeriod || ''} onChange={handleInputChange} placeholder="2 weeks" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
+                            <div className="pe-form-grid">
+                                {[
+                                    ['jobTypes',      'text',  'Employment Type',  'Full-time, Contract'],
+                                    ['workLocations', 'text',  'Work Locations',   'Remote, Onsite'],
+                                    ['salaryRange',   'text',  'Salary Range',     '$180k - $220k'],
+                                    ['availability',  'text',  'Availability',     'Available now'],
+                                    ['noticePeriod',  'text',  'Notice Period',    '2 weeks'],
+                                ].map(([name, type, label, placeholder]) => (
+                                    <div key={name} className="pe-form-group">
+                                        <label className="pe-form-label">{label}</label>
+                                        <input type={type} name={name} value={profile[name] || ''} onChange={handleInputChange} placeholder={placeholder} className="pe-form-input" />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
-                    {/* 12. OPEN SOURCE */}
-                    {activeTab === 'opensource' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Open Source Contributions </h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('openSource') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('openSource')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('openSource') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('openSource') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <button onClick={() => openModal('opensource')} style={{ padding: '8px 16px', backgroundColor: '#6a11cb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+ Add</button>
-                            </div>
-                            {profileData.openSources && profileData.openSources.length > 0 ? (
-                                profileData.openSources.map((os) => (
-                                    <div key={os.id} style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #6a11cb', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                        <div>
-                                            <h4 style={{ margin: '0 0 5px 0' }}>{os.title}</h4>
-                                            <p style={{ color: '#666', margin: '5px 0' }}>{os.subtitle}</p>
-                                            <p style={{ color: '#555', margin: '8px 0 0 0' }}>{os.description}</p>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => openModal('opensource', os)} style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                            <button onClick={() => handleDeleteItem('opensource', os.id)} style={{ padding: '6px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p style={{ color: '#999' }}>No open source contributions added yet.</p>
-                            )}
-                        </div>
-                    )}
-                    {/* 13. PUBLICATIONS */}
-                    {/* 14. CONTACT & SOCIAL */}
+
+                    {/* 12. CONTACT & SOCIAL */}
                     {activeTab === 'contact' && (
-                        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ borderBottom: '3px solid #6a11cb', paddingBottom: '15px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <h3 style={{ color: '#1a1a1a', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Contact & Social</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>
-                                            {getPrivacyValue('contact') ? ' Public' : ' Private'}
-                                        </label>
-                                        <button
-                                            onClick={() => handlePrivacyToggle('contact')}
-                                            style={{
-                                                width: '50px',
-                                                height: '26px',
-                                                borderRadius: '13px',
-                                                border: 'none',
-                                                background: getPrivacyValue('contact') ? '#27ae60' : '#bdc3c7',
-                                                cursor: 'pointer',
-                                                position: 'relative',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '22px',
-                                                height: '22px',
-                                                borderRadius: '50%',
-                                                background: 'white',
-                                                position: 'absolute',
-                                                top: '2px',
-                                                left: getPrivacyValue('contact') ? '26px' : '2px',
-                                                transition: 'left 0.3s'
-                                            }} />
-                                        </button>
-                                    </div>
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Contact & Social</h3>
+                                    <PrivacyToggleInline sectionName="contact" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Email</label>
-                                    <input type="email" name="email" value={profile.email || ''} onChange={handleInputChange} placeholder="alex@example.com" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Phone</label>
-                                    <input type="tel" name="phone" value={profile.phone || ''} onChange={handleInputChange} placeholder="+1 (555) 123-4567" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Location</label>
-                                    <input type="text" name="location" value={profile.location || ''} onChange={handleInputChange} placeholder="San Francisco, CA" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>Website</label>
-                                    <input type="url" name="website" value={profile.website || ''} onChange={handleInputChange} placeholder="https://yourwebsite.com" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>LinkedIn</label>
-                                    <input type="url" name="linkedin" value={profile.linkedin || ''} onChange={handleInputChange} placeholder="https://linkedin.com/in/yourprofile" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
-                                <div>
-                                    <label style={{ fontWeight: 600, marginBottom: '8px', display: 'block', color: '#333' }}>GitHub</label>
-                                    <input type="url" name="github" value={profile.github || ''} onChange={handleInputChange} placeholder="https://github.com/yourprofile" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                </div>
+                            <div className="pe-form-grid">
+                                {[
+                                    ['email',     'email', 'Email',     'alex@example.com'],
+                                    ['phone',     'tel',   'Phone',     '+1 (555) 123-4567'],
+                                    ['location',  'text',  'Location',  'San Francisco, CA'],
+                                    ['website',   'url',   'Website',   'https://yourwebsite.com'],
+                                    ['linkedin',  'url',   'LinkedIn',  'https://linkedin.com/in/yourprofile'],
+                                    ['github',    'url',   'GitHub',    'https://github.com/yourprofile'],
+                                    ['twitter',   'url',   'Twitter/X', 'https://twitter.com/yourhandle'],
+                                    ['medium',    'url',   'Medium',    'https://medium.com/@yourhandle'],
+                                ].map(([name, type, label, placeholder]) => (
+                                    <div key={name} className="pe-form-group">
+                                        <label className="pe-form-label">{label}</label>
+                                        <input type={type} name={name} value={profile[name] || ''} onChange={handleInputChange} placeholder={placeholder} className="pe-form-input" />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
+
                     {/* ACTION BUTTONS */}
-                    <div
-                        style={{
-                            marginTop: '30px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '15px',
-                        }}
-                    >
-                        {/* Left button */}
-                        <button
-                            style={{
-                                padding: '12px 30px',
-                                backgroundColor: 'white',
-                                color: '#6a11cb',
-                                border: '2px solid #6a11cb',
-                                borderRadius: '8px',
-                                fontWeight: '600',
-                                fontSize: '16px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.backgroundColor = '#6a11cb';
-                                e.target.style.color = 'white';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = 'white';
-                                e.target.style.color = '#6a11cb';
-                            }}
-                            onClick={handleCustomizeClick}
-                        >
+                    <div className="pe-action-bar">
+                        <button className="pe-customize-btn" onClick={handleCustomizeClick}>
                             Customize
                         </button>
-
-                        
-                        <div style={{ display: 'flex', gap: '15px', marginLeft: 'auto' }}>
-                            <button
-                                onClick={handleSave}
-                                style={{
-                                    padding: '12px 30px',
-                                    backgroundColor: '#27ae60',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    fontSize: '16px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s',
-                                    boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)'
-                                }}
-                                onMouseEnter={(e) => (e.target.style.backgroundColor = '#229954')}
-                                onMouseLeave={(e) => (e.target.style.backgroundColor = '#27ae60')}
-                            >
+                        <div className="pe-action-right">
+                            <button onClick={handleSave} className="pe-save-btn">
                                 Save All Changes
                             </button>
-
-                            <button
-                                onClick={() => onNavigate('profile')}
-                                style={{
-                                    padding: '12px 30px',
-                                    backgroundColor: 'white',
-                                    color: '#6a11cb',
-                                    border: '2px solid #6a11cb',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    fontSize: '16px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#6a11cb';
-                                    e.target.style.color = 'white';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = 'white';
-                                    e.target.style.color = '#6a11cb';
-                                }}
-                            >
+                            <button onClick={() => onNavigate('profile')} className="pe-view-btn">
                                 View Profile
                             </button>
                         </div>
                     </div>
-
                 </div>
             </div>
-            {/* MODALS - All kept as in original */}
+
+            {/* ── MODALS ─────────────────────────────────────── */}
+
             {/* Experience Modal */}
             {modals.experience && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Experience</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Job Title</label>
-                            <input type="text" value={forms.experience.title} onChange={(e) => handleFormChange('experience', 'title', e.target.value)} placeholder="Senior Developer" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Experience</h3>
+                    {[['title','text','Job Title','Senior Developer'],['company','text','Company','Company Name'],['location','text','Location','City, Country']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.experience[field]} onChange={(e) => handleFormChange('experience', field, e.target.value)} placeholder={ph} className="pe-form-input" />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Company</label>
-                            <input type="text" value={forms.experience.company} onChange={(e) => handleFormChange('experience', 'company', e.target.value)} placeholder="Company Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                    ))}
+                    <div className="pe-date-row" style={{ marginBottom: '15px' }}>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Start Date</label>
+                            <input type="month" value={forms.experience.startDate} onChange={(e) => handleFormChange('experience', 'startDate', e.target.value)} className="pe-form-input" />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Location</label>
-                            <input type="text" value={forms.experience.location} onChange={(e) => handleFormChange('experience', 'location', e.target.value)} placeholder="City, Country" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: '15px', marginBottom: '15px', alignItems: 'flex-end' }}>
-                            <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Start Date</label>
-                                <input type="month" value={forms.experience.startDate} onChange={(e) => handleFormChange('experience', 'startDate', e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">End Date</label>
+                            <div className="pe-present-row">
+                                <input type="month" value={forms.experience.endDate === 'Present' ? '' : forms.experience.endDate} onChange={(e) => handleFormChange('experience', 'endDate', e.target.value)} className="pe-form-input" />
+                                {/* Dynamic active state → inline */}
+                                <button
+                                    onClick={() => handleFormChange('experience', 'endDate', 'Present')}
+                                    className="pe-present-btn"
+                                    style={{
+                                        backgroundColor: forms.experience.endDate === 'Present' ? 'var(--color-text-primary)' : 'var(--color-border)',
+                                        color: forms.experience.endDate === 'Present' ? 'white' : 'var(--color-text-primary)'
+                                    }}
+                                >Present</button>
                             </div>
-                            <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>End Date</label>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <input type="month" value={forms.experience.endDate === 'Present' ? '' : forms.experience.endDate} onChange={(e) => handleFormChange('experience', 'endDate', e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }} />
-                                    <button onClick={() => handleFormChange('experience', 'endDate', 'Present')} style={{ padding: '8px 16px', backgroundColor: forms.experience.endDate === 'Present' ? '#6a11cb' : '#e0e0e0', color: forms.experience.endDate === 'Present' ? 'white' : '#333', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap' }}>Present</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
-                            <textarea value={forms.experience.description} onChange={(e) => handleFormChange('experience', 'description', e.target.value)} placeholder="What you did..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('experience')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('experience')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
                         </div>
                     </div>
-                </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Description</label>
+                        <textarea value={forms.experience.description} onChange={(e) => handleFormChange('experience', 'description', e.target.value)} placeholder="What you did..." rows="4" className="pe-form-input" />
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('experience')} onCancel={() => closeModal('experience')} />
+                </Modal>
             )}
 
             {/* Education Modal */}
             {modals.education && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}>" {editingId ? 'Edit' : 'Add'} Education</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Degree</label>
-                            <input type="text" value={forms.education.degree} onChange={(e) => handleFormChange('education', 'degree', e.target.value)} placeholder="Bachelor of Science" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Education</h3>
+                    {[['degree','text','Degree','Bachelor of Science'],['school','text','School/University','University Name'],['year','text','Year','2020'],['grade','text','Grade/GPA','3.8/4.0']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.education[field]} onChange={(e) => handleFormChange('education', field, e.target.value)} placeholder={ph} className="pe-form-input" />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>School/University</label>
-                            <input type="text" value={forms.education.school} onChange={(e) => handleFormChange('education', 'school', e.target.value)} placeholder="University Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Year</label>
-                            <input type="text" value={forms.education.year} onChange={(e) => handleFormChange('education', 'year', e.target.value)} placeholder="2020" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Grade/GPA</label>
-                            <input type="text" value={forms.education.grade} onChange={(e) => handleFormChange('education', 'grade', e.target.value)} placeholder="3.8/4.0" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('education')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('education')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
+                    ))}
+                    <ModalFooter onSave={() => handleSaveItem('education')} onCancel={() => closeModal('education')} />
+                </Modal>
             )}
+
             {/* Skill Modal */}
             {modals.skill && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Skill</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Skill Name</label>
-                            <input type="text" value={forms.skill.name} onChange={(e) => handleFormChange('skill', 'name', e.target.value)} placeholder="e.g. React, Python" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Level</label>
-                            <select value={forms.skill.level} onChange={(e) => handleFormChange('skill', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Advanced">Advanced</option>
-                                <option value="Expert">Expert</option>
-                            </select>
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('skill')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('skill')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Skill</h3>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Skill Name</label>
+                        <input type="text" value={forms.skill.name} onChange={(e) => handleFormChange('skill', 'name', e.target.value)} placeholder="e.g. React, Python" className="pe-form-input" />
                     </div>
-                </div>
+                    <ModalFooter onSave={() => handleSaveItem('skill')} onCancel={() => closeModal('skill')} />
+                </Modal>
             )}
+
             {/* Language Modal */}
             {modals.language && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Language</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Language Name</label>
-                            <input type="text" value={forms.language.name} onChange={(e) => handleFormChange('language', 'name', e.target.value)} placeholder="e.g. English, Thai" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Proficiency</label>
-                            <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <option value="Native">Native</option>          
-                                <option value="Fluent">Fluent</option>
-                                <option value="Advanced">Advanced</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Beginner">Beginner</option>
-                            </select>
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('language')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('language')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Language</h3>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Language Name</label>
+                        <input type="text" value={forms.language.name} onChange={(e) => handleFormChange('language', 'name', e.target.value)} placeholder="e.g. English, Thai" className="pe-form-input" />
                     </div>
-                </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Proficiency</label>
+                        <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} className="pe-form-input">
+                            <option value="Native">Native</option>
+                            <option value="Fluent">Fluent</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Beginner">Beginner</option>
+                        </select>
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('language')} onCancel={() => closeModal('language')} />
+                </Modal>
             )}
+
             {/* Certification Modal */}
             {modals.certification && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Certification</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Certification Name</label>
-                            <input type="text" value={forms.certification.name} onChange={(e) => handleFormChange('certification', 'name', e.target.value)} placeholder="e.g. AWS Certified" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Certification</h3>
+                    {[['name','text','Certification Name','e.g. AWS Certified'],['issuer','text','Issuer','e.g. Amazon Web Services']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.certification[field]} onChange={(e) => handleFormChange('certification', field, e.target.value)} placeholder={ph} className="pe-form-input" />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Issuer</label>
-                            <input type="text" value={forms.certification.issuer} onChange={(e) => handleFormChange('certification', 'issuer', e.target.value)} placeholder="e.g. Amazon Web Services" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                    ))}
+                    <div className="pe-form-grid" style={{ marginBottom: '15px' }}>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Issue Date</label>
+                            <input type="date" value={forms.certification.issueDate} onChange={(e) => handleFormChange('certification', 'issueDate', e.target.value)} className="pe-form-input" />
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
-                            <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Issue Date</label>
-                                <input type="date" value={forms.certification.issueDate} onChange={(e) => handleFormChange('certification', 'issueDate', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                            </div>
-                            <div>
-                                <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Expiry Date</label>
-                                <input type="date" value={forms.certification.expiryDate} onChange={(e) => handleFormChange('certification', 'expiryDate', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('certification')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('certification')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Expiry Date</label>
+                            <input type="date" value={forms.certification.expiryDate} onChange={(e) => handleFormChange('certification', 'expiryDate', e.target.value)} className="pe-form-input" />
                         </div>
                     </div>
-                </div>
+                    <ModalFooter onSave={() => handleSaveItem('certification')} onCancel={() => closeModal('certification')} />
+                </Modal>
             )}
+
             {/* Project Modal */}
             {modals.project && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}> {editingId ? 'Edit' : 'Add'} Project</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Title</label>
-                            <input type="text" value={forms.project.title} onChange={(e) => handleFormChange('project', 'title', e.target.value)} placeholder="Project Name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Image</label>
-                            <div style={{ border: '2px dashed #6a11cb', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer', backgroundColor: '#f9f7ff' }} onClick={() => document.getElementById('project-image-input').click()}>
-                                {forms.project.image ? (
-                                    <div>
-                                        <img src={forms.project.image} alt="Project" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '6px', marginBottom: '10px' }} />
-                                        <p style={{ margin: '10px 0 0 0', color: '#6a11cb', fontSize: '12px', fontWeight: '600' }}>Click to change image</p>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <div style={{ fontSize: '2rem', marginBottom: '10px' }}>📸</div>
-                                        <p style={{ color: '#666', marginBottom: '5px', fontWeight: '500' }}>Click to upload project image</p>
-                                        <small style={{ color: '#999' }}>PNG, JPG (Max 2MB)</small>
-                                    </div>
-                                )}
-                                <input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 2 * 1024 * 1024) { alert('Image must be less than 2MB'); return; } const reader = new FileReader(); reader.onloadend = () => { handleFormChange('project', 'image', reader.result); }; reader.readAsDataURL(file); e.target.value = ''; }} style={{ display: 'none' }} id="project-image-input" />
-                            </div>
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
-                            <textarea value={forms.project.description} onChange={(e) => handleFormChange('project', 'description', e.target.value)} placeholder="Project description..." rows="3" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('project')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('project')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Project</h3>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Project Name</label>
+                        <input type="text" value={forms.project.name} onChange={(e) => handleFormChange('project', 'name', e.target.value)} placeholder="Project Name" className="pe-form-input" />
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Project Image</label>
+                        <div className="pe-image-upload-area pe-image-upload-sm" onClick={() => document.getElementById('project-image-input').click()} style={uploading ? { pointerEvents: 'none', opacity: 0.6 } : {}}>
+                            {forms.project.image ? (
+                                <div className="pe-image-preview">
+                                    <img src={forms.project.image} alt="Project" className="pe-project-img" />
+                                    <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to change image'}</p>
+                                </div>
+                            ) : (
+                                <div className="pe-upload-placeholder">
+                                    <div className="pe-upload-icon">🖼️</div>
+                                    <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to upload project image'}</p>
+                                    <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
+                                </div>
+                            )}
+                            <input type="file" accept="image/*" disabled={uploading} onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                e.target.value = '';
+                                try {
+                                    const url = await uploadImage(file);
+                                    handleFormChange('project', 'image', url);
+                                } catch {
+                                    alert('Image upload failed. Please try again.');
+                                }
+                            }} style={{ display: 'none' }} id="project-image-input" />
                         </div>
                     </div>
-                </div>
-            )}
-            {/* Open Source Modal */}
-            {modals.opensource && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}>' {editingId ? 'Edit' : 'Add'} Open Source</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Project Title</label>
-                            <input type="text" value={forms.opensource.title} onChange={(e) => handleFormChange('opensource', 'title', e.target.value)} placeholder="Project name" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Repository</label>
-                            <input type="text" value={forms.opensource.subtitle} onChange={(e) => handleFormChange('opensource', 'subtitle', e.target.value)} placeholder="GitHub repository link" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
-                            <textarea value={forms.opensource.description} onChange={(e) => handleFormChange('opensource', 'description', e.target.value)} placeholder="Project description..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('opensource')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('opensource')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Description</label>
+                        <textarea value={forms.project.description} onChange={(e) => handleFormChange('project', 'description', e.target.value)} placeholder="Project description..." rows="3" className="pe-form-input" />
                     </div>
-                </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Project URL</label>
+                        <input type="text" value={forms.project.url} onChange={(e) => handleFormChange('project', 'url', e.target.value)} placeholder="https://..." className="pe-form-input" />
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Tech Stack</label>
+                        <input type="text" value={forms.project.techStack} onChange={(e) => handleFormChange('project', 'techStack', e.target.value)} placeholder="React, Node.js, MySQL" className="pe-form-input" />
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('project')} onCancel={() => closeModal('project')} />
+                </Modal>
             )}
+
             {/* Publication Modal */}
             {modals.publication && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginTop: 0 }}>" {editingId ? 'Edit' : 'Add'} Publication</h3>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Publication Title</label>
-                            <input type="text" value={forms.publication.title} onChange={(e) => handleFormChange('publication', 'title', e.target.value)} placeholder="Article/Paper title" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Publication</h3>
+                    {[['title','text','Publication Title','Article/Paper title'],['subtitle','text','Publication/Source','Where published']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.publication[field]} onChange={(e) => handleFormChange('publication', field, e.target.value)} placeholder={ph} className="pe-form-input" />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Publication/Source</label>
-                            <input type="text" value={forms.publication.subtitle} onChange={(e) => handleFormChange('publication', 'subtitle', e.target.value)} placeholder="Where published" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('publication')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('publication')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
+                    ))}
+                    <ModalFooter onSave={() => handleSaveItem('publication')} onCancel={() => closeModal('publication')} />
+                </Modal>
             )}
-            {/* Expertise Modal */}
-            {modals.expertise && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Icon</label>
-                            <select value={forms.expertise.icon} onChange={(e) => handleFormChange('expertise', 'icon', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '16px' }}>
-                                <option value="">-- Select Icon --</option>
-                                {EXPERTISE_ICONS.map((icon) => (
-                                    <option key={icon.value} value={icon.value}>{icon.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Expertise Title</label>
-                            <textarea value={forms.expertise.title} onChange={(e) => { handleFormChange('expertise', 'title', e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }} placeholder="e.g. Full Stack Development" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit', resize: 'none', minHeight: '44px', maxHeight: '120px', overflowY: 'auto' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Description</label>
-                            <textarea value={forms.expertise.description} onChange={(e) => handleFormChange('expertise', 'description', e.target.value)} placeholder="Describe your expertise..." rows="4" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: 'inherit' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => handleSaveItem('expertise')} style={{ flex: 1, padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                            <button onClick={() => closeModal('expertise')} style={{ flex: 1, padding: '10px', backgroundColor: '#95a5a6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }
+
 export default ProfileEdit;

@@ -1,0 +1,457 @@
+/* ============================================================
+   APPLICANT-PROFILE.CSS  |  Prefix: ap-
+   Matching ManageApplicants design (#f0f2f5 bg, white cards)
+   ============================================================ */
+
+/* ── Page ──────────────────────────────────────────────────── */
+
+.ap-page {
+  background: #f0f2f5;
+  min-height: calc(100vh - 64px);
+  padding-bottom: 48px;
+}
+
+.ap-container {
+  padding-top: 32px;
+}
+
+/* ── Back Link ───────────────────────────────────────────────── */
+
+.ap-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #9ca3af;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+  transition: color 0.15s ease;
+}
+
+.ap-back-link:hover {
+  color: #111827;
+}
+
+/* ── Layout ──────────────────────────────────────────────────── */
+
+.ap-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+
+.ap-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+.ap-card:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Identity Card ───────────────────────────────────────────── */
+
+.ap-identity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.ap-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 4px solid #f3f4f6;
+}
+
+.ap-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ap-avatar-initials {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.ap-identity-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.025em;
+  margin: 0 0 4px;
+}
+
+.ap-job-title {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 10px;
+}
+
+.ap-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.ap-contact-item {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.ap-summary {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.7;
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ── Section Title ───────────────────────────────────────────── */
+
+.ap-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin: 0 0 16px;
+}
+
+/* ── Skills ──────────────────────────────────────────────────── */
+
+.ap-skills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ap-skill-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* ── Timeline ────────────────────────────────────────────────── */
+
+.ap-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-timeline-item {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 20px;
+  position: relative;
+}
+
+.ap-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.ap-timeline-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb;
+}
+
+.ap-timeline-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 2px solid #fff;
+  flex-shrink: 0;
+  margin-top: 4px;
+  box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+.ap-timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-exp-role {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 3px;
+}
+
+.ap-exp-company {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 6px;
+}
+
+.ap-exp-period {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.ap-exp-desc {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+
+.ap-sidebar-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin: 0 0 12px;
+}
+
+/* Status Card */
+.ap-status-card { padding: 20px; }
+
+.ap-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ap-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ap-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Status dropdown */
+.ap-status-dd-wrap {
+  position: relative;
+}
+
+.ap-status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.ap-status-toggle:hover:not(:disabled) { opacity: 0.82; }
+.ap-status-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ap-status-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 6px;
+  min-width: 140px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ap-status-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s ease;
+}
+
+.ap-status-opt:hover { background: #f3f4f6; }
+.ap-status-opt-active { background: #e0e7ff; color: #4f46e5; }
+
+.ap-status-opt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Actions Card */
+.ap-actions-card { padding: 20px; }
+
+.ap-btn-download,
+.ap-btn-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.ap-btn-download {
+  background: #111827;
+  color: #fff;
+  border: none;
+}
+.ap-btn-download:hover { opacity: 0.85; }
+
+.ap-btn-back {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0;
+}
+.ap-btn-back:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Info Card */
+.ap-info-card { padding: 20px; }
+
+.ap-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ap-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ap-info-key {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.ap-info-val {
+  font-size: 12px;
+  color: #374151;
+  text-align: right;
+  word-break: break-all;
+}
+
+/* ── Loading / Empty ─────────────────────────────────────────── */
+
+.ap-loading {
+  text-align: center;
+  padding: 64px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.ap-empty-state {
+  background: #fff;
+  border-radius: 20px;
+  padding: 64px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.ap-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 992px) {
+  .ap-layout { grid-template-columns: 1fr 260px; }
+}
+
+@media (max-width: 768px) {
+  .ap-layout { grid-template-columns: 1fr; }
+  .ap-sidebar { order: -1; }
+
+  .ap-identity-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .ap-contact-row { justify-content: center; }
+  .ap-status-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+}

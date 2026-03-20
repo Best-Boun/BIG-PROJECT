@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { registerUser } from "../data/user";
 import "./Login.css";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("seeker");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -36,14 +36,16 @@ function Register() {
     }
 
     try {
-      const result = await registerUser(username, email, password);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: username, email, password, role }),
+      });
+      const result = await res.json();
 
-      if (result.success) {
+      if (res.ok) {
         setMessage("✅ สมัครสมาชิกสำเร็จ");
-
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1200);
+        setTimeout(() => { window.location.href = "/"; }, 1200);
       } else {
         setMessage(result.message || "❌ สมัครสมาชิกไม่สำเร็จ");
       }
@@ -93,6 +95,41 @@ function Register() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
             />
+          </Form.Group>
+
+          {/* Role Selector */}
+          <Form.Group className="mb-3">
+            <Form.Label style={{ color: "#e3d0ff" }}>ฉันต้องการ</Form.Label>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {[
+                { value: "seeker",   icon: "🔍", label: "Job Seeker",  sub: "ฉันกำลังหางาน" },
+                { value: "employer", icon: "🏢", label: "Employer",    sub: "ฉันต้องการรับสมัครงาน" },
+              ].map((opt) => (
+                <div
+                  key={opt.value}
+                  onClick={() => setRole(opt.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 8px",
+                    borderRadius: "12px",
+                    border: role === opt.value
+                      ? "2px solid #ff4dff"
+                      : "2px solid rgba(255,255,255,0.2)",
+                    background: role === opt.value
+                      ? "rgba(255,77,255,0.18)"
+                      : "rgba(255,255,255,0.08)",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    transition: "0.2s ease",
+                    color: "#fff",
+                  }}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "4px" }}>{opt.icon}</div>
+                  <div style={{ fontWeight: 600, fontSize: "13px" }}>{opt.label}</div>
+                  <div style={{ fontSize: "11px", opacity: 0.75, marginTop: "2px" }}>{opt.sub}</div>
+                </div>
+              ))}
+            </div>
           </Form.Group>
 
           {message && (

@@ -4,12 +4,12 @@
 // ใช้: แสดงการ์ดของงานเดี่ยว (ใช้ซ้ำได้หลายครั้ง)
 // ความเข้าใจ: Component นี้เป็น "ก้อนข้อมูลงาน" ที่สามารถใช้ในหลาย Page
 
-import React, { useState } from 'react';
-import { Card, Button, Badge } from 'react-bootstrap';
+import { useState } from 'react';
+import { Card, Button } from 'react-bootstrap';
 import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import './JobCard.css';
 
-export default function JobCard({ job, isFavorite, onFavoriteToggle, onViewDetails, onApply }) {
+export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, onViewDetails, onApply }) {
     // ✅ อธิบาย props:
     // - job: object ข้อมูลงาน
     // - isFavorite: boolean ว่า save งานนี้ไหม
@@ -75,9 +75,9 @@ export default function JobCard({ job, isFavorite, onFavoriteToggle, onViewDetai
                 </div>
 
                 {/* Job Type Badge */}
-                <div className="job-badges" style={{ marginTop: '10px' }}>
-                    <Badge bg="primary">{job.type}</Badge>
-                    <Badge bg="info">{job.level}</Badge>
+                <div className="job-badges">
+                    <span className="ds-badge ds-badge-accent">{job.type}</span>
+                    <span className="ds-badge">{job.level}</span>
                 </div>
 
                 {/* Job Description - ตัดให้สั้น */}
@@ -116,14 +116,13 @@ export default function JobCard({ job, isFavorite, onFavoriteToggle, onViewDetai
                 >
                     View Details
                 </Button>
-                <Button 
-                    variant="primary" 
-                    size="sm"
-                    onClick={() => onApply(job.id)}
-                    className="btn-apply"
+                <button
+                    className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
+                    onClick={() => !isApplied && onApply(job.id)}
+                    disabled={isApplied}
                 >
-                    Apply Now
-                </Button>
+                    {isApplied ? '✓ Already Applied' : 'Apply Now'}
+                </button>
             </Card.Footer>
         </Card>
     );

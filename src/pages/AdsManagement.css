@@ -641,3 +641,11 @@ body.dark .preview-img {
   background:#f59e0b;
   color:white;
 }
+.sp-btn:active {
+  transform: scale(0.95);
+}
+
+.sp-btn {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}

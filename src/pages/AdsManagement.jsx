@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+/* eslint-disable no-unused-vars */
 import { motion, AnimatePresence } from "framer-motion";
 import "./AdsManagement.css";
 
@@ -31,6 +32,8 @@ function AdsManagement() {
 
   const [previewAd, setPreviewAd] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  
+  const MAX_FEED_ADS = 3;
 
   // ================= LOAD ADS =================
   const loadAds = async () => {
@@ -225,68 +228,94 @@ function AdsManagement() {
       {loading ? (
         <div style={{ padding: 20 }}>Loading...</div>
       ) : (
-        filtered.map((ad) => (
-          <div className="sp-ad-card" key={ad.id}>
-            <div className="sp-middle">
-              <h3>{ad.name}</h3>
+        filtered
+          .sort((a, b) => b.active - a.active)
+          .map((ad, index) => {
+            const activeAds = filtered.filter((a) => a.active);
 
-              {ad.image && (
-                <img
-                  src={`${IMAGE_BASE}${ad.image}`}
-                  alt=""
-                  style={{
-                    width: 120,
-                    borderRadius: 8,
-                  }}
-                />
-              )}
+            let status = "inactive";
 
-              <div className="sp-desc">{ad.description}</div>
+            if (ad.active) {
+              const activeIndex = activeAds.findIndex((a) => a.id === ad.id);
 
-              <div className="sp-date">{ad.date}</div>
-            </div>
+              if (activeIndex < MAX_FEED_ADS) {
+                status = "showing";
+              } else {
+                status = "hidden";
+              }
+            }
 
-            <div className="sp-right">
-              <button
-                className={`sp-status ${ad.active ? "active" : "inactive"}`}
-                onClick={() => toggleActive(ad.id)}
-              >
-                {ad.active ? "Active ✔" : "Inactive ✖"}
-              </button>
+            return (
+              <div className="sp-ad-card" key={ad.id}>
+                <div className="sp-middle">
+                  <h3>{ad.name}</h3>
 
-              <div className="sp-row">
-                <button
-                  className="sp-btn sp-btn-view"
-                  onClick={() => {
-                    setEditingId(null);
-                    setConfirmDelete(null);
-                    setPreviewAd(ad);
-                  }}
-                >
-                  Preview
-                </button>
+                  {ad.image && (
+                    <img
+                      src={`${IMAGE_BASE}${ad.image}`}
+                      alt=""
+                      style={{
+                        width: 120,
+                        borderRadius: 8,
+                      }}
+                    />
+                  )}
 
-                <button
-                  className="sp-btn sp-btn-edit"
-                  onClick={() => startEdit(ad)}
-                >
-                  Edit
-                </button>
+                  <div className="sp-desc">{ad.description}</div>
 
-                <button
-                  className="sp-btn sp-btn-delete"
-                  onClick={() => {
-                    setPreviewAd(null);
-                    setEditingId(null);
-                    setConfirmDelete(ad);
-                  }}
-                >
-                  Delete
-                </button>
+                  <div className="sp-date">{ad.date}</div>
+                </div>
+
+                <div className="sp-right">
+                  <button
+                    className={`sp-status ${
+                      status === "showing"
+                        ? "active"
+                        : status === "hidden"
+                          ? "warning"
+                          : "inactive"
+                    }`}
+                    onClick={() => toggleActive(ad.id)}
+                  >
+                    {status === "showing" && "Active ✔"}
+                    {status === "hidden" && "⚠ Active but hidden"}
+                    {status === "inactive" && "Inactive ✖"}
+                  </button>
+
+                  <div className="sp-row">
+                    <button
+                      className="sp-btn sp-btn-view"
+                      onClick={() => {
+                        setEditingId(null);
+                        setConfirmDelete(null);
+                        setPreviewAd(ad);
+                      }}
+                    >
+                      Preview
+                    </button>
+
+                    <button
+                      className="sp-btn sp-btn-edit"
+                      onClick={() => startEdit(ad)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="sp-btn sp-btn-delete"
+                      onClick={() => {
+                        setPreviewAd(null);
+                        setEditingId(null);
+                        setConfirmDelete(ad);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))
+            );
+          })
       )}
 
       {/* ================= PREVIEW POPUP ================= */}
@@ -363,8 +392,11 @@ function AdsManagement() {
                 </button>
 
                 <button
-                  className="sp-btn"
-                  onClick={() => setConfirmDelete(null)}
+                  className="sp-btn sp-btn-cancel"
+                  onClick={() => {
+                    setEditingId(null);
+                    setEditData(null);
+                  }}
                 >
                   Cancel
                 </button>
@@ -411,14 +443,30 @@ function AdsManagement() {
               />
 
               {editData.image && (
-                <img
-                  src={`${IMAGE_BASE}${editData.image}`}
-                  alt=""
-                  style={{
-                    width: 150,
-                    marginTop: 10,
-                  }}
-                />
+                <>
+                  <img
+                    src={`${IMAGE_BASE}${editData.image}`}
+                    alt=""
+                    style={{
+                      width: 150,
+                      marginTop: 10,
+                      borderRadius: 8,
+                    }}
+                  />
+
+                  <button
+                    className="sp-btn sp-btn-remove-img"
+                    onClick={() =>
+                      setEditData({
+                        ...editData,
+                        image: "",
+                      })
+                    }
+                    style={{ marginTop: 8 }}
+                  >
+                    Delete Image
+                  </button>
+                </>
               )}
 
               <div
@@ -433,7 +481,7 @@ function AdsManagement() {
                 </button>
 
                 <button
-                  className="sp-btn"
+                  className="sp-btn sp-btn-cancel"
                   onClick={() => {
                     setEditingId(null);
                     setEditData(null);

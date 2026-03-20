@@ -59,12 +59,12 @@ export default function Feed({ user }) {
         }
 
         const activeAds = list.filter((ad) => ad.active).slice(0, 3);
-
         setAds(activeAds);
       })
       .catch((err) => console.error("Ads error:", err));
   }, []);
 
+  // ================= CREATE POST =================
   const handleCreatePost = async () => {
     if (!postText.trim()) {
       Swal.fire({
@@ -75,8 +75,9 @@ export default function Feed({ user }) {
     }
 
     const userData = JSON.parse(localStorage.getItem("currentUser"));
+    const token = localStorage.getItem("token"); // 🔥 เพิ่ม
 
-    if (!userData) {
+    if (!userData || !token) {
       Swal.fire({
         icon: "error",
         title: "ยังไม่ได้ login",
@@ -89,6 +90,7 @@ export default function Feed({ user }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 🔥 เพิ่ม
         },
         body: JSON.stringify({
           userId: userData.id,
@@ -119,6 +121,7 @@ export default function Feed({ user }) {
     }
   };
 
+  // ================= DELETE POST =================
   const deletePost = async (id) => {
     const result = await Swal.fire({
       title: "ลบโพสต์นี้?",
@@ -132,8 +135,13 @@ export default function Feed({ user }) {
     if (!result.isConfirmed) return;
 
     try {
+      const token = localStorage.getItem("token"); // 🔥 เพิ่ม
+
       const res = await fetch(`${API_POSTS}/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`, // 🔥 เพิ่ม
+        },
       });
 
       if (!res.ok) throw new Error("Delete failed");
@@ -160,8 +168,6 @@ export default function Feed({ user }) {
     <div className="feed-page">
       <Container fluid className="feed-container">
         <Row className="feed-layout">
-          {/* FEED */}
-
           <Col xl={7} lg={8} md={12} className="main-feed">
             <div className="create-post-box mb-3">
               <div className="d-flex align-items-center mb-3">
@@ -273,8 +279,6 @@ export default function Feed({ user }) {
             </div>
           </Col>
 
-          {/* ADS SIDEBAR */}
-
           <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
             {ads.map((ad) => {
               const hasImage = ad.image && ad.image !== "NULL";
@@ -305,8 +309,6 @@ export default function Feed({ user }) {
         </Row>
       </Container>
 
-      {/* MODAL */}
-
       {selectedAd && (
         <div className="ad-modal-backdrop" onClick={() => setSelectedAd(null)}>
           <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
@@ -319,7 +321,6 @@ export default function Feed({ user }) {
             )}
 
             <h3>{selectedAd.name}</h3>
-
             <p>{selectedAd.description}</p>
 
             <button

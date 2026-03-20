@@ -50,11 +50,17 @@ export default function Feed({ user }) {
     fetch(API_ADS)
       .then((res) => res.json())
       .then((data) => {
+        let list = [];
+
         if (Array.isArray(data)) {
-          setAds(data);
+          list = data;
         } else if (data.adsList) {
-          setAds(data.adsList);
+          list = data.adsList;
         }
+
+        const activeAds = list.filter((ad) => ad.active).slice(0, 3);
+
+        setAds(activeAds);
       })
       .catch((err) => console.error("Ads error:", err));
   }, []);

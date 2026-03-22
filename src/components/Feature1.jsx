@@ -1,361 +1,835 @@
-import React, { useState, useRef } from "react";
+/**
+ * ProfileEditor.jsx
+ * Production-grade Resume / Profile Editor
+ * Notion / Stripe aesthetic — grid layout — zero transform scale — zero warnings
+ */
+import React, { useState, useRef, useCallback } from "react";
 import "./Feature1.css";
-import html2canvas from "html2canvas";
 
-/* -------------------- PRESET COLOR THEMES -------------------- */
-const COLOR_PRESETS = [
-  { name: "Default", primary: "#6A11CB", secondary: "#2575FC", bodyBg: "#FFFFFF" },
-  { name: "Ocean", primary: "#0077BE", secondary: "#00C6FF", bodyBg: "#E6F7FF" },
-  { name: "Warm", primary: "#FF7B54", secondary: "#FFB26B", bodyBg: "#FFF3E2" },
-  { name: "Mint", primary: "#00C896", secondary: "#00E0B5", bodyBg: "#E9FFF6" },
-  { name: "Royal", primary: "#542E71", secondary: "#FB3640", bodyBg: "#FFF5F7" },
+/* ═══════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════ */
+const LS_PROFILE = "pe_v3_profile";
+const LS_STYLE   = "pe_v3_style";
+
+const THEMES = [
+  { name: "Indigo", accent: "#4f46e5" },
+  { name: "Ocean",  accent: "#0284c7" },
+  { name: "Slate",  accent: "#475569" },
+  { name: "Emerald",accent: "#059669" },
+  { name: "Rose",   accent: "#e11d48" },
 ];
 
-/* -------------------- RANDOM COVER PRESETS -------------------- */
-const COVER_PRESETS = [
-  "https://images.unsplash.com/photo-1503264116251-35a269479413?w=1200",
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200",
-  "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200",
-  "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=1200",
-  "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=1200",
-  "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?w=1200",
-  "https://images.unsplash.com/photo-1520974679593-1a4d1cfd71c5?w=1200",
+const FONTS = [
+  { id: "geist",  label: "Geist",          stack: "'Geist', 'Inter', system-ui, sans-serif" },
+  { id: "lora",   label: "Lora",           stack: "'Lora', Georgia, serif" },
+  { id: "mono",   label: "JetBrains Mono", stack: "'JetBrains Mono', monospace" },
 ];
 
-/* -------------------- RANDOM EMOJIS -------------------- */
-const EMOJIS = ["👨‍💻","👩‍🎨","🧑‍🚀","🧑‍🔧","🧑‍💼","🦸‍♂️","🧑‍🏫","🧑‍🍳","🧠","🎮"];
+const COVERS = [
+  "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1400&q=80",
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80",
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80",
+  "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1400&q=80",
+  "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1400&q=80",
+];
 
-/* -------------------- AUTO TEXT CONTRAST -------------------- */
-function autoTextColor(hex) {
-  const r = parseInt(hex.substr(1, 2), 16);
-  const g = parseInt(hex.substr(3, 2), 16);
-  const b = parseInt(hex.substr(5, 2), 16);
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 150 ? "#111" : "#fff";
+const DEFAULT_PROFILE = {
+  name:       "Alex Johnson",
+  title:      "Senior Software Engineer",
+  email:      "alex@email.com",
+  phone:      "+66 98 123 4567",
+  location:   "Bangkok, Thailand",
+  linkedin:   "linkedin.com/in/alexjohnson",
+  github:     "github.com/alexj",
+  summary:    "Passionate software engineer with 6+ years of experience building scalable web applications. Specialized in React, Node.js, and cloud architecture. Love turning complex problems into simple solutions.",
+  skills:     ["JavaScript", "React", "Node.js", "TypeScript", "AWS", "MongoDB", "Docker", "Git", "Python"],
+  experience: [
+    {
+      role: "Senior Software Engineer", company: "Tech Giants Inc.",
+      location: "Bangkok, Thailand", period: "2021 – Present",
+      bullets: [
+        "Led development of microservices architecture serving 1M+ users",
+        "Improved system performance by 40% through optimization",
+        "Mentored team of 5 junior developers",
+      ],
+    },
+    {
+      role: "Frontend Developer", company: "StartupXYZ",
+      location: "Remote", period: "2019 – 2021",
+      bullets: [
+        "Built responsive web app using React & TypeScript",
+        "Collaborated with design team to implement UI/UX",
+      ],
+    },
+  ],
+  education: [
+    {
+      degree: "B.S. Computer Science", school: "Chulalongkorn University",
+      detail: "GPA: 3.75 · Bangkok, Thailand", period: "2015 – 2019",
+    },
+  ],
+};
+
+const DEFAULT_STYLE = {
+  themeIdx:   0,
+  accent:     "#4f46e5",
+  fontId:     "geist",
+  cover:      COVERS[0],
+  coverBlur:  0,
+  showCover:  true,
+  avatarSrc:  "",
+  avatarSize: 88,
+  fontSize:   15,
+  lineSpacing:28,
+  cardRadius: 10,
+  shadowPx:   16,
+};
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+const loadJSON = (key, fb) => {
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fb; }
+  catch { return fb; }
+};
+const saveJSON = (key, v) => {
+  try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* quota */ }
+};
+const fileToURL = (f) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload  = () => res(r.result);
+  r.onerror = rej;
+  r.readAsDataURL(f);
+});
+
+/* ═══════════════════════════════════════════
+   ATOMS  (defined OUTSIDE main component)
+═══════════════════════════════════════════ */
+
+/** Compact form field */
+function Field({ label, value, onChange, placeholder, type = "text", mono }) {
+  return (
+    <div className="pe-field">
+      <label className="pe-field-label">{label}</label>
+      <input
+        className={`pe-input${mono ? " pe-input--mono" : ""}`}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={e => onChange(e.target.value)}
+        autoComplete="off"
+      />
+    </div>
+  );
 }
 
-export default function Feature1() {
-  /* -------------------- STATE -------------------- */
-  const [primary, setPrimary] = useState("#6A11CB");
-  const [secondary, setSecondary] = useState("#2575FC");
-  const [bodyBg, setBodyBg] = useState("#FFFFFF");
+/** Two-column field grid */
+function FieldRow({ children }) {
+  return <div className="pe-field-row">{children}</div>;
+}
 
-  const [layout, setLayout] = useState("classic");
+/** Section heading in sidebar */
+function SectionHead({ title }) {
+  return <p className="pe-section-head">{title}</p>;
+}
 
-  const [avatar, setAvatar] = useState("👨‍💻");
-  const avatarFileRef = useRef(null);
-  const [avatarSize, setAvatarSize] = useState(80);
-
-  const [cover, setCover] = useState("");
-  const coverFileRef = useRef(null);
-  const [coverBlur, setCoverBlur] = useState(0);
-
-  const [fontFamily, setFontFamily] = useState("system");
-  const [fontSize, setFontSize] = useState(16);
-  const [spacing, setSpacing] = useState(28);
-  const [radius, setRadius] = useState(20);
-
-  const [shadowBlur, setShadowBlur] = useState(24);
-  const [shadowOpacity, setShadowOpacity] = useState(0.32);
-
-  const [toast, setToast] = useState(false);
-
-  /* -------------------- AVATAR UPLOAD -------------------- */
-  const uploadAvatar = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = avatarSize;
-      canvas.height = avatarSize;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, avatarSize, avatarSize);
-      setAvatar(canvas.toDataURL());
-    };
-    img.src = URL.createObjectURL(f);
-  };
-
-  /* -------------------- COVER UPLOAD -------------------- */
-  const uploadCover = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-
-    const reader = new FileReader();
-    reader.onload = () => setCover(reader.result);
-    reader.readAsDataURL(f);
-  };
-
-  /* -------------------- EXPORT PNG -------------------- */
-  const exportPNG = () => {
-    const node = document.getElementById("feature1-profilePreview");
-    html2canvas(node, { scale: 2 }).then((canvas) => {
-      const link = document.createElement("a");
-      link.download = "profile-preview.png";
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  };
-
-  /* -------------------- SAVE / RESET -------------------- */
-  const saveProfile = () => {
-    setToast(true);
-    setTimeout(() => setToast(false), 1500);
-  };
-
-  const resetAll = () => {
-    if (!window.confirm("Reset all settings?")) return;
-
-    setPrimary("#6A11CB");
-    setSecondary("#2575FC");
-    setBodyBg("#FFFFFF");
-
-    setAvatar("👨‍💻");
-    setAvatarSize(80);
-
-    setCover("");
-    setCoverBlur(0);
-
-    setLayout("classic");
-
-    setFontFamily("system");
-    setFontSize(16);
-    setSpacing(28);
-    setRadius(20);
-
-    setShadowBlur(24);
-    setShadowOpacity(0.32);
-
-    setToast(true);
-    setTimeout(() => setToast(false), 1500);
-  };
-
-  /* ===========================================================
-     JSX RETURN
-  =========================================================== */
+/** Slider with value label */
+function Slider({ label, value, min, max, unit = "", onChange }) {
   return (
-    <div className="feature1-container">
+    <div className="pe-slider">
+      <div className="pe-slider-header">
+        <span>{label}</span>
+        <span className="pe-slider-val">{value}{unit}</span>
+      </div>
+      <input
+        type="range"
+        className="pe-range"
+        min={min} max={max} value={value}
+        onChange={e => onChange(+e.target.value)}
+      />
+    </div>
+  );
+}
 
-      {/* ---------------- TOP BAR ---------------- */}
-      <div className="feature1-topbar">
-        <button className="feature1-top-btn" onClick={() => window.history.back()}>
+/** Toggle switch */
+function Toggle({ label, on, onChange }) {
+  return (
+    <label className="pe-toggle-wrap">
+      <span className="pe-toggle-label">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on ? "true" : "false"}
+        className={`pe-toggle${on ? " pe-toggle--on" : ""}`}
+        onClick={() => onChange(!on)}
+      />
+    </label>
+  );
+}
+
+/** Removable tag chip */
+function Chip({ label, onRemove }) {
+  return (
+    <span className="pe-chip">
+      {label}
+      <button
+        type="button"
+        className="pe-chip-x"
+        aria-label={`Remove ${label}`}
+        onClick={onRemove}
+      >×</button>
+    </span>
+  );
+}
+
+/** Entry row in sidebar list (experience / education) */
+function EntryRow({ title, sub, period, onRemove }) {
+  return (
+    <div className="pe-entry-row">
+      <div className="pe-entry-row-body">
+        <span className="pe-entry-title">{title}</span>
+        {sub    && <span className="pe-entry-sub">{sub}</span>}
+        {period && <span className="pe-entry-period">{period}</span>}
+      </div>
+      <button
+        type="button"
+        className="pe-entry-remove"
+        aria-label="Remove"
+        onClick={onRemove}
+      >×</button>
+    </div>
+  );
+}
+
+/** Bullet list editor */
+function BulletEditor({ bullets, onChange }) {
+  const [draft, setDraft] = useState("");
+  const commit = useCallback(() => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...bullets, t]);
+    setDraft("");
+  }, [draft, bullets, onChange]);
+
+  return (
+    <div className="pe-bullets">
+      <div className="pe-bullets-add">
+        <input
+          type="text"
+          className="pe-input"
+          placeholder="Add bullet point (Enter)"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); commit(); } }}
+        />
+        <button type="button" className="pe-btn pe-btn--sm" onClick={commit}>Add</button>
+      </div>
+      {bullets.map((b, i) => (
+        <div key={`bullet-${i}`} className="pe-bullet-row">
+          <span className="pe-bullet-dot">•</span>
+          <span className="pe-bullet-text">{b}</span>
+          <button
+            type="button"
+            className="pe-entry-remove"
+            aria-label="Remove bullet"
+            onClick={() => onChange(bullets.filter((_, j) => j !== i))}
+          >×</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ───────────── RESUME CARD SUB-COMPONENTS ───────────── */
+
+/** Resume section divider */
+function ResumeHeading({ children }) {
+  return <div className="pr-heading">{children}</div>;
+}
+
+/** One work experience block */
+function WorkEntry({ item }) {
+  return (
+    <div className="pr-work-entry">
+      <div className="pr-work-left">
+        <span className="pr-work-period">{item.period}</span>
+      </div>
+      <div className="pr-work-right">
+        <div className="pr-work-role-line">
+          <span className="pr-work-dot" />
+          <span className="pr-work-role">{item.role}</span>
+        </div>
+        <p className="pr-work-company">
+          {item.company}{item.location ? ` · ${item.location}` : ""}
+        </p>
+        {item.bullets?.length > 0 && (
+          <ul className="pr-work-bullets">
+            {item.bullets.map((b, i) => <li key={`wb-${i}`}>{b}</li>)}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Toast */
+function Toast({ msg, visible }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`pe-toast${visible ? " pe-toast--on" : ""}`}
+    >
+      {msg}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════ */
+export default function ProfileEditor() {
+  /* ── state ── */
+  const [profile, setProfile] = useState(() => loadJSON(LS_PROFILE, DEFAULT_PROFILE));
+  const [style,   setStyle]   = useState(() => loadJSON(LS_STYLE,   DEFAULT_STYLE));
+  const [tab,     setTab]     = useState("design");       // "design" | "content"
+  const [toast,   setToast]   = useState({ msg: "", on: false });
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  /* draft states for add-forms */
+  const [skillInput, setSkillInput] = useState("");
+  const [expDraft,   setExpDraft]   = useState({ role: "", company: "", location: "", period: "", bullets: [] });
+  const [eduDraft,   setEduDraft]   = useState({ degree: "", school: "", detail: "", period: "" });
+
+  /* refs */
+  const avatarRef = useRef(null);
+  const coverRef  = useRef(null);
+
+  /* ── updaters ── */
+  const setP = useCallback((k, v) => setProfile(p => ({ ...p, [k]: v })), []);
+  const setSt = useCallback((k, v) => setStyle(s => ({ ...s, [k]: v })), []);
+
+  const ping = useCallback((msg) => {
+    setToast({ msg, on: true });
+    setTimeout(() => setToast(t => ({ ...t, on: false })), 2500);
+  }, []);
+
+  /* ── save / reset ── */
+  const save = useCallback(() => {
+    saveJSON(LS_PROFILE, profile);
+    saveJSON(LS_STYLE, style);
+    ping("Saved ✓");
+  }, [profile, style, ping]);
+
+  const reset = useCallback(() => {
+    if (!window.confirm("Reset all data?")) return;
+    setProfile(DEFAULT_PROFILE);
+    setStyle(DEFAULT_STYLE);
+    localStorage.removeItem(LS_PROFILE);
+    localStorage.removeItem(LS_STYLE);
+    ping("Reset complete");
+  }, [ping]);
+
+  /* ── file uploads ── */
+  const onAvatar = useCallback(async (e) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    try { setSt("avatarSrc", await fileToURL(f)); } catch { /* silent */ }
+    e.target.value = "";
+  }, [setSt]);
+
+  const onCover = useCallback(async (e) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    try { setSt("cover", await fileToURL(f)); } catch { /* silent */ }
+    e.target.value = "";
+  }, [setSt]);
+
+  /* ── skills ── */
+  const addSkill = useCallback(() => {
+    const t = skillInput.trim(); if (!t) return;
+    setP("skills", [...profile.skills, t]);
+    setSkillInput("");
+  }, [skillInput, profile.skills, setP]);
+
+  /* ── experience ── */
+  const addExp = useCallback(() => {
+    if (!expDraft.role && !expDraft.company) return;
+    setP("experience", [...profile.experience, { ...expDraft }]);
+    setExpDraft({ role: "", company: "", location: "", period: "", bullets: [] });
+  }, [expDraft, profile.experience, setP]);
+
+  /* ── education ── */
+  const addEdu = useCallback(() => {
+    if (!eduDraft.school && !eduDraft.degree) return;
+    setP("education", [...profile.education, { ...eduDraft }]);
+    setEduDraft({ degree: "", school: "", detail: "", period: "" });
+  }, [eduDraft, profile.education, setP]);
+
+  /* ── derived ── */
+  const font = FONTS.find(f => f.id === style.fontId) ?? FONTS[0];
+
+  /* ════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════ */
+  return (
+    <div className="pe-shell" style={{ "--accent": style.accent }}>
+
+      {/* ─────── TOPBAR ─────── */}
+      <header className="pe-topbar">
+        <button
+          type="button"
+          className="pe-topbar-back"
+          onClick={() => window.history.back()}
+        >
           ← Back
         </button>
 
-        <div className="feature1-top-title">Customize Your Profile</div>
+        <h1 className="pe-topbar-title">Profile Editor</h1>
 
-        <div className="feature1-top-actions">
-          <button className="feature1-top-btn" onClick={resetAll}>Reset</button>
-          <button className="feature1-top-btn primary" onClick={saveProfile}>Save</button>
-          <button className="feature1-top-btn export" onClick={exportPNG}>Export PNG</button>
-        </div>
-      </div>
-
-      {/* ---------------- LEFT SIDEBAR ---------------- */}
-      <aside className="feature1-sidebar">
-
-        {/* COVER PHOTO */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">🖼 Cover Photo</div>
-
-          <button className="feature1-btn" onClick={() =>
-            setCover(COVER_PRESETS[Math.floor(Math.random()*COVER_PRESETS.length)])
-          }>
-            🔀 Random Cover
+        <div className="pe-topbar-actions">
+          <button type="button" className="pe-btn pe-btn--ghost" onClick={reset}>
+            Reset
           </button>
-
-          <button className="feature1-btn" onClick={() => coverFileRef.current.click()}>
-            📁 Upload Cover
+          <button type="button" className="pe-btn pe-btn--ghost" onClick={() => setMobileOpen(v => !v)}>
+            ☰
           </button>
-          <input type="file" ref={coverFileRef} style={{display:"none"}} onChange={uploadCover} />
-
-          <label>Blur ({coverBlur}px)</label>
-          <input type="range" min="0" max="20" value={coverBlur} onChange={e=>setCoverBlur(Number(e.target.value))} />
-        </div>
-
-        {/* AVATAR CONTROL */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">👤 Avatar</div>
-
-          <div className="feature1-avatar-box">
-            {avatar.startsWith("data:")
-              ? <img src={avatar} className="feature1-avatar-img" style={{width:avatarSize,height:avatarSize}} />
-              : <div className="feature1-avatar-emoji" style={{fontSize:avatarSize*0.5,width:avatarSize,height:avatarSize}}>{avatar}</div>
-            }
-          </div>
-
-          <label>Size ({avatarSize}px)</label>
-          <input type="range" min="64" max="128" value={avatarSize} onChange={e=>setAvatarSize(Number(e.target.value))} />
-
-          <button className="feature1-btn" onClick={() =>
-            setAvatar(EMOJIS[Math.floor(Math.random()*EMOJIS.length)])
-          }>
-            🔀 Random Emoji
+          <button type="button" className="pe-btn pe-btn--solid" onClick={save}>
+            Save
           </button>
-
-          <button className="feature1-btn" onClick={() => avatarFileRef.current.click()}>
-            📁 Upload Avatar
-          </button>
-          <input type="file" ref={avatarFileRef} style={{display:"none"}} onChange={uploadAvatar}/>
         </div>
+      </header>
 
-        {/* LAYOUT SWITCHER */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">📐 Layout</div>
+      {/* ─────── MAIN GRID ─────── */}
+      <div className="pe-grid">
 
-          <div className="feature1-layout-grid">
-            <div className={`feature1-layout-card ${layout==="classic"?"active":""}`}
-              onClick={()=>setLayout("classic")}>Classic</div>
+        {/* ══════ SIDEBAR ══════ */}
+        <aside className={`pe-sidebar${mobileOpen ? " pe-sidebar--open" : ""}`}>
 
-            <div className={`feature1-layout-card ${layout==="left"?"active":""}`}
-              onClick={()=>setLayout("left")}>Left Profile</div>
-
-            <div className={`feature1-layout-card ${layout==="split"?"active":""}`}
-              onClick={()=>setLayout("split")}>Split View</div>
-          </div>
-        </div>
-
-        {/* COLOR THEMES */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">🎨 Theme Colors</div>
-
-          <div className="feature1-preset-list">
-            {COLOR_PRESETS.map(p=>(
-              <button key={p.name} className="feature1-preset-button"
-                onClick={()=>{
-                  setPrimary(p.primary);
-                  setSecondary(p.secondary);
-                  setBodyBg(p.bodyBg);
-                }}>
-                <div className="feature1-preset-name">{p.name}</div>
-                <div className="feature1-preset-colors">
-                  <span style={{background:p.primary}}/>
-                  <span style={{background:p.secondary}}/>
-                </div>
+          {/* Tabs */}
+          <nav className="pe-tabs" role="tablist">
+            {["design", "content"].map(t => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={tab === t ? "true" : "false"}
+                className={`pe-tab${tab === t ? " pe-tab--active" : ""}`}
+                onClick={() => setTab(t)}
+              >
+                {t === "design" ? "Design" : "Content"}
               </button>
             ))}
+          </nav>
+
+          <div className="pe-sidebar-body">
+
+            {/* ══ DESIGN TAB ══ */}
+            {tab === "design" && (
+              <>
+                {/* Cover */}
+                <section className="pe-section">
+                  <SectionHead title="COVER PHOTO" />
+                  <Toggle
+                    label="Show cover"
+                    on={style.showCover}
+                    onChange={v => setSt("showCover", v)}
+                  />
+                  {style.showCover && (
+                    <>
+                      {style.cover && (
+                        <div
+                          className="pe-cover-preview"
+                          style={{ backgroundImage: `url("${style.cover}")` }}
+                        />
+                      )}
+                      <div className="pe-btn-group">
+                        <button
+                          type="button"
+                          className="pe-btn pe-btn--outline"
+                          onClick={() => setSt("cover", COVERS[Math.floor(Math.random() * COVERS.length)])}
+                        >
+                          Random Photo
+                        </button>
+                        <button
+                          type="button"
+                          className="pe-btn pe-btn--outline"
+                          onClick={() => coverRef.current?.click()}
+                        >
+                          Upload
+                        </button>
+                        {style.cover && (
+                          <button
+                            type="button"
+                            className="pe-btn pe-btn--ghost"
+                            onClick={() => setSt("cover", "")}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <Slider
+                        label="Blur" value={style.coverBlur}
+                        min={0} max={16} unit="px"
+                        onChange={v => setSt("coverBlur", v)}
+                      />
+                    </>
+                  )}
+                  <input ref={coverRef} type="file" accept="image/*" className="pe-hidden" onChange={onCover} />
+                </section>
+
+                {/* Avatar */}
+                <section className="pe-section">
+                  <SectionHead title="PROFILE PHOTO" />
+                  <div className="pe-avatar-row">
+                    <div className="pe-avatar-thumb">
+                      {style.avatarSrc
+                        ? <img src={style.avatarSrc} alt="avatar" className="pe-avatar-img" />
+                        : <span className="pe-avatar-fallback">👤</span>
+                      }
+                    </div>
+                    <div className="pe-btn-group pe-btn-group--col">
+                      <button
+                        type="button"
+                        className="pe-btn pe-btn--outline"
+                        onClick={() => avatarRef.current?.click()}
+                      >
+                        Upload Photo
+                      </button>
+                      {style.avatarSrc && (
+                        <button
+                          type="button"
+                          className="pe-btn pe-btn--ghost"
+                          onClick={() => setSt("avatarSrc", "")}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <Slider
+                    label="Avatar size" value={style.avatarSize}
+                    min={56} max={104} unit="px"
+                    onChange={v => setSt("avatarSize", v)}
+                  />
+                  <input ref={avatarRef} type="file" accept="image/*" className="pe-hidden" onChange={onAvatar} />
+                </section>
+
+                {/* Theme */}
+                <section className="pe-section">
+                  <SectionHead title="ACCENT COLOR" />
+                  <div className="pe-theme-dots">
+                    {THEMES.map((t, i) => (
+                      <button
+                        key={t.name}
+                        type="button"
+                        aria-label={t.name}
+                        title={t.name}
+                        className={`pe-theme-dot${style.themeIdx === i ? " pe-theme-dot--on" : ""}`}
+                        style={{ background: t.accent }}
+                        onClick={() => setStyle(s => ({ ...s, themeIdx: i, accent: t.accent }))}
+                      >
+                        {style.themeIdx === i && <span className="pe-theme-tick">✓</span>}
+                      </button>
+                    ))}
+                    <div className="pe-theme-custom">
+                      <label className="pe-field-label" htmlFor="custom-accent">Custom</label>
+                      <input
+                        id="custom-accent"
+                        type="color"
+                        className="pe-color-picker"
+                        value={style.accent}
+                        onChange={e => setStyle(s => ({ ...s, themeIdx: -1, accent: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* Font */}
+                <section className="pe-section">
+                  <SectionHead title="TYPOGRAPHY" />
+                  <div className="pe-font-btns">
+                    {FONTS.map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        className={`pe-font-btn${style.fontId === f.id ? " pe-font-btn--on" : ""}`}
+                        onClick={() => setSt("fontId", f.id)}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Slider label="Font size" value={style.fontSize} min={13} max={19} unit="px" onChange={v => setSt("fontSize", v)} />
+                  <Slider label="Line spacing" value={style.lineSpacing} min={16} max={48} unit="px" onChange={v => setSt("lineSpacing", v)} />
+                </section>
+
+                {/* Card */}
+                <section className="pe-section">
+                  <SectionHead title="CARD STYLE" />
+                  <Slider label="Corner radius" value={style.cardRadius} min={0} max={20} unit="px" onChange={v => setSt("cardRadius", v)} />
+                  <Slider label="Shadow depth"  value={style.shadowPx}   min={0} max={48} unit="px" onChange={v => setSt("shadowPx", v)} />
+                </section>
+
+                <section className="pe-section">
+                  <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save}>
+                    Save Profile
+                  </button>
+                </section>
+              </>
+            )}
+
+            {/* ══ CONTENT TAB ══ */}
+            {tab === "content" && (
+              <>
+                {/* Basic */}
+                <section className="pe-section">
+                  <SectionHead title="BASIC INFO" />
+                  <Field label="Full Name"    value={profile.name}     onChange={v => setP("name", v)}     placeholder="Alex Johnson" />
+                  <Field label="Job Title"    value={profile.title}    onChange={v => setP("title", v)}    placeholder="Senior Software Engineer" />
+                  <FieldRow>
+                    <Field label="Email"    value={profile.email}    onChange={v => setP("email", v)}    placeholder="alex@email.com" />
+                    <Field label="Phone"    value={profile.phone}    onChange={v => setP("phone", v)}    placeholder="+1 234 567 8900" />
+                  </FieldRow>
+                  <FieldRow>
+                    <Field label="Location" value={profile.location} onChange={v => setP("location", v)} placeholder="City, Country" />
+                  </FieldRow>
+                  <FieldRow>
+                    <Field label="LinkedIn" value={profile.linkedin} onChange={v => setP("linkedin", v)} placeholder="linkedin.com/in/..." mono />
+                    <Field label="GitHub"   value={profile.github}   onChange={v => setP("github", v)}   placeholder="github.com/..." mono />
+                  </FieldRow>
+                </section>
+
+                {/* Summary */}
+                <section className="pe-section">
+                  <SectionHead title="SUMMARY" />
+                  <textarea
+                    className="pe-input pe-textarea"
+                    rows={4}
+                    value={profile.summary}
+                    onChange={e => setP("summary", e.target.value)}
+                    placeholder="Professional bio..."
+                  />
+                </section>
+
+                {/* Skills */}
+                <section className="pe-section">
+                  <SectionHead title="SKILLS" />
+                  <div className="pe-add-row">
+                    <input
+                      type="text"
+                      className="pe-input"
+                      placeholder="Skill name + Enter"
+                      value={skillInput}
+                      onChange={e => setSkillInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
+                    />
+                    <button type="button" className="pe-btn pe-btn--sm" onClick={addSkill}>Add</button>
+                  </div>
+                  <div className="pe-chips">
+                    {profile.skills.map((s, i) => (
+                      <Chip
+                        key={`skill-${s}-${i}`}
+                        label={s}
+                        onRemove={() => setP("skills", profile.skills.filter((_, j) => j !== i))}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                {/* Experience */}
+                <section className="pe-section">
+                  <SectionHead title="WORK EXPERIENCE" />
+                  <FieldRow>
+                    <Field label="Role"     value={expDraft.role}     onChange={v => setExpDraft(d => ({ ...d, role: v }))}     placeholder="Senior Engineer" />
+                    <Field label="Company"  value={expDraft.company}  onChange={v => setExpDraft(d => ({ ...d, company: v }))}  placeholder="Acme Inc." />
+                  </FieldRow>
+                  <FieldRow>
+                    <Field label="Period"   value={expDraft.period}   onChange={v => setExpDraft(d => ({ ...d, period: v }))}   placeholder="2021 – Present" />
+                    <Field label="Location" value={expDraft.location} onChange={v => setExpDraft(d => ({ ...d, location: v }))} placeholder="Bangkok / Remote" />
+                  </FieldRow>
+                  <p className="pe-field-label">Bullet Points</p>
+                  <BulletEditor
+                    bullets={expDraft.bullets}
+                    onChange={bullets => setExpDraft(d => ({ ...d, bullets }))}
+                  />
+                  <button type="button" className="pe-btn pe-btn--add" onClick={addExp}>
+                    + Add Experience
+                  </button>
+                  <div className="pe-entry-list">
+                    {profile.experience.map((ex, i) => (
+                      <EntryRow
+                        key={`exp-${i}`}
+                        title={ex.role}
+                        sub={ex.company}
+                        period={ex.period}
+                        onRemove={() => setP("experience", profile.experience.filter((_, j) => j !== i))}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                {/* Education */}
+                <section className="pe-section">
+                  <SectionHead title="EDUCATION" />
+                  <FieldRow>
+                    <Field label="Degree" value={eduDraft.degree} onChange={v => setEduDraft(d => ({ ...d, degree: v }))} placeholder="B.S. Computer Science" />
+                    <Field label="School" value={eduDraft.school} onChange={v => setEduDraft(d => ({ ...d, school: v }))} placeholder="MIT" />
+                  </FieldRow>
+                  <FieldRow>
+                    <Field label="Period" value={eduDraft.period} onChange={v => setEduDraft(d => ({ ...d, period: v }))} placeholder="2015 – 2019" />
+                    <Field label="Detail" value={eduDraft.detail} onChange={v => setEduDraft(d => ({ ...d, detail: v }))} placeholder="GPA 3.9, Honors" />
+                  </FieldRow>
+                  <button type="button" className="pe-btn pe-btn--add" onClick={addEdu}>
+                    + Add Education
+                  </button>
+                  <div className="pe-entry-list">
+                    {profile.education.map((ed, i) => (
+                      <EntryRow
+                        key={`edu-${i}`}
+                        title={ed.degree || ed.school}
+                        sub={ed.degree ? ed.school : ""}
+                        period={ed.period}
+                        onRemove={() => setP("education", profile.education.filter((_, j) => j !== i))}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
+
+          </div>{/* /sidebar-body */}
+        </aside>
+
+        {/* ══════ PREVIEW ══════ */}
+        <main className="pe-preview">
+          <div className="pe-preview-meta">
+            <span className="pe-preview-label">LIVE PREVIEW</span>
+            <span className="pe-preview-badge">A4 · 800px</span>
           </div>
-        </div>
 
-        {/* TYPOGRAPHY */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">🔤 Typography</div>
-
-          <label>Font Family</label>
-          <select value={fontFamily} onChange={e=>setFontFamily(e.target.value)}>
-            <option value="system">System</option>
-            <option value="serif">Serif</option>
-            <option value="mono">Monospace</option>
-          </select>
-
-          <label>Font Size ({fontSize}px)</label>
-          <input type="range" min="14" max="22" value={fontSize} onChange={e=>setFontSize(Number(e.target.value))}/>
-
-          <label>Content Spacing ({spacing}px)</label>
-          <input type="range" min="12" max="48" value={spacing} onChange={e=>setSpacing(Number(e.target.value))}/>
-
-          <label>Corner Radius ({radius}px)</label>
-          <input type="range" min="0" max="32" value={radius} onChange={e=>setRadius(Number(e.target.value))} />
-        </div>
-
-        {/* EFFECTS */}
-        <div className="feature1-card">
-          <div className="feature1-card-title">✨ Effects</div>
-
-          <label>Shadow Blur ({shadowBlur}px)</label>
-          <input type="range" min="0" max="40" value={shadowBlur} onChange={e=>setShadowBlur(Number(e.target.value))}/>
-
-          <label>Shadow Opacity ({Math.round(shadowOpacity*100)}%)</label>
-          <input type="range" min="0.1" max="0.5" step="0.01"
-            value={shadowOpacity} onChange={e=>setShadowOpacity(Number(e.target.value))}/>
-        </div>
-
-      </aside>
-
-      {/* ---------------- PREVIEW SIDE ---------------- */}
-      <div className="feature1-preview-area">
-
-        <div
-          id="feature1-profilePreview"
-          className={`feature1-preview-card layout-${layout}`}
-          style={{
-            borderRadius: radius,
-            boxShadow: `0 ${shadowBlur}px ${shadowBlur*1.5}px rgba(0,0,0,${shadowOpacity})`,
-            background: bodyBg,
-            fontSize,
-            fontFamily:
-              fontFamily==="system" ? "Inter, sans-serif" :
-              fontFamily==="serif" ? "Georgia, serif" :
-              "JetBrains Mono, monospace"
-          }}
-        >
-
-          {/* -------- HEADER WITH COVER BEHIND GRADIENT -------- */}
+          {/* Resume Card — NO transform:scale, uses width:100% max-width */}
           <div
-            className="feature1-preview-header-bar"
+            className="pe-card"
             style={{
-              backgroundImage: cover
-                ? `linear-gradient(45deg, ${primary}, ${secondary}), url(${cover})`
-                : `linear-gradient(45deg, ${primary}, ${secondary})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundBlendMode: "overlay",
-              filter: cover ? `blur(${coverBlur}px)` : "none",
-
-              color: autoTextColor(primary),
-              borderRadius: `${radius}px ${radius}px 0 0`
+              borderRadius:  style.cardRadius,
+              boxShadow:     `0 ${style.shadowPx}px ${style.shadowPx * 2}px rgba(0,0,0,0.07)`,
+              fontFamily:    font.stack,
+              fontSize:      style.fontSize,
+              lineHeight:    `${style.lineSpacing}px`,
             }}
           >
+            {/* ── Cover ── */}
+            {style.showCover && (
+              <div
+                className="pe-card-cover"
+                style={{
+                  backgroundImage:  style.cover ? `url("${style.cover}")` : "none",
+                  backgroundColor:  style.cover ? undefined : style.accent,
+                  filter:           style.coverBlur ? `blur(${style.coverBlur}px)` : undefined,
+                  borderRadius:     `${style.cardRadius}px ${style.cardRadius}px 0 0`,
+                }}
+                aria-hidden="true"
+              />
+            )}
 
-            {/* avatar */}
-            <div
-              className="feature1-avatar-preview"
-              style={{
-                width: avatarSize,
-                height: avatarSize,
-                marginTop: cover ? -avatarSize/2 : 0
-              }}
-            >
-              {avatar.startsWith("data:")
-                ? <img src={avatar}/>
-                : <span style={{fontSize: avatarSize*0.55}}>{avatar}</span>
-              }
+            {/* ── Header ── */}
+            <div className="pe-card-header">
+              {/* Avatar */}
+              <div
+                className="pe-card-avatar"
+                style={{
+                  width:       style.avatarSize,
+                  height:      style.avatarSize,
+                  borderColor: style.accent,
+                  marginTop:   style.showCover ? -(style.avatarSize / 2) : 0,
+                }}
+              >
+                {style.avatarSrc
+                  ? <img src={style.avatarSrc} alt="Profile" className="pe-card-avatar-img" />
+                  : <span className="pe-card-avatar-emoji" style={{ fontSize: Math.round(style.avatarSize * 0.44) }}>👤</span>
+                }
+              </div>
+
+              <h1 className="pe-card-name">
+                {profile.name || <span className="pe-muted">Your Name</span>}
+              </h1>
+              <p className="pe-card-title" style={{ color: style.accent }}>
+                {profile.title || <span className="pe-muted">Your Title</span>}
+              </p>
+              {profile.summary && (
+                <p className="pe-card-summary">{profile.summary}</p>
+              )}
+              <div className="pe-card-contacts">
+                {profile.email    && <span><span className="pe-ci">✉</span>{profile.email}</span>}
+                {profile.phone    && <span><span className="pe-ci">☏</span>{profile.phone}</span>}
+                {profile.location && <span><span className="pe-ci">◎</span>{profile.location}</span>}
+                {profile.linkedin && <span><span className="pe-ci">in</span>{profile.linkedin}</span>}
+                {profile.github   && <span><span className="pe-ci">⌥</span>{profile.github}</span>}
+              </div>
             </div>
 
-            <h2 style={{color:autoTextColor(primary)}}>Alex Johnson</h2>
-            <p className="subtitle" style={{color:autoTextColor(primary)}}>
-              Senior Software Engineer
-            </p>
+            <hr className="pe-card-rule" />
 
-          </div>
+            {/* ── Body ── */}
+            <div className="pe-card-body">
 
-          {/* BODY */}
-          <div className="feature1-preview-body" style={{padding:spacing}}>
+              {/* Work experience */}
+              {profile.experience.length > 0 && (
+                <section className="pr-section">
+                  <ResumeHeading>
+                    <span className="pr-heading-icon">💼</span> WORK EXPERIENCE
+                  </ResumeHeading>
+                  {profile.experience.map((ex, i) => (
+                    <WorkEntry key={`wk-${i}`} item={ex} />
+                  ))}
+                </section>
+              )}
 
-            <h3>Work Experience</h3>
-            <p>Senior Software Engineer @ Tech Giants Inc.</p>
-            <p>Led cloud microservice architecture.</p>
+              {/* Education + Skills two-col */}
+              {(profile.education.length > 0 || profile.skills.length > 0) && (
+                <div className="pr-two-col">
+                  {profile.education.length > 0 && (
+                    <section className="pr-section">
+                      <ResumeHeading>
+                        <span className="pr-heading-icon">🎓</span> EDUCATION
+                      </ResumeHeading>
+                      {profile.education.map((ed, i) => (
+                        <div key={`ed-${i}`} className="pr-edu-entry">
+                          <p className="pr-edu-period">{ed.period}</p>
+                          <p className="pr-edu-degree">{ed.degree}</p>
+                          <p className="pr-edu-school">{ed.school}</p>
+                          {ed.detail && <p className="pr-edu-school">{ed.detail}</p>}
+                        </div>
+                      ))}
+                    </section>
+                  )}
+                  {profile.skills.length > 0 && (
+                    <section className="pr-section">
+                      <ResumeHeading>
+                        <span className="pr-heading-icon">⚡</span> SKILLS
+                      </ResumeHeading>
+                      <div className="pr-skills">
+                        {profile.skills.map((s, i) => (
+                          <span
+                            key={`sk-${i}-${s}`}
+                            className="pr-skill-tag"
+                            style={{ borderColor: style.accent, color: style.accent }}
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              )}
 
-            <h3>Skills</h3>
-            <div className="feature1-tags">
-              {["JavaScript","React","Node.js","AWS"].map(tag=>(
-                <span>{tag}</span>
-              ))}
-            </div>
+            </div>{/* /card-body */}
+          </div>{/* /pe-card */}
+        </main>
+      </div>{/* /pe-grid */}
 
-            <h3>Education</h3>
-            <p>M.S. Computer Science — Stanford University</p>
-
-          </div>
-        </div>
-      </div>
-
-      {/* ---------------- TOAST ---------------- */}
-      <div className={`feature1-toast ${toast ? "show" : ""}`}>
-        ✔ Profile saved!
-      </div>
-
+      <Toast msg={toast.msg} visible={toast.on} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +14,6 @@ import {
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import "./ChartSection.css";
 
-// ลงทะเบียน chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -26,66 +26,73 @@ ChartJS.register(
 );
 
 function ChartSection() {
-  // 📊 ผู้ใช้ในแต่ละเดือน
-  const monthlyUsers = {
-    labels: ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    datasets: [
-      {
-        label: "Active Users",
-        data: [3200, 4100, 3800, 4600, 5200, 5800, 6000, 6700 ],
-        backgroundColor: "#7c3aed",
-        borderRadius: 6,
-      },
-    ],
-  };
+  const [monthlyUsers, setMonthlyUsers] = useState(null);
+  const [totalUsers, setTotalUsers] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // ⏱ เวลาการใช้งานเฉลี่ยต่อวัน
-  const usageTime = {
-    labels: ["06 AM", "09 AM", "12 PM", "03 PM", "06 PM", "09 PM"],
-    datasets: [
-      {
-        label: "Avg Usage Time (minutes)",
-        data: [45, 70, 60, 90, 85, 55],
-        borderColor: "#f97316",
-        backgroundColor: "rgba(249, 115, 22, 0.2)",
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [monthlyRes, totalRes, summaryRes] = await Promise.all([
+          axios.get("http://localhost:3000/api/dashboard/users/monthly"),
+          axios.get("http://localhost:3000/api/dashboard/users/total"),
+          axios.get("http://localhost:3000/api/dashboard/summary"),
+        ]);
 
-  
- 
+        // 📊 Monthly Users
+        setMonthlyUsers({
+          labels: monthlyRes.data.labels,
+          datasets: [
+            {
+              label: "Active Users",
+              data: monthlyRes.data.data,
+              backgroundColor: "#7c3aed",
+              borderRadius: 6,
+            },
+          ],
+        });
 
-  // 🔢 ผู้ใช้ทั้งหมด (รวม)
-  const totalUsers = {
-    labels: ["Current Users", "New This Week", "Returning"],
-    datasets: [
-      {
-        data: [5800, 1200, 4600],
-        backgroundColor: ["#7c3aed", "#10b981", "#facc15"],
-      },
-    ],
-  };
+
+        // 🔢 Total Users
+        setTotalUsers({
+          labels: ["Current", "New", "Monthly"],
+          datasets: [
+            {
+              data: [
+                totalRes.data.current,
+                totalRes.data.new,
+                summaryRes.data.newUsersMonth,
+              ],
+              backgroundColor: ["#7c3aed", "#10b981", "#facc15"],
+            },
+          ],
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <h2>Loading dashboard...</h2>;
 
   return (
     <div className="charts">
       <div className="chart-box wide">
         <h3>Users by Month</h3>
-        <Bar key="monthly-users" data={monthlyUsers} />
+        {monthlyUsers && <Bar data={monthlyUsers} />}
       </div>
 
       <div className="chart-box">
         <h3>Total Users Overview</h3>
-        <Doughnut key="total-users" data={totalUsers} />
+        {totalUsers && <Doughnut data={totalUsers} />}
       </div>
 
       
-
-      <div className="chart-box wide">
-        <h3>Average Usage Time</h3>
-        <Line key="usage-time" data={usageTime} />
-      </div>
     </div>
   );
 }

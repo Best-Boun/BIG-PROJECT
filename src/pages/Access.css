@@ -217,9 +217,34 @@ body {
   background: #f4ecff;
   color: #7e42df;
 }
+.action-btn.ban {
+  background: #ffd8d8;
+  color: #c32e2e;
+}
+.action-btn.unban {
+  background: #d9fbde;
+  color: #2d8d3c;
+}
 .action-btn.delete {
   background: #ff4d4d;
   color: #fff;
+}
+
+.user-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
+  margin-top: 2px;
+}
+.user-status.active {
+  background: #d9ffe8;
+  color: #1e9e54;
+}
+.user-status.banned {
+  background: #ffe5e5;
+  color: #e23232;
 }
 
 .action-btn:disabled {

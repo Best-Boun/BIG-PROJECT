@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./Access.css";
 
 
-const API_USERS = "http://localhost:3001/users";
+const API_USERS = "http://localhost:3000/api/users";
 const API_LOGS = "http://localhost:3003/logs";
-const MAIN_ADMIN_ID = "1";
+const MAIN_ADMIN_ID = "1"; // ใน DB อาจเป็นหมายเลข 1
 
 const addLocalLog = (entry) => {
   const prev = JSON.parse(localStorage.getItem("localLogs") || "[]");
@@ -220,7 +220,7 @@ function AdminManagement() {
   return (
     <div className="page-container admin-page">
       <div className="am-header">
-        <h2>⚙️ Admin Management</h2>
+        <h2>⚙️ User Management</h2>
 
         <div className="am-controls">
           <div
@@ -257,7 +257,6 @@ function AdminManagement() {
                 className="am-select"
               >
                 <option value="all">All</option>
-                <option value="admin">Admins</option>
                 <option value="user">Users</option>
               </select>
             </div>
@@ -275,12 +274,6 @@ function AdminManagement() {
             <div className="am-stat">
               <div className="am-stat-number">{allUsers.length}</div>
               <div className="am-stat-label">Total Users</div>
-            </div>
-            <div className="am-stat">
-              <div className="am-stat-number">
-                {allUsers.filter((u) => u.role === "admin").length}
-              </div>
-              <div className="am-stat-label">Admins</div>
             </div>
             <div className="am-stat">
               <div className="am-stat-number">

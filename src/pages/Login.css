@@ -244,3 +244,24 @@
   font-size: 32px;
   font-weight: 600;
 }
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  margin-top: 5px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  z-index: 99999; /* 🔥 ตัวนี้สำคัญ */
+}
+
+.user-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.user-item:hover {
+  background: #f0f0f0;
+}

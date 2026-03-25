@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { useLocation } from "react-router-dom";
-import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
+import { Navbar, Nav, Dropdown } from "react-bootstrap";
 import {
   FaCog,
   FaSignOutAlt,
@@ -15,7 +15,6 @@ import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
   const { profileData, isLoading } = useContext(ProfileContext);
-
   const location = useLocation();
 
   const isActive = (path) =>
@@ -25,56 +24,85 @@ export default function Header2({ role, onLogout }) {
   const isAdmin = userRole === "admin";
   const isEmployer = userRole === "employer";
 
+  // 🔥 ดึง user จาก localStorage (สำคัญมาก)
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+
+  // 🔥 FIX ตรงนี้
   const displayName = isAdmin
     ? "Admin"
     : isLoading
-    ? "..."
-    : profileData?.name?.trim() || "User";
+      ? storedUser?.name || "..."
+      : profileData?.name?.trim() || storedUser?.name || "User";
 
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
-      <Container>
+      <div className="navbar-inner">
+        {/* LEFT */}
         <Navbar.Brand href="/feed">
-          <FaBolt style={{ color: "var(--color-accent)", fontSize: "1rem" }} />
+          <FaBolt style={{ color: "var(--color-accent)" }} />
           Smart Persona
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="main-nav" />
 
         <Navbar.Collapse id="main-nav">
-          <Nav className="ms-auto align-items-lg-center">
-            {isEmployer ? (
-              <>
-                <Nav.Link href="/feed" className={isActive("/feed") ? "active" : ""}>
-                  Feed
-                </Nav.Link>
-                <Nav.Link href="/jobs/manage" className={isActive("/jobs/manage") ? "active" : ""}>
-                  Manage Jobs
-                </Nav.Link>
-              </>
-            ) : !isAdmin ? (
-              <>
-                <Nav.Link href="/feed" className={isActive("/feed") ? "active" : ""}>
-                  Feed
-                </Nav.Link>
-                <Nav.Link href="/profile" className={isActive("/profile") ? "active" : ""}>
-                  Profile
-                </Nav.Link>
-                <Nav.Link href="/jobs" className={isActive("/jobs") ? "active" : ""}>
-                  Jobs
-                </Nav.Link>
-                <Nav.Link href="/resume" className={isActive("/resume") ? "active" : ""}>
-                  Resume
-                </Nav.Link>
-              </>
-            ) : null}
+          {/* CENTER */}
+          <div className="nav-center">
+            <Nav className="align-items-lg-center">
+              {isEmployer ? (
+                <>
+                  <Nav.Link
+                    href="/feed"
+                    className={isActive("/feed") ? "active" : ""}
+                  >
+                    Feed
+                  </Nav.Link>
+                  <Nav.Link
+                    href="/jobs/manage"
+                    className={isActive("/jobs/manage") ? "active" : ""}
+                  >
+                    Manage Jobs
+                  </Nav.Link>
+                </>
+              ) : (
+                <>
+                  <Nav.Link
+                    href="/feed"
+                    className={isActive("/feed") ? "active" : ""}
+                  >
+                    Feed
+                  </Nav.Link>
+                  <Nav.Link
+                    href="/profile"
+                    className={isActive("/profile") ? "active" : ""}
+                  >
+                    Profile
+                  </Nav.Link>
+                  <Nav.Link
+                    href="/jobs"
+                    className={isActive("/jobs") ? "active" : ""}
+                  >
+                    Jobs
+                  </Nav.Link>
+                  <Nav.Link
+                    href="/resume"
+                    className={isActive("/resume") ? "active" : ""}
+                  >
+                    Resume
+                  </Nav.Link>
+                </>
+              )}
+            </Nav>
+          </div>
 
-            <Dropdown align="end" className="ms-lg-3">
+          {/* RIGHT USER */}
+          <div className="ms-auto">
+            <Dropdown align="end">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">
                   {profileData?.profileImage ? (
                     <img
-                      src={profileData.profileImage}
+                      src={`http://localhost:3000${profileData.profileImage}`}
                       alt={displayName}
                       className="avatar-img"
                     />
@@ -127,9 +155,9 @@ export default function Header2({ role, onLogout }) {
                 )}
               </Dropdown.Menu>
             </Dropdown>
-          </Nav>
+          </div>
         </Navbar.Collapse>
-      </Container>
+      </div>
     </Navbar>
   );
 }

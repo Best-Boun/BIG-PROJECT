@@ -22,8 +22,13 @@ function Login({ setToken, setRole }) {
 
   const typingTimerRef = useRef(null);
 
+  // 🔥 dropdown
+  const [showUsers, setShowUsers] = useState(false);
+  const [savedUsers, setSavedUsers] = useState([]);
+
   useEffect(() => {
     document.body.classList.add("login-page");
+
     return () => document.body.classList.remove("login-page");
   }, []);
 
@@ -49,39 +54,49 @@ function Login({ setToken, setRole }) {
       const user = res.data.user;
       const token = res.data.token;
 
+      // 🔥 save login history
+      const existingUsers =
+        JSON.parse(localStorage.getItem("loginUsers")) || [];
+
+      const alreadyExists = existingUsers.find((u) => u.id === user.id);
+
+      let updatedUsers;
+
+      if (alreadyExists) {
+        updatedUsers = [user, ...existingUsers.filter((u) => u.id !== user.id)];
+      } else {
+        updatedUsers = [user, ...existingUsers];
+      }
+
+      localStorage.setItem(
+        "loginUsers",
+        JSON.stringify(updatedUsers.slice(0, 5)),
+      );
+
       animateSuccess();
 
       setTimeout(() => {
-        // save token
         localStorage.setItem("token", token);
-
-        // save role
         localStorage.setItem("role", user.role || "user");
 
-        // save user object
         localStorage.setItem("currentUser", JSON.stringify(user));
 
-        // save user สำหรับ feed (สำคัญ)
         localStorage.setItem(
           "user",
           JSON.stringify({
             id: user.id,
             name: user.name,
             role: user.role || "user",
-            profileImage: "/default-avatar.png",
+            profileImage: user.profileImage || "/default-avatar.png",
           }),
         );
 
-        // save user id
         localStorage.setItem("userID", user.id.toString());
-
-        // save user name
         localStorage.setItem("userName", user.name);
 
         if (setToken) setToken(token);
         if (setRole) setRole(user.role || "user");
 
-        // redirect by role
         if (user.role === "employer") {
           window.location.href = "/jobs/manage";
         } else if (user.role === "seeker") {
@@ -155,20 +170,50 @@ function Login({ setToken, setRole }) {
         <p className="subtitle">Sign in to your account</p>
 
         <Form onSubmit={handleLogin} className="login-form">
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3" style={{ position: "relative" }}>
             <div className="input-with-icon">
               <i className="bi bi-envelope" />
               <Form.Control
                 type="text"
-                placeholder="Email"
+                placeholder="Email หรือ Username"
                 ref={userRef}
                 className="animated-input"
                 onChange={onUserChange}
+                onFocus={() => {
+                  // 🔥 FIX ตรงนี้
+                  const users =
+                    JSON.parse(localStorage.getItem("loginUsers")) || [];
+                  console.log("🔥 โหลดใหม่:", users);
+
+                  setSavedUsers(users);
+                  setShowUsers(true);
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowUsers(false), 200);
+                }}
               />
             </div>
+
+            {/* 🔥 DROPDOWN */}
+            {showUsers && savedUsers.length > 0 && (
+              <div className="user-dropdown">
+                {savedUsers.map((u) => (
+                  <div
+                    key={u.id}
+                    className="user-item"
+                    onMouseDown={() => {
+                      userRef.current.value = u.email;
+                      setShowUsers(false);
+                    }}
+                  >
+                    👤 {u.name} ({u.email})
+                  </div>
+                ))}
+              </div>
+            )}
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3" style={{ position: "relative" }}>
             <div className={`password-wrapper ${blinkEye ? "blink" : ""}`}>
               <i className="bi bi-lock password-icon-left" />
 

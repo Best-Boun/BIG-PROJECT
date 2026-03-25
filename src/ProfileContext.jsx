@@ -117,6 +117,18 @@ export function ProfileProvider({ children }) {
       if (profiles.length > 0) {
         // ✅ พบ profile ใน DB
         const server = profiles[0];
+if (profiles.length > 0) {
+  const server = profiles[0];
+
+  console.log("🔥 userId:", userId); // 👈 เพิ่ม
+  console.log("🔥 profileId:", server.id); // 👈 เพิ่ม
+  console.log("🔥 data:", server); // 👈 เพิ่ม
+
+  setProfileId(server.id);
+  setProfileData(mergeWithDefault(server));
+  console.log("✅ ProfileContext: loaded from API, id =", server.id);
+}
+
         setProfileId(server.id);
         setProfileData(mergeWithDefault(server));
         console.log('✅ ProfileContext: loaded from API, id =', server.id);

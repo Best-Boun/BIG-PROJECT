@@ -109,7 +109,6 @@ export default function ApplicantProfile() {
   return (
     <div className="ap-page">
       <Container className="ap-container">
-
         {/* Back */}
         <button
           className="ap-back-link"
@@ -120,17 +119,19 @@ export default function ApplicantProfile() {
         </button>
 
         <div className="ap-layout">
-
           {/* ── Left column ──────────────────────────────────── */}
           <div className="ap-main">
-
             {/* Identity card */}
             <div className="ap-card ap-identity-card">
               <div className="ap-identity-row">
                 <div className="ap-avatar-lg">
                   {profile.profileImage || profile.photo ? (
                     <img
-                      src={profile.profileImage || profile.photo}
+                      src={
+                        profile.profileImage
+                          ? `http://localhost:3000${profile.profileImage}`
+                          : profile.photo
+                      }
                       alt={displayName}
                       className="ap-avatar-img"
                     />
@@ -143,7 +144,9 @@ export default function ApplicantProfile() {
 
                 <div className="ap-identity-info">
                   <h1 className="ap-name">{displayName}</h1>
-                  {profile.title && <p className="ap-job-title">{profile.title}</p>}
+                  {profile.title && (
+                    <p className="ap-job-title">{profile.title}</p>
+                  )}
                   <div className="ap-contact-row">
                     {profile.email && (
                       <span className="ap-contact-item">{profile.email}</span>
@@ -174,7 +177,7 @@ export default function ApplicantProfile() {
                 <div className="ap-skills-wrap">
                   {profile.skills.map((skill, i) => (
                     <span key={i} className="ap-skill-badge">
-                      {typeof skill === 'string' ? skill : skill.name || skill}
+                      {typeof skill === "string" ? skill : skill.name || skill}
                     </span>
                   ))}
                 </div>
@@ -182,7 +185,8 @@ export default function ApplicantProfile() {
             )}
 
             {/* Work Experience */}
-            {(profile.experience?.length > 0 || profile.employment?.length > 0) && (
+            {(profile.experience?.length > 0 ||
+              profile.employment?.length > 0) && (
               <div className="ap-card">
                 <h2 className="ap-section-title">Work Experience</h2>
                 <div className="ap-timeline">
@@ -197,13 +201,17 @@ export default function ApplicantProfile() {
                           {exp.company}
                           {(exp.startDate || exp.start) && (
                             <span className="ap-exp-period">
-                              {' · '}{exp.startDate || exp.start}
-                              {' — '}{exp.endDate || exp.end || 'Present'}
+                              {" · "}
+                              {exp.startDate || exp.start}
+                              {" — "}
+                              {exp.endDate || exp.end || "Present"}
                             </span>
                           )}
                         </p>
                         {(exp.description || exp.desc) && (
-                          <p className="ap-exp-desc">{exp.description || exp.desc}</p>
+                          <p className="ap-exp-desc">
+                            {exp.description || exp.desc}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -228,9 +236,12 @@ export default function ApplicantProfile() {
                           {edu.school || edu.institution}
                           {(edu.startYear || edu.year) && (
                             <span className="ap-exp-period">
-                              {' · '}{edu.startYear || edu.year}
-                              {edu.graduationYear && edu.startYear !== edu.graduationYear
-                                ? ` — ${edu.graduationYear}` : ''}
+                              {" · "}
+                              {edu.startYear || edu.year}
+                              {edu.graduationYear &&
+                              edu.startYear !== edu.graduationYear
+                                ? ` — ${edu.graduationYear}`
+                                : ""}
                             </span>
                           )}
                         </p>
@@ -244,7 +255,6 @@ export default function ApplicantProfile() {
 
           {/* ── Right sidebar ─────────────────────────────────── */}
           <div className="ap-sidebar">
-
             {/* Status card */}
             {appId && (
               <div className="ap-card ap-status-card">
@@ -264,23 +274,23 @@ export default function ApplicantProfile() {
 
                   <div
                     className="ap-status-dd-wrap"
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       className="ap-status-toggle"
                       disabled={updatingStatus}
-                      onClick={() => setStatusMenuOpen(o => !o)}
+                      onClick={() => setStatusMenuOpen((o) => !o)}
                     >
-                      {updatingStatus ? '...' : 'Change'}
+                      {updatingStatus ? "..." : "Change"}
                       <FiChevronDown size={13} />
                     </button>
 
                     {statusMenuOpen && (
                       <div className="ap-status-menu">
-                        {STATUS_OPTIONS.map(s => (
+                        {STATUS_OPTIONS.map((s) => (
                           <button
                             key={s}
-                            className={`ap-status-opt ${status === s ? 'ap-status-opt-active' : ''}`}
+                            className={`ap-status-opt ${status === s ? "ap-status-opt-active" : ""}`}
                             onClick={() => handleStatusChange(s)}
                           >
                             <span
@@ -306,7 +316,9 @@ export default function ApplicantProfile() {
               </button>
               <button
                 className="ap-btn-back"
-                onClick={() => navigate(jobId ? `/jobs/${jobId}/applicants` : -1)}
+                onClick={() =>
+                  navigate(jobId ? `/jobs/${jobId}/applicants` : -1)
+                }
               >
                 <FaArrowLeft size={13} />
                 Back to Applicants
@@ -332,21 +344,29 @@ export default function ApplicantProfile() {
                 {(profile.location || profile.address) && (
                   <div className="ap-info-row">
                     <span className="ap-info-key">Location</span>
-                    <span className="ap-info-val">{profile.location || profile.address}</span>
+                    <span className="ap-info-val">
+                      {profile.location || profile.address}
+                    </span>
                   </div>
                 )}
                 {profile.skills?.length > 0 && (
                   <div className="ap-info-row">
                     <span className="ap-info-key">Skills</span>
-                    <span className="ap-info-val">{profile.skills.length} listed</span>
+                    <span className="ap-info-val">
+                      {profile.skills.length} listed
+                    </span>
                   </div>
                 )}
-                {(profile.experience?.length > 0 || profile.employment?.length > 0) && (
+                {(profile.experience?.length > 0 ||
+                  profile.employment?.length > 0) && (
                   <div className="ap-info-row">
                     <span className="ap-info-key">Experience</span>
                     <span className="ap-info-val">
-                      {(profile.experience || profile.employment).length} position{
-                        (profile.experience || profile.employment).length !== 1 ? 's' : ''}
+                      {(profile.experience || profile.employment).length}{" "}
+                      position
+                      {(profile.experience || profile.employment).length !== 1
+                        ? "s"
+                        : ""}
                     </span>
                   </div>
                 )}

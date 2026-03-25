@@ -6,8 +6,7 @@ import Swal from "sweetalert2";
 
 export default function Feed({ user }) {
   const API_POSTS = "http://localhost:3000/api/posts";
-  const API_ADS = "http://localhost:3000/api/ads";
-  const IMAGE_API = "http://localhost:3000/upload/";
+  const API_ADS = "http://localhost:3000/api/ads/public";
 
   const { profileData } = useContext(ProfileContext);
 
@@ -18,6 +17,20 @@ export default function Feed({ user }) {
   const [posts, setPosts] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
 
+  // ================= PROFILE IMAGE FIX =================
+ const getProfileImage = (img) => {
+   if (!img || img === "NULL") {
+     return "https://ui-avatars.com/api/?name=User";
+   }
+
+   if (img.startsWith("/upload")) {
+     return `http://localhost:3000${img}`;
+   }
+
+   return img;
+ };
+
+  // ================= CURRENT USER =================
   const getCurrentUser = () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -31,6 +44,7 @@ export default function Feed({ user }) {
 
   const currentUser = getCurrentUser();
 
+  // ================= LOAD POSTS =================
   const loadPosts = async () => {
     try {
       const res = await fetch(API_POSTS);
@@ -46,6 +60,7 @@ export default function Feed({ user }) {
     loadPosts();
   }, []);
 
+  // ================= LOAD ADS =================
   useEffect(() => {
     fetch(API_ADS)
       .then((res) => res.json())
@@ -75,7 +90,7 @@ export default function Feed({ user }) {
     }
 
     const userData = JSON.parse(localStorage.getItem("currentUser"));
-    const token = localStorage.getItem("token"); // 🔥 เพิ่ม
+    const token = localStorage.getItem("token");
 
     if (!userData || !token) {
       Swal.fire({
@@ -90,7 +105,7 @@ export default function Feed({ user }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 เพิ่ม
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId: userData.id,
@@ -122,58 +137,69 @@ export default function Feed({ user }) {
   };
 
   // ================= DELETE POST =================
-  const deletePost = async (id) => {
-    const result = await Swal.fire({
-      title: "ลบโพสต์นี้?",
-      text: "คุณแน่ใจนะว่าจะลบโพสต์นี้",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "ลบเลย",
-      cancelButtonText: "ยกเลิก",
-    });
+ const deletePost = async (post) => {
+   const isOwner = Number(currentUser.id) === Number(post.userId);
 
-    if (!result.isConfirmed) return;
+   let message = "คุณแน่ใจนะว่าจะลบโพสต์นี้";
 
-    try {
-      const token = localStorage.getItem("token"); // 🔥 เพิ่ม
+   if (!isOwner && currentUser.role === "admin") {
+     message = `⚠️ คุณกำลังลบโพสของ "${post.username}"`;
+   }
 
-      const res = await fetch(`${API_POSTS}/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`, // 🔥 เพิ่ม
-        },
-      });
+   const result = await Swal.fire({
+     title: "ลบโพสต์นี้?",
+     text: message,
+     icon: "warning",
+     showCancelButton: true,
+     confirmButtonText: "ลบเลย",
+     cancelButtonText: "ยกเลิก",
+   });
 
-      if (!res.ok) throw new Error("Delete failed");
+   if (!result.isConfirmed) return;
 
-      setPosts(posts.filter((p) => p.id !== id));
+   try {
+     const token = localStorage.getItem("token");
 
-      Swal.fire({
-        title: "ลบสำเร็จ!",
-        icon: "success",
-        timer: 1200,
-        showConfirmButton: false,
-      });
-    } catch (err) {
-      console.error(err);
+     const res = await fetch(`${API_POSTS}/${post.id}`, {
+       method: "DELETE",
+       headers: {
+         Authorization: `Bearer ${token}`,
+       },
+     });
 
-      Swal.fire({
-        icon: "error",
-        title: "ลบไม่สำเร็จ",
-      });
-    }
-  };
+     if (!res.ok) throw new Error("Delete failed");
+
+     setPosts(posts.filter((p) => p.id !== post.id));
+
+     Swal.fire({
+       title: "ลบสำเร็จ!",
+       icon: "success",
+       timer: 1200,
+       showConfirmButton: false,
+     });
+   } catch (err) {
+     console.error(err);
+
+     Swal.fire({
+       icon: "error",
+       title: "ลบไม่สำเร็จ",
+     });
+   }
+ };
 
   return (
     <div className="feed-page">
       <Container fluid className="feed-container">
         <Row className="feed-layout">
           <Col xl={7} lg={8} md={12} className="main-feed">
+            {/* CREATE POST */}
             <div className="create-post-box mb-3">
               <div className="d-flex align-items-center mb-3">
                 <div className="user-avatar">
                   <img
-                    src="/default-avatar.png"
+                    src={getProfileImage(
+                      profileData?.profileImage || currentUser?.profileImage,
+                    )}
                     className="avatar-img"
                     alt=""
                   />
@@ -182,7 +208,9 @@ export default function Feed({ user }) {
                 <input
                   type="text"
                   className="form-control ms-3"
-                  placeholder={`What's on your mind, ${currentUser?.name || "User"}?`}
+                  placeholder={`What's on your mind, ${
+                    currentUser?.name || "User"
+                  }?`}
                   value={postText}
                   onChange={(e) => setPostText(e.target.value)}
                 />
@@ -195,6 +223,7 @@ export default function Feed({ user }) {
               </div>
             </div>
 
+            {/* POSTS */}
             <div className="feed-posts">
               {posts.map((post) => (
                 <div key={post.id} className="post-card mb-3">
@@ -202,7 +231,9 @@ export default function Feed({ user }) {
                     <div className="d-flex align-items-start w-100">
                       <div className="user-avatar">
                         <img
-                          src="/default-avatar.png"
+                          src={getProfileImage(
+                            post.profileImage || currentUser?.profileImage,
+                          )}
                           className="avatar-img"
                           alt=""
                         />
@@ -220,7 +251,8 @@ export default function Feed({ user }) {
                           </div>
 
                           {currentUser &&
-                            Number(currentUser.id) === Number(post.userId) && (
+                            (Number(currentUser.id) === Number(post.userId) ||
+                              currentUser.role === "admin") && (
                               <div style={{ position: "relative" }}>
                                 <button
                                   className="btn btn-light"
@@ -260,7 +292,7 @@ export default function Feed({ user }) {
                                         textAlign: "left",
                                         cursor: "pointer",
                                       }}
-                                      onClick={() => deletePost(post.id)}
+                                      onClick={() => deletePost(post)}
                                     >
                                       ลบ
                                     </button>
@@ -279,6 +311,7 @@ export default function Feed({ user }) {
             </div>
           </Col>
 
+          {/* ADS */}
           <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
             {ads.map((ad) => {
               const hasImage = ad.image && ad.image !== "NULL";
@@ -288,7 +321,11 @@ export default function Feed({ user }) {
                   <div className="widget-badge">Sponsored</div>
 
                   {hasImage ? (
-                    <img src={IMAGE_API + ad.image} className="ad-img" alt="" />
+                    <img
+                      src={`http://localhost:3000/upload/${ad.image}`}
+                      className="ad-img"
+                      alt=""
+                    />
                   ) : (
                     <div className="ad-placeholder">พื้นที่โฆษณา</div>
                   )}
@@ -314,7 +351,7 @@ export default function Feed({ user }) {
           <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
             {selectedAd.image && selectedAd.image !== "NULL" && (
               <img
-                src={IMAGE_API + selectedAd.image}
+                src={`http://localhost:3000/upload/${selectedAd.image}`}
                 className="ad-modal-img"
                 alt=""
               />

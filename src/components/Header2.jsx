@@ -123,7 +123,7 @@ export default function Header2({ role, onLogout }) {
                       <FaBullhorn /> Ads Management
                     </Dropdown.Item>
                     <Dropdown.Item href="/admin">
-                      <FaUserShield /> Admin Management
+                      <FaUserShield /> User Management
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Item onClick={onLogout}>

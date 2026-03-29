@@ -11,6 +11,7 @@ function Login({ setToken, setRole }) {
   const passRef = useRef();
 
   const [error, setError] = useState("");
+  const [isBannedError, setIsBannedError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [shake, setShake] = useState(false);
@@ -35,6 +36,7 @@ function Login({ setToken, setRole }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setIsBannedError(false);
 
     const email = userRef.current.value.trim();
     const password = passRef.current.value.trim();
@@ -106,7 +108,14 @@ function Login({ setToken, setRole }) {
         }
       }, 900);
     } catch (err) {
-      setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      const data = err.response?.data;
+      if (data?.banned) {
+        setIsBannedError(true);
+        setError("🚫 บัญชีของคุณถูกแบนโดยผู้ดูแลระบบ ไม่สามารถเข้าใช้งานได้ กรุณาติดต่อผู้ดูแลระบบ");
+      } else {
+        setIsBannedError(false);
+        setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      }
       animateError();
     }
   };
@@ -235,7 +244,14 @@ function Login({ setToken, setRole }) {
             </div>
           </Form.Group>
 
-          {error && <p className="login-error">{error}</p>}
+          {error && (
+            <div className={`login-error-box ${isBannedError ? "banned-error" : ""}`}>
+              <p className="login-error">{error}</p>
+              {isBannedError && (
+                <p className="login-ban-sub">หากคุณคิดว่านี้เป็นความผิดพลาด กรุณาติดต่อทีมงาน</p>
+              )}
+            </div>
+          )}
 
           <Button className="login-btn glow" type="submit">
             เข้าสู่ระบบ

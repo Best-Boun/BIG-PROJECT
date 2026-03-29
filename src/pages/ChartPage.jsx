@@ -146,10 +146,18 @@ function ChartPage() {
     averageAppsPerUser: 0,
   });
   const [monthlyUsers, setMonthlyUsers] = useState(null);
-  const [totalUsers, setTotalUsers]     = useState(null);
+  const [usersByRole, setUsersByRole]   = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [topJobs, setTopJobs]           = useState([]);
   const [loading, setLoading]           = useState(true);
+
+  const ROLE_COLORS = [
+    C.accent,   // seeker
+    C.accent2,  // employer
+    C.warning,  // admin
+    C.accent4,  // others
+    C.accent3,
+  ];
 
   useEffect(() => {
     const API = "http://localhost:3000/api/dashboard";
@@ -157,11 +165,11 @@ function ChartPage() {
     Promise.all([
       axios.get(`${API}/summary`),
       axios.get(`${API}/users/monthly`),
-      axios.get(`${API}/users/total`),
+      axios.get(`${API}/users/by-role`),
       axios.get(`${API}/activities/recent`),
       axios.get(`${API}/jobs/top`),
     ])
-      .then(([sumRes, monthRes, totalRes, actRes, jobRes]) => {
+      .then(([sumRes, monthRes, roleRes, actRes, jobRes]) => {
         setSummary(prev => ({ ...prev, ...sumRes.data }));
 
         setMonthlyUsers({
@@ -179,11 +187,12 @@ function ChartPage() {
           }],
         });
 
-        setTotalUsers({
-          labels: ["Current", "New (30d)", "Returning"],
+        const roles = roleRes.data || [];
+        setUsersByRole({
+          labels: roles.map(r => r.role.charAt(0).toUpperCase() + r.role.slice(1)),
           datasets: [{
-            data: [totalRes.data.current, totalRes.data.new, totalRes.data.returning],
-            backgroundColor: [C.accent, C.accent2, C.accent4],
+            data: roles.map(r => r.count),
+            backgroundColor: roles.map((_, i) => ROLE_COLORS[i % ROLE_COLORS.length]),
             borderColor: C.surface,
             borderWidth: 3,
             hoverOffset: 6,
@@ -271,8 +280,8 @@ function ChartPage() {
           const n = (v) => (Number(v) || 0).toLocaleString();
           return (
             <div style={{ ...gridStyle, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 28 }}>
-              <StatCard title="Total Users"    value={n(summary.totalUsers)}        icon="👥" color={C.accent}  loading={loading} />
-              <StatCard title="Users Today"    value={n(summary.todayUsers)}        icon="⚡" color={C.accent2} loading={loading} />
+              <StatCard title="Total Users"    value={n(summary.totalUsers)}icon="👥" color={C.accent}  loading={loading} />
+              <StatCard title="Users Today"    value={n(summary.todayUsers)}icon="⚡" color={C.accent2} loading={loading} />
               <StatCard title="New This Month" value={`+${n(summary.newUsersMonth)}`} icon="📈" color={C.warning} loading={loading} />
               <StatCard title="Avg Daily Apps" value={n(summary.averageUsageMins)}  icon="📋" color={C.accent4} loading={loading} />
             </div>
@@ -290,10 +299,10 @@ function ChartPage() {
             </div>
           </ChartCard>
 
-          <ChartCard title="User Segments" subtitle="Current · New · Returning">
+          <ChartCard title="Users by Role" subtitle="Breakdown of all users by role">
             <div style={{ position: "relative", height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {totalUsers
-                ? <Doughnut data={totalUsers} options={{
+              {usersByRole
+                ? <Doughnut data={usersByRole} options={{
                     ...chartDefaults,
                     responsive: true,
                     maintainAspectRatio: false,

@@ -45,7 +45,7 @@ function Register() {
 
       if (res.ok) {
         setMessage("✅ สมัครสมาชิกสำเร็จ");
-        setTimeout(() => { window.location.href = "/"; }, 1200);
+        setTimeout(() => { window.location.href = "/feed"; }, 1200);
       } else {
         setMessage(result.message || "❌ สมัครสมาชิกไม่สำเร็จ");
       }

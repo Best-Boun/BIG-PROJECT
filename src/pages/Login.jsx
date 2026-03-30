@@ -99,13 +99,8 @@ function Login({ setToken, setRole }) {
         if (setToken) setToken(token);
         if (setRole) setRole(user.role || "user");
 
-        if (user.role === "employer") {
-          window.location.href = "/jobs/manage";
-        } else if (user.role === "seeker") {
-          window.location.href = "/jobs";
-        } else {
-          window.location.href = "/feed";
-        }
+        // redirect by role
+        window.location.href = "/feed";
       }, 900);
     } catch (err) {
       const data = err.response?.data;

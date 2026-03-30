@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Pagination } from 'react-bootstrap';
-import { FaArrowLeft, FaUser, FaComment, FaStar } from 'react-icons/fa';
+import { Container } from 'react-bootstrap';
+import { usePagination } from '../hooks/usePagination';
+import PaginationBar from '../components/PaginationBar';
+import { FaArrowLeft, FaUser, FaStar } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import './ManageApplicants.css';
 
@@ -32,7 +34,6 @@ export default function ManageApplicants() {
   const [jobTitle, setJobTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
   const [statusMenu, setStatusMenu] = useState(null); // appId of open menu
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -62,11 +63,7 @@ export default function ManageApplicants() {
     ? applicants
     : applicants.filter(a => a.status?.toLowerCase() === activeTab.toLowerCase());
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const { paginatedItems, currentPage, totalPages, setCurrentPage } = usePagination(filtered, ITEMS_PER_PAGE);
 
   const tabCount = (tab) => tab === 'All'
     ? applicants.length
@@ -74,7 +71,6 @@ export default function ManageApplicants() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setCurrentPage(1);
   };
 
   const handleStatusChange = async (appId, newStatus, e) => {
@@ -149,13 +145,13 @@ export default function ManageApplicants() {
         {/* Grid */}
         {loading ? (
           <div className="ma-loading">Loading applicants...</div>
-        ) : paginated.length === 0 ? (
+        ) : paginatedItems.length === 0 ? (
           <div className="ma-empty">
             <p>No applicants{activeTab !== 'All' ? ` with status "${activeTab}"` : ''}.</p>
           </div>
         ) : (
           <div className="ma-grid">
-            {paginated.map(app => {
+            {paginatedItems.map(app => {
               const badgeStyle = getBadgeStyle(app.status);
               const isHighMatch = app.matchScore >= 80;
               const isUpdating = updatingId === app.id;
@@ -169,8 +165,20 @@ export default function ManageApplicants() {
                       style={{ background: getDotColor(app.status) }}
                     />
                     {isHighMatch && (
-                      <span className="ma-star-badge">
-                        <FaStar size={11} />
+                      <span className="ma-star-badge" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        background: '#3b82f6',
+                        color: '#fff',
+                        flexShrink: 0,
+                        padding: 0,
+                        lineHeight: 1,
+                      }}>
+                        <FaStar size={10} style={{ display: 'block', margin: 0 }} />
                       </span>
                     )}
                   </div>
@@ -197,6 +205,57 @@ export default function ManageApplicants() {
                           })
                         : '—'}
                     </p>
+                    {app.matchScore !== undefined && (
+                      <p style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: app.matchScore >= 70 ? '#16a34a'
+                             : app.matchScore >= 40 ? '#ca8a04'
+                             : '#dc2626',
+                        marginTop: '4px'
+                      }}>
+                        ⚡ {app.matchScore}% Match
+                      </p>
+                    )}
+                    {app.skills && app.skills.length > 0 && (
+                      <div style={{ marginTop: '6px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px' }}>
+                          Skills
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                          {(() => {
+                            const levelOrder = { Advanced: 1, Intermediate: 2, Beginner: 3 };
+                            // sort: required ก่อน → Advanced → Intermediate → Beginner
+                            const sorted = [...app.skills].sort((a, b) => {
+                              if (a.required !== b.required) return a.required ? -1 : 1;
+                              return (levelOrder[a.level] || 3) - (levelOrder[b.level] || 3);
+                            });
+                            const visible = sorted.slice(0, 3);
+                            const remaining = sorted.length - 3;
+                            return (
+                              <>
+                                {visible.map((s, i) => (
+                                  <span key={s.skillId || i} style={{
+                                    fontSize: '10px', padding: '1px 6px',
+                                    borderRadius: '20px',
+                                    background: s.level === 'Advanced' ? '#dbeafe' : s.level === 'Intermediate' ? '#d1fae5' : '#fef3c7',
+                                    color: s.level === 'Advanced' ? '#1d4ed8' : s.level === 'Intermediate' ? '#065f46' : '#92400e',
+                                    fontWeight: 500,
+                                  }}>
+                                    {s.skillName} · {s.level}
+                                  </span>
+                                ))}
+                                {remaining > 0 && (
+                                  <span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>
+                                    +{remaining} more
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Status Badge */}
@@ -263,29 +322,11 @@ export default function ManageApplicants() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="ma-pagination">
-            <Pagination>
-              <Pagination.Prev
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-              />
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Pagination.Item
-                  key={i + 1}
-                  active={currentPage === i + 1}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </Pagination.Item>
-              ))}
-              <Pagination.Next
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-              />
-            </Pagination>
-          </div>
-        )}
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </Container>
     </div>
   );

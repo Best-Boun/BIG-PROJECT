@@ -174,13 +174,35 @@ export default function ApplicantProfile() {
             {profile.skills?.length > 0 && (
               <div className="ap-card">
                 <h2 className="ap-section-title">Skills</h2>
-                <div className="ap-skills-wrap">
-                  {profile.skills.map((skill, i) => (
-                    <span key={i} className="ap-skill-badge">
-                      {typeof skill === "string" ? skill : skill.name || skill}
-                    </span>
-                  ))}
-                </div>
+                {(() => {
+                  const categories = [...new Set(profile.skills.map(s => s.category || 'Other'))];
+                  return categories.map(cat => {
+                    const catSkills = profile.skills.filter(s => (s.category || 'Other') === cat);
+                    return (
+                      <div key={cat} style={{ marginBottom: '16px' }}>
+                        <div style={{
+                          fontSize: '11px', fontWeight: 700,
+                          color: '#6b7280', textTransform: 'uppercase',
+                          letterSpacing: '0.06em', marginBottom: '8px'
+                        }}>
+                          {cat}
+                        </div>
+                        <div className="ap-skills-wrap">
+                          {catSkills.map((skill, i) => {
+                            const name = typeof skill === 'string' ? skill : skill.name || skill.skill || '';
+                            const yearsExp = skill.yearsExp || 0;
+                            const level = yearsExp >= 3 ? 'Advanced' : yearsExp >= 1 ? 'Intermediate' : null;
+                            return (
+                              <span key={i} className="ap-skill-badge">
+                                {name}{level ? ` · ${level}` : ''}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
 

@@ -249,9 +249,52 @@ function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
     if (!skills.includes(kw) && skills.length < 10) onSkillsChange([...skills, kw]);
   };
 
-  const addAll = () => {
-    const toAdd = available.slice(0, 10 - skills.length);
-    if (toAdd.length > 0) onSkillsChange([...skills, ...toAdd]);
+  if (template === 'corporate-photo') {
+    return <TemplateCorporatePhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
+  }
+  if (template === 'sleek-photo') {
+    return <TemplateSleekProfessionalPhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
+  }
+  if (template === 'scribd-style') {
+    return <TemplateScribdStyle data={previewData} color={colors?.primary} designSettings={designSettings} />;
+  }
+  
+  return <TemplateCorporatePhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
+}
+
+export default function ResumeEditor({ initialData, user, onLogout }) {
+  const [resumeData, setResumeData] = useState(initialData || {
+    name: '', title: '', email: '', phone: '', location: '', summary: '', photo: '',
+    education: [], employment: [], languages: [], hobbies: [], references: '',
+    skills: {
+      languages: '',
+      frontend: '',
+      backend: '',
+      databases: '',
+      softSkills: '',
+      devops: ''
+    }
+  });
+
+  const [selectedTemplate, setSelectedTemplate] = useState('corporate-photo');
+  const [selectedColor, setSelectedColor] = useState('#2c3e50');
+  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  
+  // DESIGN CONTROLS
+  const [designSettings, setDesignSettings] = useState({
+    fontSize: 'M',
+    fontStyle: 'INTER',
+    spacing: 'M'
+  });
+
+  const handleBasicChange = (field, value) => setResumeData(prev => ({ ...prev, [field]: value }));
+  const handleSelectTemplate = (template) => { setSelectedTemplate(template.id); setSelectedColor(template.colors.primary); };
+  const handleSelectColor = (color) => setSelectedColor(color);
+
+  const getTemplateColors = () => {
+    const template = TEMPLATES.find(t => t.id === selectedTemplate);
+    return { primary: selectedColor, secondary: template?.colors.secondary || '#764ba2' };
   };
 
   return (
@@ -321,48 +364,272 @@ function SkillsSection({ skills, onChange }) {
 
   const remove = (sk) => onChange(skills.filter((x) => x !== sk));
 
-  return (
-    <div className="re-card">
-      <div className="re-card__header">
-        <SLabel>ทักษะ</SLabel>
-        <span className="re-skills-count">{skills.length}/10</span>
-      </div>
-      <div className="re-tags-wrap">
-        {skills.map((sk) => (
-          <span key={sk} className="re-tag">
-            {sk}
-            <button className="re-tag__x" onClick={() => remove(sk)}>×</button>
-          </span>
-        ))}
-        {skills.length === 0 && <span className="re-empty-hint">ยังไม่มีทักษะ</span>}
-      </div>
-      {skills.length < 10 && (
-        <div className="re-add-row">
-          <input
-            className="re-input"
-            style={{ flex: 1 }}
-            placeholder="พิมพ์ทักษะแล้วกด Enter…"
-            value={val}
-            onChange={(e) => { setVal(e.target.value); setHoverId(-1); }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addSkill(); }
-              if (e.key === "ArrowDown") { e.preventDefault(); setHoverId((h) => Math.min(h + 1, suggestions.length - 1)); }
-              if (e.key === "ArrowUp")   { e.preventDefault(); setHoverId((h) => Math.max(h - 1, -1)); }
-              if (e.key === "Escape")    { setVal(""); setHoverId(-1); }
-            }}
-          />
-          <button className="re-btn re-btn-ghost" onClick={() => addSkill()} disabled={!val.trim()}>เพิ่ม</button>
-          {suggestions.length > 0 && (
-            <div className="re-autocomplete">
-              {suggestions.map((sg, i) => (
-                <div
-                  key={sg}
-                  className={`re-autocomplete__item${i === hoverId ? " re-autocomplete__item--hover" : ""}`}
-                  onMouseEnter={() => setHoverId(i)}
-                  onMouseLeave={() => setHoverId(-1)}
-                  onMouseDown={(e) => { e.preventDefault(); addSkill(sg); }}
-                >
-                  {sg}
+                  {/* EXPERIENCE */}
+                  <Accordion.Item eventKey="4">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Experience</Accordion.Header>
+                    <Accordion.Body>
+                      {(resumeData.employment || []).map((job, idx) => (
+                        <Card key={idx} className="experience-card mb-3">
+                          <Form.Group className="mb-3">
+                            <Form.Label className="small fw-bold">Job Title</Form.Label>
+                            <Form.Control 
+                              size="sm" 
+                              type="text" 
+                              value={job.position} 
+                              onChange={(e) => updateEmployment(idx, 'position', e.target.value)} 
+                              placeholder="e.g. Senior Product Manager"
+                            />
+                          </Form.Group>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="small fw-bold">Company</Form.Label>
+                            <Form.Control 
+                              size="sm" 
+                              type="text" 
+                              value={job.company} 
+                              onChange={(e) => updateEmployment(idx, 'company', e.target.value)} 
+                              placeholder="Company name"
+                            />
+                          </Form.Group>
+                          <Row className="mb-3">
+                            <Col sm={6}>
+                              <Form.Group>
+                                <Form.Label className="small fw-bold">Start Date</Form.Label>
+                                <Form.Control 
+                                  size="sm" 
+                                  type="text" 
+                                  value={job.startDate} 
+                                  onChange={(e) => updateEmployment(idx, 'startDate', e.target.value)} 
+                                  placeholder="e.g. Jul 2012"
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col sm={6}>
+                              <Form.Group>
+                                <Form.Label className="small fw-bold">End Date</Form.Label>
+                                <Form.Control 
+                                  size="sm" 
+                                  type="text" 
+                                  value={job.endDate} 
+                                  onChange={(e) => updateEmployment(idx, 'endDate', e.target.value)} 
+                                  placeholder="e.g. Present"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="small fw-bold">Description</Form.Label>
+                            <Form.Control 
+                              size="sm" 
+                              as="textarea" 
+                              rows={2} 
+                              value={job.description} 
+                              onChange={(e) => updateEmployment(idx, 'description', e.target.value)} 
+                              placeholder="Job responsibilities..."
+                            />
+                          </Form.Group>
+                          <Button variant="outline-danger" size="sm" onClick={() => removeEmployment(idx)} className="w-100"><FaTrash /> Delete</Button>
+                        </Card>
+                      ))}
+                      {(!resumeData.employment || resumeData.employment.length === 0) && (
+                        <div className="no-items-message">
+                          <p>No experience added yet</p>
+                        </div>
+                      )}
+                      <Button variant="primary" size="sm" onClick={addEmployment} className="w-100 mt-2"><FaPlus /> Add Experience</Button>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* SKILLS */}
+                  <Accordion.Item eventKey="5">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Skills</Accordion.Header>
+                    <Accordion.Body>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Select Category</Form.Label>
+                        <Form.Select 
+                          value={selectedSkillCategory} 
+                          onChange={(e) => {
+                            setSelectedSkillCategory(e.target.value);
+                            setSelectedSkill('');
+                          }}
+                          size="sm"
+                        >
+                          {skillCategories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>{cat.label}</option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-bold">Add {skillCategories.find(c => c.id === selectedSkillCategory)?.label}</Form.Label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <Form.Select 
+                            value={selectedSkill} 
+                            onChange={(e) => setSelectedSkill(e.target.value)}
+                            size="sm"
+                          >
+                            <option value="">-- Select a skill --</option>
+                            {skillOptions[selectedSkillCategory]?.map((skill) => (
+                              <option key={skill} value={skill}>{skill}</option>
+                            ))}
+                          </Form.Select>
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            onClick={addSkill}
+                            style={{ minWidth: '80px' }}
+                          >
+                            <FaPlus /> Add
+                          </Button>
+                        </div>
+                      </Form.Group>
+
+                      {resumeData.skills?.[selectedSkillCategory] && (
+                        <div className="skills-display">
+                          <h6>
+                            Current {skillCategories.find(c => c.id === selectedSkillCategory)?.label}
+                          </h6>
+                          <div className="skills-tags">
+                            {resumeData.skills[selectedSkillCategory]
+                              .split(',')
+                              .map(skill => skill.trim())
+                              .filter(skill => skill)
+                              .map((skill, idx) => (
+                                <div
+                                  key={idx}
+                                  className="skill-tag"
+                                  onClick={() => removeSkillFromList(skill)}
+                                  title="Click to remove"
+                                >
+                                  {skill}
+                                  <span className="skill-tag-close">❌</span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* LANGUAGES */}
+                  <Accordion.Item eventKey="6">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Languages</Accordion.Header>
+                    <Accordion.Body>
+                      {(resumeData.languages || []).map((lang, idx) => (
+                        <div key={idx} className="language-item">
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'flex-end' }}>
+                            <Form.Group className="mb-0">
+                              <Form.Label className="small fw-bold">Language</Form.Label>
+                              <Form.Control size="sm" type="text" value={lang.name} onChange={(e) => updateLanguage(idx, 'name', e.target.value)} placeholder="e.g. English" />
+                            </Form.Group>
+                            <Form.Group className="mb-0">
+                              <Form.Label className="small fw-bold">Level</Form.Label>
+                              <Form.Select size="sm" value={lang.level} onChange={(e) => updateLanguage(idx, 'level', e.target.value)}>
+                                <option>Basic</option><option>Intermediate</option><option>Advanced</option><option>Fluent</option><option>Native</option>
+                              </Form.Select>
+                            </Form.Group>
+                            <Button variant="outline-danger" size="sm" onClick={() => removeLanguage(idx)} className="w-100"><FaTrash /> Delete</Button>
+                          </div>
+                        </div>
+                      ))}
+                      {(!resumeData.languages || resumeData.languages.length === 0) && (
+                        <div className="no-items-message">
+                          <p>No languages added yet</p>
+                        </div>
+                      )}
+                      <Button variant="primary" size="sm" onClick={addLanguage} className="w-100 mt-2"><FaPlus /> Add Language</Button>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* REFERENCES */}
+                  <Accordion.Item eventKey="7">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>References</Accordion.Header>
+                    <Accordion.Body>
+                      <Form.Group>
+                        <Form.Label style={{ fontWeight: '500', fontSize: '13px' }}>References</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={3}
+                          value={resumeData.references || ''}
+                          onChange={(e) => setResumeData(prev => ({ ...prev, references: e.target.value }))}
+                          placeholder="e.g. Available upon request, or list reference contacts..."
+                        />
+                      </Form.Group>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* HOBBIES */}
+                  <Accordion.Item eventKey="8">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Hobbies & Interests</Accordion.Header>
+                    <Accordion.Body>
+                      {(resumeData.hobbies || []).map((hobby, idx) => (
+                        <div key={idx} className="hobby-item">
+                          <Form.Control 
+                            size="sm" 
+                            type="text" 
+                            value={hobby} 
+                            onChange={(e) => updateHobby(idx, e.target.value)} 
+                            placeholder="e.g. Photography, Gaming, Reading"
+                          />
+                          <Button variant="outline-danger" size="sm" onClick={() => removeHobby(idx)}><FaTrash /></Button>
+                        </div>
+                      ))}
+                      {(!resumeData.hobbies || resumeData.hobbies.length === 0) && (
+                        <div className="no-items-message">
+                          <p>No hobbies added yet</p>
+                        </div>
+                      )}
+                      <Button variant="primary" size="sm" onClick={addHobby} className="w-100 mt-2"><FaPlus /> Add Hobby</Button>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                {/* DESIGN CONTROLS */}
+                <div className="design-controls">
+                  <h6>Design Settings</h6>
+                  
+                  <Form.Group className="mb-3">
+                    <Form.Label className="form-label">Font Size</Form.Label>
+                    <div className="design-btn-group">
+                      {['S', 'M', 'L'].map((size) => (
+                        <Button
+                          key={size}
+                          variant={designSettings.fontSize === size ? 'primary' : 'secondary'}
+                          size="sm"
+                          onClick={() => setDesignSettings(prev => ({ ...prev, fontSize: size }))}
+                        >
+                          {size} {size === 'S' ? '(SMALL)' : size === 'M' ? '(MEDIUM)' : '(LARGE)'}
+                        </Button>
+                      ))}
+                    </div>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label className="form-label">Font Style</Form.Label>
+                    <Form.Select 
+                      value={designSettings.fontStyle}
+                      onChange={(e) => setDesignSettings(prev => ({ ...prev, fontStyle: e.target.value }))}
+                      size="sm"
+                    >
+                      <option value="INTER">Inter (Modern)</option>
+                      <option value="SERIF">Serif (Classic)</option>
+                      <option value="MONO">Monospace (Technical)</option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group>
+                    <Form.Label className="form-label">Spacing</Form.Label>
+                    <div className="design-btn-group">
+                      {['S', 'M', 'L'].map((space) => (
+                        <Button
+                          key={space}
+                          variant={designSettings.spacing === space ? 'primary' : 'secondary'}
+                          size="sm"
+                          onClick={() => setDesignSettings(prev => ({ ...prev, spacing: space }))}
+                        >
+                          {space} {space === 'S' ? '(Compact)' : space === 'M' ? '(Normal)' : '(Spacious)'}
+                        </Button>
+                      ))}
+                    </div>
+                  </Form.Group>
                 </div>
               ))}
             </div>

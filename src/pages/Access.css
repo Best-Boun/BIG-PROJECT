@@ -217,9 +217,34 @@ body {
   background: #f4ecff;
   color: #7e42df;
 }
+.action-btn.ban {
+  background: #ffd8d8;
+  color: #c32e2e;
+}
+.action-btn.unban {
+  background: #d9fbde;
+  color: #2d8d3c;
+}
 .action-btn.delete {
   background: #ff4d4d;
   color: #fff;
+}
+
+.user-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
+  margin-top: 2px;
+}
+.user-status.active {
+  background: #d9ffe8;
+  color: #1e9e54;
+}
+.user-status.banned {
+  background: #ffe5e5;
+  color: #e23232;
 }
 
 .action-btn:disabled {
@@ -242,12 +267,16 @@ body {
 
 .am-modal-card {
   width: 420px;
+  max-width: 95vw;
   background: #ffffff !important;
   color: #000 !important;
   padding: 24px;
   border-radius: 22px;
   box-shadow: 0 25px 55px rgba(0,0,0,0.25);
   z-index: 9999 !important;
+}
+.am-modal-card.am-wide {
+  width: 580px;
 }
 
 
@@ -520,4 +549,310 @@ body {
   font-size: 13px;
   transition: 0.25s;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* ============================================================
+   CONTROLS INNER (for filter row)
+============================================================ */
+.am-controls-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.am-filter-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   AVATAR
+============================================================ */
+.am-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.am-avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+.am-avatar-fallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6a5aff, #b44dff);
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   CARD TOP SECTION
+============================================================ */
+.am-card-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.am-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.am-user-email {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #666;
+  word-break: break-all;
+}
+.dark .am-user-email {
+  color: #aaa !important;
+}
+
+/* ============================================================
+   BANNED CARD
+============================================================ */
+.banned-card {
+  border-left-color: #e23232 !important;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   STAT BANNED
+============================================================ */
+.am-stat-banned {
+  color: #e23232 !important;
+}
+
+/* ============================================================
+   LOADING SPINNER
+============================================================ */
+.am-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: #888;
+}
+.am-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #6a5aff;
+  border-radius: 50%;
+  animation: am-spin 0.7s linear infinite;
+}
+@keyframes am-spin {
+  to { transform: rotate(360deg); }
+}
+
+.am-empty {
+  text-align: center;
+  padding: 50px 0;
+  color: #888;
+  font-size: 1rem;
+}
+
+/* ============================================================
+   MODAL HEADER + CLOSE BUTTON
+============================================================ */
+.am-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.am-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.am-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #888;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: .15s;
+}
+.am-modal-close:hover {
+  background: #f3f4f6;
+  color: #333;
+}
+.dark .am-modal-close {
+  color: #ccc;
+}
+.dark .am-modal-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* ============================================================
+   PROFILE MODAL
+============================================================ */
+.am-modal-card.am-wide {
+  width: 580px;
+  max-width: 95vw;
+}
+.am-profile-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.am-profile-avatar-wrap {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.am-profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #6a5aff;
+}
+.am-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  background: #f8f9ff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.dark .am-profile-grid {
+  background: rgba(255,255,255,0.06) !important;
+}
+.am-profile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.am-profile-label {
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.dark .am-profile-label {
+  color: #aaa !important;
+}
+.am-profile-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e1e1e;
+  word-break: break-word;
+}
+.dark .am-profile-value {
+  color: #fff !important;
+}
+.am-profile-section {
+  margin-bottom: 14px;
+}
+.am-profile-section h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #4a55ff;
+}
+.dark .am-profile-section h4 {
+  color: #9490ff !important;
+}
+.am-profile-item {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  color: #1e1e1e;
+}
+.dark .am-profile-item {
+  background: rgba(255,255,255,0.06) !important;
+  color: #fff !important;
+}
+.am-item-date {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+.am-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.am-skill-tag {
+  background: #eef1ff;
+  color: #4a55ff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.dark .am-skill-tag {
+  background: rgba(100,100,255,0.2) !important;
+  color: #a0a8ff !important;
+}
+.am-project-link {
+  color: #4a55ff;
+  font-size: 0.8rem;
+  text-decoration: none;
+  margin-top: 2px;
+}
+.am-project-link:hover {
+  text-decoration: underline;
+}
+.am-profile-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 0;
+  gap: 10px;
+  color: #888;
+}
+.am-profile-empty-icon {
+  font-size: 2.5rem;
+}
+
+/* ============================================================
+   BAN BUTTON IN DARK MODE
+============================================================ */
+.dark .action-btn.ban {
+  background: rgba(255, 100, 100, 0.2) !important;
+  color: #ff9f9f !important;
+}
+.dark .action-btn.unban {
+  background: rgba(80, 220, 130, 0.2) !important;
+  color: #7fffaa !important;
+}
+
+/* ============================================================
+   CONFIRM BAN BUTTON
+============================================================ */
+.am-btn-confirm.am-btn-ban {
+  background: linear-gradient(90deg, #ff4d4d, #ff7b50) !important;
+}
+
+/* ============================================================
+   AM-CONFIRM-TEXT SMALL
+============================================================ */
+.am-confirm-text small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  opacity: 0.75;
 }

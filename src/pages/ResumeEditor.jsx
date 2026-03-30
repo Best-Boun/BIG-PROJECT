@@ -1,140 +1,252 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Accordion, Modal } from 'react-bootstrap';
-import { FaPlus, FaTrash, FaDownload, FaPalette } from 'react-icons/fa';
-import './ResumeEditor.css';
-import {
-  TemplateCorporatePhoto,
-  TemplateSleekProfessionalPhoto,
-  TemplateScribdStyle
-} from '../components/photo-resume-templates';
+import "./ResumeEditor.css";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
-const TEMPLATES = [
-  { id: 'corporate-photo', name: 'Corporate Photo', colors: { primary: '#2c3e50', secondary: '#34495e' } },
-  { id: 'sleek-photo', name: 'Sleek Photo', colors: { primary: '#16a085', secondary: '#138d75' } },
-  { id: 'scribd-style', name: 'Scribd Style', colors: { primary: '#667eea', secondary: '#764ba2' } },
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS & DATA
+═══════════════════════════════════════════════════════════════ */
+const DRAFT_KEY = "resume_editor_v3_draft";
+const API_URL   = "http://localhost:3000/api/resume";
+
+const LANG_LEVELS = ["เจ้าของภาษา", "คล่องแคล่ว", "ขั้นสูง", "ระดับกลาง", "เบื้องต้น"];
+const LANG_LEVEL_PCT = { เจ้าของภาษา: 100, คล่องแคล่ว: 85, ขั้นสูง: 68, ระดับกลาง: 50, เบื้องต้น: 28 };
+
+const SKILL_SUGGESTIONS = [
+  "React","Vue","Angular","Next.js","TypeScript","JavaScript","Python","Node.js",
+  "Java","C#","PHP","Laravel","Django","FastAPI","GraphQL","REST API","Docker",
+  "Kubernetes","AWS","GCP","Azure","PostgreSQL","MySQL","MongoDB","Redis",
+  "Git","CI/CD","Figma","Tailwind CSS","HTML","CSS","Linux","Agile","Scrum",
 ];
 
-const PRESET_COLORS = ['#667eea', '#3498db', '#e67e22', '#e74c3c', '#9b59b6'];
+const SUMMARY_REWRITES = [
+  (s) => (s.includes("ทำเว็บ") || s.includes("web"))
+    ? "พัฒนาเว็บแอปพลิเคชันที่มีประสิทธิภาพสูงด้วย React, Node.js และเทคโนโลยีสมัยใหม่ พร้อมมุ่งเน้นการยกระดับประสบการณ์ผู้ใช้และคุณภาพโค้ดให้ดียิ่งขึ้นอยู่เสมอ"
+    : null,
+  (s) => (s.includes("ดูแล") || s.includes("manage"))
+    ? "ขับเคลื่อนและบริหารจัดการโปรเจคด้านเทคโนโลยีให้บรรลุเป้าหมาย พร้อมนำทีมพัฒนาให้ทำงานได้อย่างมีประสิทธิภาพสูงสุดในทุกสถานการณ์"
+    : null,
+  (s) => (s.includes("วิเคราะห์") || s.includes("data") || s.includes("ข้อมูล"))
+    ? "วิเคราะห์และประมวลผลข้อมูลขนาดใหญ่เพื่อสร้าง insight เชิงธุรกิจ ด้วย Python และเครื่องมือ Data Science ชั้นนำระดับอุตสาหกรรม"
+    : null,
+];
 
-function TemplateThumbnail({ template, isSelected, onClick, selectedColor, data }) {
-  const getPreview = () => {
-    switch (template.id) {
-      case 'corporate-photo': return <TemplateCorporatePhoto data={data} color={selectedColor} />;
-      case 'sleek-photo': return <TemplateSleekProfessionalPhoto data={data} color={selectedColor} />;
-      case 'scribd-style': return <TemplateScribdStyle data={data} color={selectedColor} />;
-      default: return <TemplateCorporatePhoto data={data} color={selectedColor} />;
-    }
-  };
+const TEMPLATES = [
+  { id: "modern",  label: "Modern",  desc: "สีสันทันสมัย" },
+  { id: "minimal", label: "Minimal", desc: "สะอาดเรียบร้อย" },
+  { id: "bold",    label: "Bold",    desc: "เข้มแข็งโดดเด่น" },
+];
+
+const JOB_ROLES = [
+  { id: "",          label: "— เลือกสายงาน —" },
+  { id: "frontend",  label: "Frontend Developer" },
+  { id: "backend",   label: "Backend Developer" },
+  { id: "fullstack", label: "Full Stack Developer" },
+  { id: "data",      label: "Data Analyst" },
+  { id: "uxui",      label: "UX/UI Designer" },
+];
+
+const ROLE_KEYWORDS = {
+  frontend:  ["React","Vue","Next.js","TypeScript","JavaScript","HTML","CSS","Tailwind CSS","Figma","Webpack"],
+  backend:   ["Node.js","Express","Python","Django","FastAPI","PostgreSQL","MySQL","MongoDB","Redis","Docker"],
+  fullstack: ["React","Node.js","TypeScript","REST API","GraphQL","Docker","PostgreSQL","AWS","CI/CD","Git"],
+  data:      ["Python","SQL","Pandas","NumPy","Power BI","Tableau","Machine Learning","Excel","R","Jupyter"],
+  uxui:      ["Figma","Adobe XD","Sketch","Prototyping","Wireframing","User Research","Design System","HTML","CSS","Zeplin"],
+};
+
+const EMPTY_RESUME = {
+  fullName: "", jobTitle: "", summary: "",
+  skills: [], education: [], experience: [], languages: [],
+  profileImage: "",
+};
+
+const MOCK_PROFILE = {
+  name: "สมชาย ใจดี",
+  title: "Senior Full Stack Developer",
+  summary: "นักพัฒนาซอฟต์แวร์ที่มีประสบการณ์กว่า 5 ปีในการสร้างระบบที่ scalable และ maintainable มุ่งมั่นส่งมอบงานคุณภาพสูง",
+  skills: ["React","Node.js","TypeScript","PostgreSQL","Docker"],
+  education: [{ school: "จุฬาลงกรณ์มหาวิทยาลัย", degree: "วิศวกรรมศาสตรบัณฑิต สาขาวิศวกรรมคอมพิวเตอร์", startYear: "2559", endYear: "2563" }],
+  experience: [
+    { company: "Acme Corp", position: "Senior Developer", startDate: "ม.ค. 2564", endDate: "ปัจจุบัน", description: "พัฒนาและดูแล platform หลักของบริษัทที่มีผู้ใช้กว่า 1 ล้านคน ปรับปรุง performance ลด load time ลง 60%" },
+    { company: "StartupXYZ", position: "Frontend Developer", startDate: "มิ.ย. 2562", endDate: "ธ.ค. 2563", description: "สร้าง dashboard analytics และ UI components ด้วย React, TypeScript ร่วมกับทีม Design" },
+  ],
+  languages: [{ name: "ภาษาไทย", level: "เจ้าของภาษา" }, { name: "ภาษาอังกฤษ", level: "คล่องแคล่ว" }],
+  profileImage: "",
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════ */
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function withIds(arr) {
+  return (arr || []).map((item) => (item._id ? item : { _id: uid(), ...item }));
+}
+
+function saveDraft(data) {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ ts: Date.now(), data })); }
+  catch (err) { console.error("บันทึก draft ไม่สำเร็จ:", err); }
+}
+
+function loadDraft() {
+  try { const raw = localStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; }
+  catch (err) { console.error("โหลด draft ไม่สำเร็จ:", err); return null; }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); }
+  catch (err) { console.error("ลบ draft ไม่สำเร็จ:", err); }
+}
+
+function calcCompletion(resume) {
+  const checks = [
+    { key: "fullName",     label: "ชื่อ-นามสกุล",        done: !!resume.fullName.trim() },
+    { key: "jobTitle",     label: "ตำแหน่งงาน",           done: !!resume.jobTitle.trim() },
+    { key: "summary",      label: "สรุปตัวเอง (Summary)", done: resume.summary.trim().length > 30 },
+    { key: "skills",       label: "ทักษะ (อย่างน้อย 3)",  done: resume.skills.length >= 3 },
+    { key: "experience",   label: "ประสบการณ์ทำงาน",      done: resume.experience.length > 0 },
+    { key: "education",    label: "ประวัติการศึกษา",       done: resume.education.length > 0 },
+    { key: "languages",    label: "ภาษา",                  done: resume.languages.length > 0 },
+    { key: "profileImage", label: "รูปโปรไฟล์",            done: !!resume.profileImage },
+  ];
+  const done = checks.filter((c) => c.done).length;
+  return { pct: Math.round((done / checks.length) * 100), checks };
+}
+
+function rewriteSummary(summary) {
+  const lower = summary.toLowerCase();
+  for (const fn of SUMMARY_REWRITES) { const r = fn(lower); if (r) return r; }
+  const trimmed = summary.trim();
+  if (!trimmed) return "นักพัฒนาซอฟต์แวร์ที่มีทักษะหลากหลาย มุ่งมั่นสร้างสรรค์ผลงานคุณภาพสูง และพร้อมเรียนรู้เทคโนโลยีใหม่อยู่เสมอ";
+  if (trimmed.length < 30) return `${trimmed} พร้อมนำความเชี่ยวชาญมาสร้างคุณค่าให้กับองค์กร และมุ่งพัฒนาตนเองอย่างต่อเนื่อง`;
+  return trimmed;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MICRO COMPONENTS
+═══════════════════════════════════════════════════════════════ */
+function Spinner({ dark }) {
+  return <span className={`re-spinner${dark ? " re-spinner-dark" : ""}`} />;
+}
+
+function Toast({ toast }) {
+  if (!toast) return null;
+  const icon = toast.type === "success" ? "✓" : toast.type === "error" ? "!" : "i";
+  return (
+    <div className={`re-toast re-toast--${toast.type}`}>
+      <span>{icon}</span>
+      {toast.message}
+    </div>
+  );
+}
+
+function SLabel({ children }) {
+  return <p className="re-section-label">{children}</p>;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPLETION PANEL
+═══════════════════════════════════════════════════════════════ */
+function CompletionPanel({ resume }) {
+  const { pct, checks } = calcCompletion(resume);
+  const missing = checks.filter((c) => !c.done);
+  const barMod = pct >= 80 ? "high" : pct >= 50 ? "mid" : "low";
+  const pctMod = pct >= 80 ? "high" : pct >= 50 ? "mid" : "low";
 
   return (
-    <div 
-      className={`template-thumbnail ${isSelected ? 'selected' : ''}`}
-      onClick={onClick}
-      style={{
-        borderColor: isSelected ? selectedColor : '#ddd',
-        boxShadow: isSelected ? `0 0 15px ${selectedColor}40` : '0 2px 8px rgba(0,0,0,0.08)'
-      }}
-    >
-      <div className="template-thumbnail-content">
-        {getPreview()}
+    <div className="re-card">
+      <div className="re-completion-row">
+        <SLabel>ความสมบูรณ์ของ Resume</SLabel>
+        <span className={`re-completion-pct re-completion-pct--${pctMod}`}>{pct}%</span>
       </div>
-      <div className="template-thumbnail-label">
-        {template.name}
+      <div className="re-progress-wrap">
+        <div className={`re-progress-bar re-progress-bar--${barMod}`} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="re-completion-hints">
+        {missing.slice(0, 3).map((c) => (
+          <div key={c.key} className="re-completion-hint">
+            <span>—</span><span>ยังไม่ได้เพิ่ม{c.label}</span>
+          </div>
+        ))}
+        {pct >= 80 && (
+          <div className="re-completion-hint re-completion-hint--ok">
+            <span>✓</span><span>โปรไฟล์ครบ {pct}% แล้ว — พร้อมส่งสมัครงาน</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function ChangeTemplateModal({ show, onHide, onSelectTemplate, onSelectColor, selectedColor, selectedTemplate, data }) {
-  const getFullPreview = () => {
-    switch (selectedTemplate) {
-      case 'corporate-photo': return <TemplateCorporatePhoto data={data} color={selectedColor} />;
-      case 'sleek-photo': return <TemplateSleekProfessionalPhoto data={data} color={selectedColor} />;
-      case 'scribd-style': return <TemplateScribdStyle data={data} color={selectedColor} />;
-      default: return <TemplateCorporatePhoto data={data} color={selectedColor} />;
-    }
-  };
+/* ═══════════════════════════════════════════════════════════════
+   FEEDBACK PANEL
+═══════════════════════════════════════════════════════════════ */
+function FeedbackPanel({ resume }) {
+  const feedbacks = useMemo(() => {
+    const items = [];
+    if (!resume.fullName.trim())        items.push({ level: "error", text: "ยังไม่ได้กรอกชื่อ-นามสกุล" });
+    if (!resume.jobTitle.trim())        items.push({ level: "error", text: "ยังไม่ได้กรอกตำแหน่งงาน" });
+    if (resume.experience.length === 0) items.push({ level: "error", text: "ยังไม่ได้เพิ่มประสบการณ์ทำงาน" });
+    if (resume.education.length === 0)  items.push({ level: "error", text: "ยังไม่ได้เพิ่มประวัติการศึกษา" });
+    if (resume.summary.trim().length > 0 && resume.summary.trim().length < 50)
+      items.push({ level: "warn", text: `Summary สั้นเกินไป (${resume.summary.trim().length}/50 ตัวอักษร)` });
+    if (resume.summary.trim().length === 0) items.push({ level: "warn", text: "ยังไม่ได้เขียน Summary" });
+    if (resume.skills.length > 0 && resume.skills.length < 3)
+      items.push({ level: "warn", text: `ทักษะน้อยเกินไป (${resume.skills.length}/3 รายการขั้นต่ำ)` });
+    if (resume.skills.length === 0)     items.push({ level: "warn", text: "ยังไม่ได้เพิ่มทักษะ" });
+    if (!resume.profileImage)           items.push({ level: "warn", text: "ยังไม่มีรูปโปรไฟล์" });
+    if (resume.languages.length === 0)  items.push({ level: "warn", text: "ยังไม่ได้เพิ่มข้อมูลภาษา" });
+    return items;
+  }, [resume]);
+
+  const errors = feedbacks.filter((f) => f.level === "error");
+  const warns  = feedbacks.filter((f) => f.level === "warn");
+
+  if (feedbacks.length === 0) {
+    return (
+      <div className="re-card">
+        <div className="re-feedback-list">
+          <div className="re-feedback-item re-feedback-item--ok">
+            <span className="re-feedback-icon">✓</span>
+            <span>Resume สมบูรณ์แล้ว — พร้อมสำหรับการสมัครงาน</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Modal show={show} onHide={onHide} size="xl" centered fullscreen="lg">
-      <Modal.Header closeButton className="border-0" style={{ paddingBottom: '15px' }}>
-        <Modal.Title style={{ fontSize: '32px', fontWeight: 'bold', color: '#333' }}>CHANGE TEMPLATE</Modal.Title>
-      </Modal.Header>
-      <Modal.Body style={{ padding: '20px' }}>
-        <Row className="g-3">
-          <Col lg={7}>
-            <div className="template-modal-preview">
-              <div className="template-preview-inner">
-                <div style={{ transform: 'scale(0.58)', transformOrigin: 'top left', width: '100%', height: '100%' }}>
-                  {getFullPreview()}
-                </div>
-              </div>
-            </div>
-          </Col>
-          <Col lg={5} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              <h6 style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333', fontSize: '11px', textTransform: 'uppercase' }}>COLORS</h6>
-              <div className="template-colors-grid">
-                {PRESET_COLORS.map((color) => (
-                  <button 
-                    key={color} 
-                    className={`color-btn ${selectedColor === color ? 'active' : ''}`}
-                    onClick={() => onSelectColor(color)} 
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
-                <label style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <input 
-                    type="color" 
-                    value={selectedColor} 
-                    onChange={(e) => onSelectColor(e.target.value)} 
-                    style={{ opacity: 0, position: 'absolute', cursor: 'pointer', width: '100%', height: '100%' }} 
-                  />
-                  <div className="custom-color-btn">+</div>
-                </label>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-              <h6 style={{ fontWeight: 'bold', marginBottom: '0px', color: '#333', fontSize: '11px', textTransform: 'uppercase' }}>TEMPLATES</h6>
-              <div className="template-grid">
-                {TEMPLATES.map((template) => (
-                  <TemplateThumbnail 
-                    key={template.id} 
-                    template={template} 
-                    isSelected={selectedTemplate === template.id}
-                    onClick={() => onSelectTemplate(template)} 
-                    selectedColor={selectedColor} 
-                    data={data} 
-                  />
-                ))}
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Modal.Body>
-    </Modal>
+    <div className="re-card">
+      <div className="re-feedback-header">
+        <SLabel>คำแนะนำ Resume</SLabel>
+        <div className="re-feedback-badges">
+          {errors.length > 0 && <span className="re-feedback-badge re-feedback-badge--error">{errors.length} สำคัญ</span>}
+          {warns.length  > 0 && <span className="re-feedback-badge re-feedback-badge--warn">{warns.length} แนะนำ</span>}
+        </div>
+      </div>
+      <div className="re-feedback-list">
+        {errors.map((f, i) => (
+          <div key={i} className="re-feedback-item re-feedback-item--error">
+            <span className="re-feedback-icon">✕</span><span>{f.text}</span>
+          </div>
+        ))}
+        {warns.map((f, i) => (
+          <div key={i} className="re-feedback-item re-feedback-item--warn">
+            <span className="re-feedback-icon">–</span><span>{f.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
-function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M', fontStyle: 'INTER', spacing: 'M' } }) {
-  const previewData = (data && Object.keys(data).some(key => {
-    if (Array.isArray(data[key])) return data[key].length > 0;
-    return data[key];
-  })) ? data : {
-    name: '',
-    title: '',
-    location: '',
-    email: '',
-    phone: '',
-    summary: '',
-    photo: '',
-    skills: [''],
-    languages: [],
-    education: [{ degree: '', school: '', startDate: '', endDate: '' }],
-    employment: [{ position: '', company: '', startDate: '', endDate: '', description: '' }],
-    certifications: [],
-    hobbies: []
+/* ═══════════════════════════════════════════════════════════════
+   JOB ROLE SELECTOR
+═══════════════════════════════════════════════════════════════ */
+function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
+  const keywords  = useMemo(() => ROLE_KEYWORDS[jobRole] || [], [jobRole]);
+  const available = useMemo(() => keywords.filter((kw) => !skills.includes(kw)), [keywords, skills]);
+
+  const addKeyword = (kw) => {
+    if (!skills.includes(kw) && skills.length < 10) onSkillsChange([...skills, kw]);
   };
 
   if (template === 'corporate-photo') {
@@ -185,297 +297,72 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
     return { primary: selectedColor, secondary: template?.colors.secondary || '#764ba2' };
   };
 
-  const addEducation = () => setResumeData(prev => ({ ...prev, education: [...prev.education, { degree: '', school: '', faculty: '', startDate: '', endDate: '' }] }));
-  const updateEducation = (idx, field, value) => setResumeData(prev => { const updated = [...prev.education]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, education: updated }; });
-  const removeEducation = (idx) => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }));
-
-  const addEmployment = () => setResumeData(prev => ({ ...prev, employment: [...prev.employment, { position: '', company: '', startDate: '', endDate: '', description: '' }] }));
-  const updateEmployment = (idx, field, value) => setResumeData(prev => { const updated = [...prev.employment]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, employment: updated }; });
-  const removeEmployment = (idx) => setResumeData(prev => ({ ...prev, employment: prev.employment.filter((_, i) => i !== idx) }));
-
-  // DOWNLOAD PDF HANDLER
-  const handleDownloadPDF = async () => {
-    try {
-      const { jsPDF } = await import('jspdf');
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const element = document.querySelector('[data-resume-preview]');
-      if (!element) {
-        alert('Resume preview not found');
-        return;
-      }
-
-      const originalCursor = document.body.style.cursor;
-      document.body.style.cursor = 'wait';
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      const filename = resumeData.name ? `${resumeData.name}.pdf` : 'Resume.pdf';
-      pdf.save(filename);
-
-      document.body.style.cursor = originalCursor;
-    } catch (error) {
-      console.error('PDF Download Error:', error);
-      alert('Failed to download PDF. Please try again.');
-      document.body.style.cursor = 'auto';
-    }
-  };
-
-  // SKILLS
-  const skillOptions = {
-    languages: [
-      'Java', 'Python', 'JavaScript', 'TypeScript', 'C++', 'C#', 'Go', 'Rust', 
-      'PHP', 'Ruby', 'Swift', 'Kotlin', 'Scala', 'R', 'MATLAB'
-    ],
-    frontend: [
-      'React', 'Vue', 'Angular', 'Next.js', 'Svelte', 'Ember', 'Nuxt', 'Remix',
-      'HTML', 'CSS', 'SASS/SCSS', 'Tailwind CSS', 'Bootstrap', 'Material UI'
-    ],
-    backend: [
-      'Node.js', 'Django', 'Spring', 'FastAPI', 'Express', 'Flask', 'Laravel',
-      'ASP.NET', 'Ruby on Rails', 'Go Gin', 'NestJS', 'GraphQL'
-    ],
-    databases: [
-      'MySQL', 'MongoDB', 'PostgreSQL', 'Redis', 'Firebase', 'Oracle', 'SQL Server',
-      'DynamoDB', 'Cassandra', 'Elasticsearch', 'SQLite', 'MariaDB'
-    ],
-    softSkills: [
-      'Communication', 'Leadership', 'Problem-solving', 'Teamwork', 'Creativity',
-      'Time Management', 'Critical Thinking', 'Adaptability', 'Attention to Detail',
-      'Collaboration', 'Project Management', 'Presentation'
-    ],
-    devops: [
-      'Docker', 'Kubernetes', 'Git', 'GitHub', 'GitLab', 'Jenkins', 'GitHub Actions',
-      'AWS', 'Azure', 'Google Cloud', 'Linux', 'CI/CD', 'Terraform', 'Ansible'
-    ]
-  };
-
-  const skillCategories = [
-    { id: 'languages', label: 'Languages' },
-    { id: 'frontend', label: 'Frontend' },
-    { id: 'backend', label: 'Backend' },
-    { id: 'databases', label: 'Databases' },
-    { id: 'softSkills', label: 'Soft Skills' },
-    { id: 'devops', label: 'Tools & DevOps' }
-  ];
-
-  const [selectedSkillCategory, setSelectedSkillCategory] = useState('languages');
-  const [selectedSkill, setSelectedSkill] = useState('');
-  
-  const addSkill = () => {
-    if (!selectedSkill.trim()) return;
-    const current = resumeData.skills?.[selectedSkillCategory] || '';
-    const newValue = current ? current + ', ' + selectedSkill : selectedSkill;
-    setResumeData(prev => ({ ...prev, skills: { ...prev.skills, [selectedSkillCategory]: newValue } }));
-    setSelectedSkill('');
-  };
-
-  const removeSkillFromList = (skillToRemove) => {
-    const current = resumeData.skills?.[selectedSkillCategory] || '';
-    const updated = current
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s !== skillToRemove)
-      .join(', ');
-    setResumeData(prev => ({ ...prev, skills: { ...prev.skills, [selectedSkillCategory]: updated } }));
-  };
-
-  // LANGUAGES
-  const addLanguage = () => setResumeData(prev => ({ ...prev, languages: [...prev.languages, { name: '', level: 'Intermediate' }] }));
-  const updateLanguage = (idx, field, value) => setResumeData(prev => { const updated = [...prev.languages]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, languages: updated }; });
-  const removeLanguage = (idx) => setResumeData(prev => ({ ...prev, languages: prev.languages.filter((_, i) => i !== idx) }));
-
-  // HOBBIES
-  const addHobby = () => setResumeData(prev => ({ ...prev, hobbies: [...prev.hobbies, ''] }));
-  const updateHobby = (idx, value) => setResumeData(prev => { const updated = [...prev.hobbies]; updated[idx] = value; return { ...prev, hobbies: updated }; });
-  const removeHobby = (idx) => setResumeData(prev => ({ ...prev, hobbies: prev.hobbies.filter((_, i) => i !== idx) }));
-
   return (
-    <>
-      
-      <div className="resume-editor-container">
-        <Container fluid>
-          <Row className="g-4">
-            {/* LEFT COLUMN */}
-            <Col lg={5}>
-              <div className="resume-form-section">
-                <Accordion defaultActiveKey="0">
-                  {/* PERSONAL DETAILS */}
-                  <Accordion.Item eventKey="0">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Personal Details</Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold">Profile Photo</Form.Label>
-                        <div className="photo-upload-wrapper">
-                          <div className="photo-preview">
-                            {resumeData.photo ? (
-                              <img src={resumeData.photo} alt="Profile" />
-                            ) : (
-                              <span>📷</span>
-                            )}
-                          </div>
-                          <div className="photo-upload-input">
-                            <Form.Control 
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = (event) => {
-                                    handleBasicChange('photo', event.target?.result);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                              className="mb-2"
-                            />
-                            <small>JPG, PNG, GIF (Max 5MB)</small>
-                            {resumeData.photo && (
-                              <Button 
-                                variant="outline-danger"
-                                size="sm"
-                                className="w-100 mt-2"
-                                onClick={() => handleBasicChange('photo', '')}
-                              >
-                                Remove Photo
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </Form.Group>
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>สายงาน &amp; Keyword แนะนำ</SLabel>
+        {jobRole && available.length > 0 && (
+          <button className="re-btn re-btn-ghost re-btn-sm" onClick={addAll} disabled={skills.length >= 10}>
+            + เพิ่มทั้งหมด
+          </button>
+        )}
+      </div>
+      <select
+        className="re-input re-select"
+        value={jobRole}
+        onChange={(e) => onRoleChange(e.target.value)}
+        style={{ marginBottom: keywords.length > 0 ? 12 : 0 }}
+      >
+        {JOB_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+      </select>
+      {jobRole && keywords.length > 0 && (
+        <>
+          <p className="re-field-label re-keywords-label">Keyword สำหรับสายงานนี้</p>
+          <div className="re-keywords-wrap">
+            {keywords.map((kw) => {
+              const already = skills.includes(kw);
+              const full    = skills.length >= 10 && !already;
+              return (
+                <button
+                  key={kw}
+                  className={`re-keyword-chip${already ? " re-keyword-chip--added" : ""}`}
+                  onClick={() => !already && !full && addKeyword(kw)}
+                  disabled={full}
+                  title={already ? "มีใน Skills แล้ว" : full ? "Skills เต็ม 10" : `เพิ่ม ${kw}`}
+                >
+                  {already ? "✓ " : ""}{kw}
+                </button>
+              );
+            })}
+          </div>
+          {available.length === 0 && (
+            <p className="re-keywords-ok"><span>✓</span><span>เพิ่ม keyword ของสายงานนี้ครบแล้ว</span></p>
+          )}
+        </>
+      )}
+      {!jobRole && <p className="re-keywords-hint">เลือกสายงานเพื่อดู keyword แนะนำ</p>}
+    </div>
+  );
+}
 
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Full Name *</Form.Label>
-                        <Form.Control type="text" value={resumeData.name} onChange={(e) => handleBasicChange('name', e.target.value)} placeholder="John Doe" />
-                      </Form.Group>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Professional Title</Form.Label>
-                        <Form.Control type="text" value={resumeData.title} onChange={(e) => handleBasicChange('title', e.target.value)} placeholder="e.g. Senior Product Manager" />
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
+/* ═══════════════════════════════════════════════════════════════
+   SKILLS SECTION
+═══════════════════════════════════════════════════════════════ */
+function SkillsSection({ skills, onChange }) {
+  const [val, setVal]         = useState("");
+  const [hoverId, setHoverId] = useState(-1);
 
-                  {/* CONTACT INFORMATION */}
-                  <Accordion.Item eventKey="1">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Contact Information</Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Email</Form.Label>
-                        <Form.Control type="email" value={resumeData.email} onChange={(e) => handleBasicChange('email', e.target.value)} placeholder="email@example.com" />
-                      </Form.Group>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Phone</Form.Label>
-                        <Form.Control type="tel" value={resumeData.phone} onChange={(e) => handleBasicChange('phone', e.target.value)} placeholder="+1 (555) 000-0000" />
-                      </Form.Group>
-                      <Form.Group>
-                        <Form.Label className="fw-bold">Location</Form.Label>
-                        <Form.Control type="text" value={resumeData.location} onChange={(e) => handleBasicChange('location', e.target.value)} placeholder="City, Country" />
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  const suggestions = val.trim().length > 0
+    ? SKILL_SUGGESTIONS.filter((sk) => sk.toLowerCase().includes(val.toLowerCase()) && !skills.includes(sk)).slice(0, 6)
+    : [];
 
-                  {/* PROFESSIONAL SUMMARY */}
-                  <Accordion.Item eventKey="2">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Professional Summary</Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group>
-                        <Form.Label className="fw-bold">Professional Summary</Form.Label>
-                        <Form.Control as="textarea" rows={4} value={resumeData.summary} onChange={(e) => handleBasicChange('summary', e.target.value)} placeholder="Brief overview..." />
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  const addSkill = (skill) => {
+    const t = (skill || val).trim();
+    if (t && !skills.includes(t) && skills.length < 10) onChange([...skills, t]);
+    setVal(""); setHoverId(-1);
+  };
 
-                  {/* EDUCATION */}
-                  <Accordion.Item eventKey="3">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Education</Accordion.Header>
-                    <Accordion.Body>
-                      {(resumeData.education || []).map((edu, idx) => (
-                        <Card key={idx} className="education-card mb-3">
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">Degree</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              type="text" 
-                              value={edu.degree} 
-                              onChange={(e) => updateEducation(idx, 'degree', e.target.value)} 
-                              placeholder="e.g. Bachelor of Science"
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">School / University</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              type="text" 
-                              value={edu.school} 
-                              onChange={(e) => updateEducation(idx, 'school', e.target.value)} 
-                              placeholder="University name"
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">Faculty</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              type="text" 
-                              value={edu.faculty || ''} 
-                              onChange={(e) => updateEducation(idx, 'faculty', e.target.value)} 
-                              placeholder="e.g. Faculty of Engineering"
-                            />
-                          </Form.Group>
-                          <Row className="mb-3">
-                            <Col sm={6}>
-                              <Form.Group>
-                                <Form.Label className="small fw-bold">Start Date</Form.Label>
-                                <Form.Control 
-                                  size="sm" 
-                                  type="text" 
-                                  value={edu.startDate} 
-                                  onChange={(e) => updateEducation(idx, 'startDate', e.target.value)} 
-                                  placeholder="e.g. Aug 2011"
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col sm={6}>
-                              <Form.Group>
-                                <Form.Label className="small fw-bold">End Date</Form.Label>
-                                <Form.Control 
-                                  size="sm" 
-                                  type="text" 
-                                  value={edu.endDate} 
-                                  onChange={(e) => updateEducation(idx, 'endDate', e.target.value)} 
-                                  placeholder="e.g. Aug 2015"
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-                          <Button variant="outline-danger" size="sm" onClick={() => removeEducation(idx)} className="w-100"><FaTrash /> Delete</Button>
-                        </Card>
-                      ))}
-                      {(!resumeData.education || resumeData.education.length === 0) && (
-                        <div className="no-items-message">
-                          <p>No education added yet</p>
-                        </div>
-                      )}
-                      <Button variant="primary" size="sm" onClick={addEducation} className="w-100 mt-2"><FaPlus /> Add Education</Button>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  const remove = (sk) => onChange(skills.filter((x) => x !== sk));
 
                   {/* EXPERIENCE */}
                   <Accordion.Item eventKey="4">
@@ -694,7 +581,6 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
                       <Button variant="primary" size="sm" onClick={addHobby} className="w-100 mt-2"><FaPlus /> Add Hobby</Button>
                     </Accordion.Body>
                   </Accordion.Item>
-                </Accordion>
 
                 {/* DESIGN CONTROLS */}
                 <div className="design-controls">
@@ -745,45 +631,661 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
                     </div>
                   </Form.Group>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-                {/* ACTION BUTTONS */}
-                <div className="action-buttons">
-                  <Button variant="success" className="w-100" onClick={handleDownloadPDF}><FaDownload /> Download PDF</Button>
-                  <Button variant="outline-primary" className="w-100" onClick={() => setShowTemplateModal(true)}><FaPalette /> Change Template</Button>
+/* ═══════════════════════════════════════════════════════════════
+   EXPERIENCE SECTION
+═══════════════════════════════════════════════════════════════ */
+function ExperienceSection({ experience, onChange }) {
+  const [adding, setAdding]   = useState(false);
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const [form, setForm]       = useState({ company: "", position: "", startDate: "", endDate: "", description: "" });
+
+  const add = () => {
+    if (!form.company.trim()) return;
+    onChange([{ _id: uid(), ...form }, ...experience]);
+    setForm({ company: "", position: "", startDate: "", endDate: "", description: "" });
+    setAdding(false);
+  };
+
+  const remove = (id) => onChange(experience.filter((e) => e._id !== id));
+  const update = (id, field, value) => onChange(experience.map((e) => e._id === id ? { ...e, [field]: value } : e));
+
+  const handleDrop = (targetIdx) => {
+    if (dragIdx === null || dragIdx === targetIdx) return;
+    const arr = [...experience];
+    const [moved] = arr.splice(dragIdx, 1);
+    arr.splice(targetIdx, 0, moved);
+    onChange(arr);
+    setDragIdx(null); setOverIdx(null);
+  };
+
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>ประสบการณ์ทำงาน</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => setAdding((v) => !v)}>
+          {adding ? "ยกเลิก" : "+ เพิ่ม"}
+        </button>
+      </div>
+      {experience.map((exp, idx) => (
+        <div
+          key={exp._id}
+          draggable
+          onDragStart={() => setDragIdx(idx)}
+          onDragOver={(e) => { e.preventDefault(); setOverIdx(idx); }}
+          onDrop={() => handleDrop(idx)}
+          onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+          className={`re-list-item${dragIdx === idx ? " re-list-item--dragging" : ""}${overIdx === idx ? " re-list-item--dragover" : ""}`}
+        >
+          <div className="re-list-item__head">
+            <div>
+              <div className="re-list-item__title">{exp.position || <em style={{ opacity: .4 }}>ตำแหน่ง</em>}</div>
+              <div className="re-list-item__sub">{exp.company}</div>
+            </div>
+            <div className="re-list-item__meta">
+              <span className="re-drag-handle">⠿</span>
+              <button className="re-btn re-btn-danger" onClick={() => remove(exp._id)}>ลบ</button>
+            </div>
+          </div>
+          <div className="re-input-grid">
+            <div><label className="re-field-label">บริษัท</label><input className="re-input" value={exp.company} onChange={(e) => update(exp._id, "company", e.target.value)} /></div>
+            <div><label className="re-field-label">ตำแหน่ง</label><input className="re-input" value={exp.position} onChange={(e) => update(exp._id, "position", e.target.value)} /></div>
+            <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" value={exp.startDate} placeholder="ม.ค. 2564" onChange={(e) => update(exp._id, "startDate", e.target.value)} /></div>
+            <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" value={exp.endDate} placeholder="ปัจจุบัน" onChange={(e) => update(exp._id, "endDate", e.target.value)} /></div>
+            <div className="re-input-full">
+              <label className="re-field-label">รายละเอียด</label>
+              <textarea className="re-input re-textarea" rows={3} value={exp.description} placeholder="รายละเอียดงานและความสำเร็จ…" onChange={(e) => update(exp._id, "description", e.target.value)} />
+            </div>
+          </div>
+        </div>
+      ))}
+      {adding && (
+        <div className="re-add-form">
+          <p className="re-section-label" style={{ marginBottom: 12 }}>เพิ่มประสบการณ์ใหม่</p>
+          <div className="re-input-grid">
+            <div><label className="re-field-label">บริษัท</label><input className="re-input" placeholder="Google" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
+            <div><label className="re-field-label">ตำแหน่ง</label><input className="re-input" placeholder="Software Engineer" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></div>
+            <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" placeholder="ม.ค. 2564" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+            <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" placeholder="ปัจจุบัน" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+            <div className="re-input-full">
+              <label className="re-field-label">รายละเอียด</label>
+              <textarea className="re-input re-textarea" rows={3} placeholder="รายละเอียดหน้าที่และความสำเร็จ…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+          </div>
+          <button className="re-btn re-btn-primary re-btn-sm" style={{ marginTop: 10 }} onClick={add} disabled={!form.company.trim()}>บันทึก</button>
+        </div>
+      )}
+      {experience.length === 0 && !adding && <p className="re-empty-hint">ยังไม่มีประสบการณ์ทำงาน</p>}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDUCATION SECTION
+═══════════════════════════════════════════════════════════════ */
+function EducationSection({ education, onChange }) {
+  const [adding, setAdding] = useState(false);
+  const [form, setForm]     = useState({ school: "", degree: "", startYear: "", endYear: "" });
+
+  const add = () => {
+    if (!form.school.trim()) return;
+    onChange([...education, { _id: uid(), ...form }]);
+    setForm({ school: "", degree: "", startYear: "", endYear: "" });
+    setAdding(false);
+  };
+
+  const remove = (id) => onChange(education.filter((e) => e._id !== id));
+  const update = (id, field, value) => onChange(education.map((e) => e._id === id ? { ...e, [field]: value } : e));
+
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>ประวัติการศึกษา</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => setAdding((v) => !v)}>
+          {adding ? "ยกเลิก" : "+ เพิ่ม"}
+        </button>
+      </div>
+      {education.map((edu) => (
+        <div key={edu._id} className="re-list-item">
+          <div className="re-list-item__head">
+            <div>
+              <div className="re-list-item__title">{edu.school || <em style={{ opacity: .4 }}>โรงเรียน</em>}</div>
+              <div className="re-list-item__sub">{edu.degree}{edu.startYear ? ` · ${edu.startYear}–${edu.endYear || "?"}` : ""}</div>
+            </div>
+            <button className="re-btn re-btn-danger" onClick={() => remove(edu._id)}>ลบ</button>
+          </div>
+          <div className="re-input-grid">
+            <div className="re-input-full"><label className="re-field-label">โรงเรียน / มหาวิทยาลัย</label><input className="re-input" value={edu.school} onChange={(e) => update(edu._id, "school", e.target.value)} /></div>
+            <div className="re-input-full"><label className="re-field-label">วุฒิ / สาขา</label><input className="re-input" value={edu.degree} onChange={(e) => update(edu._id, "degree", e.target.value)} /></div>
+            <div><label className="re-field-label">ปีที่เข้า</label><input className="re-input" placeholder="2559" value={edu.startYear} onChange={(e) => update(edu._id, "startYear", e.target.value)} /></div>
+            <div><label className="re-field-label">ปีที่จบ</label><input className="re-input" placeholder="2563" value={edu.endYear} onChange={(e) => update(edu._id, "endYear", e.target.value)} /></div>
+          </div>
+        </div>
+      ))}
+      {adding && (
+        <div className="re-add-form">
+          <p className="re-section-label" style={{ marginBottom: 12 }}>เพิ่มการศึกษาใหม่</p>
+          <div className="re-input-grid">
+            <div className="re-input-full"><label className="re-field-label">โรงเรียน / มหาวิทยาลัย</label><input className="re-input" placeholder="จุฬาลงกรณ์มหาวิทยาลัย" value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} /></div>
+            <div className="re-input-full"><label className="re-field-label">วุฒิ / สาขา</label><input className="re-input" placeholder="วิศวกรรมศาสตร์" value={form.degree} onChange={(e) => setForm({ ...form, degree: e.target.value })} /></div>
+            <div><label className="re-field-label">ปีที่เข้า</label><input className="re-input" placeholder="2559" value={form.startYear} onChange={(e) => setForm({ ...form, startYear: e.target.value })} /></div>
+            <div><label className="re-field-label">ปีที่จบ</label><input className="re-input" placeholder="2563" value={form.endYear} onChange={(e) => setForm({ ...form, endYear: e.target.value })} /></div>
+          </div>
+          <button className="re-btn re-btn-primary re-btn-sm" style={{ marginTop: 10 }} onClick={add} disabled={!form.school.trim()}>บันทึก</button>
+        </div>
+      )}
+      {education.length === 0 && !adding && <p className="re-empty-hint">ยังไม่มีข้อมูลการศึกษา</p>}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANGUAGE SECTION
+═══════════════════════════════════════════════════════════════ */
+function LanguagesSection({ languages, onChange }) {
+  const add    = () => onChange([...languages, { _id: uid(), name: "", level: "ระดับกลาง" }]);
+  const remove = (id) => onChange(languages.filter((l) => l._id !== id));
+  const update = (id, field, val) => onChange(languages.map((l) => l._id === id ? { ...l, [field]: val } : l));
+
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>ภาษา</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่ม</button>
+      </div>
+      {languages.map((lang) => (
+        <div key={lang._id} className="re-lang-row">
+          <input className="re-input" style={{ flex: 1 }} placeholder="ชื่อภาษา" value={lang.name} onChange={(e) => update(lang._id, "name", e.target.value)} />
+          <select className="re-input re-select re-lang-select" value={lang.level} onChange={(e) => update(lang._id, "level", e.target.value)}>
+            {LANG_LEVELS.map((l) => <option key={l}>{l}</option>)}
+          </select>
+          <button className="re-btn re-btn-danger" onClick={() => remove(lang._id)}>×</button>
+        </div>
+      ))}
+      {languages.length === 0 && <p className="re-empty-hint">ยังไม่มีข้อมูลภาษา</p>}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESUME PAPER PREVIEW
+═══════════════════════════════════════════════════════════════ */
+const NAVY       = "#1e3a5f";
+const PAPER_RULE = "#e4e7ed";
+
+function PaperSection({ title, accentColor, children }) {
+  return (
+    <div className="re-sec">
+      <div className="re-sec__head" style={{ color: accentColor }}>
+        <span className="re-sec__label">{title}</span>
+        <div className="re-sec__rule" />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ResumePreview({ resume, isDark }) {
+  const accent  = isDark ? "#4a7fb5" : NAVY;
+  const textPri = isDark ? "#e8f0f9" : "#0d1b2a";
+  const textSec = isDark ? "#6e8aaa" : "#5e7087";
+  const textTer = isDark ? "#334a62" : "#9aaabb";
+  const ruleBdr = isDark ? "#1a2e45" : PAPER_RULE;
+  const skillBg = isDark ? "#0f1e3022" : `${NAVY}0d`;
+
+  const isEmpty = !resume.fullName && !resume.jobTitle && !resume.summary
+    && !resume.skills.length && !resume.experience.length;
+
+  if (isEmpty) {
+    return (
+      <div className="re-paper">
+        <div className="re-paper-empty">
+          <span className="re-paper-empty__icon">📄</span>
+          <p className="re-paper-empty__text">
+            กรอกข้อมูลในฟอร์มด้านซ้าย<br />
+            หรือกด <strong>สร้างจากโปรไฟล์</strong>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="re-paper" id="resume-preview-root">
+      <div className="re-paper-stripe" style={{ background: accent }} />
+      <div className="re-paper-hero">
+        <div className="re-paper-avatar" style={{ background: `${accent}12`, border: `3px solid ${accent}20` }}>
+          {resume.profileImage
+            ? <img src={resume.profileImage} alt="โปรไฟล์" crossOrigin="anonymous" />
+            : <span style={{ opacity: .3, color: accent }}>👤</span>}
+        </div>
+        <div className="re-paper-meta">
+          <h1 className="re-paper-name" style={{ color: textPri }}>{resume.fullName || "ชื่อของคุณ"}</h1>
+          {resume.jobTitle && <p className="re-paper-title" style={{ color: accent }}>{resume.jobTitle}</p>}
+        </div>
+      </div>
+      <div className="re-paper-rule" style={{ background: ruleBdr }} />
+      <div className="re-paper-content">
+        {resume.summary && (
+          <PaperSection title="โปรไฟล์" accentColor={accent}>
+            <p className="re-paper-summary" style={{ color: textSec }}>{resume.summary}</p>
+          </PaperSection>
+        )}
+        {resume.experience.length > 0 && (
+          <PaperSection title="ประสบการณ์ทำงาน" accentColor={accent}>
+            {resume.experience.map((exp, i) => (
+              <div key={exp._id || i} className="re-exp-item" style={{ borderBottom: `1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color: textPri }}>{exp.position}</div>
+                <div className="re-exp-co" style={{ color: accent }}>{exp.company}</div>
+                {(exp.startDate || exp.endDate) && (
+                  <div className="re-exp-date" style={{ color: textTer }}>
+                    {exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}
+                  </div>
+                )}
+                {exp.description && <p className="re-exp-desc" style={{ color: textSec }}>{exp.description}</p>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.education.length > 0 && (
+          <PaperSection title="ประวัติการศึกษา" accentColor={accent}>
+            {resume.education.map((edu, i) => (
+              <div key={edu._id || i} className="re-edu-item">
+                <div className="re-edu-school" style={{ color: textPri }}>{edu.school}</div>
+                {edu.degree && <div className="re-edu-degree" style={{ color: textSec }}>{edu.degree}</div>}
+                {(edu.startYear || edu.endYear) && (
+                  <div className="re-edu-years" style={{ color: textTer }}>
+                    {edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}
+                  </div>
+                )}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.skills.length > 0 && (
+          <PaperSection title="ทักษะ" accentColor={accent}>
+            <div className="re-paper-skills">
+              {resume.skills.map((sk) => (
+                <span key={sk} className="re-paper-skill"
+                  style={{ background: skillBg, color: accent, borderColor: `${accent}28` }}>
+                  {sk}
+                </span>
+              ))}
+            </div>
+          </PaperSection>
+        )}
+        {resume.languages.length > 0 && (
+          <PaperSection title="ภาษา" accentColor={accent}>
+            <div className="re-lang-grid">
+              {resume.languages.map((lang, i) => (
+                <div key={lang._id || i} className="re-lang-item">
+                  <div className="re-lang-row-p">
+                    <span className="re-lang-name" style={{ color: textPri }}>{lang.name}</span>
+                    <span className="re-lang-lvl" style={{ color: textTer }}>{lang.level}</span>
+                  </div>
+                  <div className="re-lang-track" style={{ background: ruleBdr }}>
+                    <div className="re-lang-fill"
+                      style={{ width: `${LANG_LEVEL_PCT[lang.level] || 50}%`, background: accent }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </PaperSection>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
+export default function ResumeEditor() {
+  const [resume, setResume]           = useState(EMPTY_RESUME);
+  const [resumeId, setResumeId]       = useState(null);        // ← id จาก DB
+  const [template, setTemplate]       = useState("modern");
+  const [isDark, setIsDark]           = useState(false);
+  const [jobRole, setJobRole]         = useState("");
+  const [generating, setGenerating]   = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [exporting, setExporting]     = useState(false);
+  const [rewriting, setRewriting]     = useState(false);
+  const [toast, setToast]             = useState(null);
+  const [draftBanner, setDraftBanner] = useState(false);
+  const [autoSavedAt, setAutoSavedAt] = useState(null);
+
+  const fileRef    = useRef(null);
+  const toastTimer = useRef(null);
+
+  /* ── Toast helper ── */
+  const showToast = useCallback((message, type = "success") => {
+    clearTimeout(toastTimer.current);
+    setToast({ message, type });
+    toastTimer.current = setTimeout(() => setToast(null), 3200);
+  }, []);
+
+  /* ── โหลด draft เมื่อเปิดหน้า ── */
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft?.data) {
+      setResume({ ...EMPTY_RESUME, ...draft.data });
+      if (draft.data._resumeId) setResumeId(draft.data._resumeId);
+      setDraftBanner(true);
+    }
+  }, []);
+
+  /* ── Auto-save draft ทุก 1.5 วินาที ── */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      saveDraft({ ...resume, _resumeId: resumeId });
+      setAutoSavedAt(Date.now());
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [resume, resumeId]);
+
+  const setField = (field, value) => setResume((p) => ({ ...p, [field]: value }));
+
+  /* ── สร้างจากโปรไฟล์ตัวอย่าง ── */
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      await new Promise((r) => setTimeout(r, 700));
+      setResume({
+        fullName:     MOCK_PROFILE.name,
+        jobTitle:     MOCK_PROFILE.title,
+        summary:      MOCK_PROFILE.summary,
+        skills:       MOCK_PROFILE.skills,
+        education:    withIds(MOCK_PROFILE.education),
+        experience:   withIds(MOCK_PROFILE.experience),
+        languages:    withIds(MOCK_PROFILE.languages),
+        profileImage: MOCK_PROFILE.profileImage,
+      });
+      setResumeId(null); // reset id เพราะเป็นข้อมูลใหม่
+      showToast("สร้าง Resume จากโปรไฟล์สำเร็จ", "success");
+    } catch (err) {
+      console.error("สร้าง resume ไม่สำเร็จ:", err);
+      showToast("ไม่สามารถสร้าง Resume ได้", "error");
+    } finally { setGenerating(false); }
+  };
+
+  /* ── บันทึก Resume → API ── */
+  const handleSave = async () => {
+    if (!resume.fullName.trim()) {
+      showToast("กรุณากรอกชื่อ-นามสกุลก่อนบันทึก", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const body = {
+        fullName:     resume.fullName,
+        jobTitle:     resume.jobTitle,
+        summary:      resume.summary,
+        skills:       resume.skills,
+        education:    resume.education,
+        experience:   resume.experience,
+        languages:    resume.languages,
+        profileImage: resume.profileImage,
+        template,
+      };
+
+      let res, json;
+
+      if (resumeId) {
+        // ── มี id แล้ว → UPDATE ──
+        res  = await fetch(`${API_URL}/${resumeId}`, {
+          method:  "PUT",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify(body),
+        });
+        json = await res.json();
+        if (!res.ok) throw new Error(json.message || "อัปเดตไม่สำเร็จ");
+        showToast("อัปเดต Resume เรียบร้อยแล้ว ✓", "success");
+      } else {
+        // ── ยังไม่มี id → CREATE ──
+        res  = await fetch(API_URL, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify(body),
+        });
+        json = await res.json();
+        if (!res.ok) throw new Error(json.message || "บันทึกไม่สำเร็จ");
+        setResumeId(json.data.id); // เก็บ id ไว้ใช้ครั้งต่อไป
+        showToast("บันทึก Resume เรียบร้อยแล้ว ✓", "success");
+      }
+
+      clearDraft();
+    } catch (err) {
+      console.error("บันทึก resume ไม่สำเร็จ:", err);
+      showToast("บันทึกไม่สำเร็จ: " + err.message, "error");
+    } finally { setSaving(false); }
+  };
+
+  /* ── ปรับ Summary ── */
+  const handleRewrite = async () => {
+    setRewriting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 900));
+      setField("summary", rewriteSummary(resume.summary));
+      showToast("ปรับ Summary เรียบร้อยแล้ว", "success");
+    } catch (err) {
+      console.error("ปรับ summary ไม่สำเร็จ:", err);
+      showToast("ปรับ Summary ไม่สำเร็จ", "error");
+    } finally { setRewriting(false); }
+  };
+
+  /* ── Export PDF ── */
+  const handleExportPDF = async () => {
+    const el = document.getElementById("resume-preview-root");
+    if (!el) { showToast("กรอกข้อมูลก่อนแล้วค่อย Export", "error"); return; }
+    setExporting(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const images   = el.querySelectorAll("img");
+      await Promise.all([...images].map((img) =>
+        img.complete ? Promise.resolve() : new Promise((res) => { img.onload = res; img.onerror = res; })
+      ));
+      await html2pdf().set({
+        margin:   0,
+        filename: `${resume.fullName || "resume"}.pdf`,
+        image:    { type: "jpeg", quality: 0.97 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+        jsPDF:    { unit: "mm", format: "a4", orientation: "portrait" },
+      }).from(el).save();
+      showToast("Export PDF สำเร็จ", "success");
+    } catch (err) {
+      console.error("Export PDF ไม่สำเร็จ:", err);
+      showToast("Export ไม่สำเร็จ: " + err.message, "error");
+    } finally { setExporting(false); }
+  };
+
+  /* ── อัปโหลดรูปภาพ ── */
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setField("profileImage", ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const keepDraft    = () => setDraftBanner(false);
+  const discardDraft = () => { clearDraft(); setResume(EMPTY_RESUME); setResumeId(null); setDraftBanner(false); };
+
+  /* ════════════════════════════ RENDER ════════════════════════════ */
+  return (
+    <>
+      <Toast toast={toast} />
+
+      <div className={`re-page${isDark ? " re-dark" : ""}`}>
+
+        {/* แบนเนอร์ Draft */}
+        {draftBanner && (
+          <div className="re-draft-banner">
+            <span>โหลด Draft ล่าสุดจาก Local Storage แล้ว</span>
+            <div className="re-draft-banner__actions">
+              <button className="re-btn re-btn-ghost re-btn-sm" onClick={keepDraft}>เก็บ Draft</button>
+              <button className="re-btn re-btn-danger re-btn-sm" onClick={discardDraft}>ยกเลิก</button>
+            </div>
+          </div>
+        )}
+
+        {/* ════════ แผงซ้าย (ฟอร์ม) ════════ */}
+        <div className="re-form-panel">
+          <div className="re-form-header">
+            <div className="re-form-header__info">
+              <h1>Resume Editor</h1>
+              {autoSavedAt ? (
+                <div className="re-form-header__sub re-form-header__sub--saved">
+                  <span className="re-autosave-dot" />
+                  บันทึกอัตโนมัติแล้ว
+                  {resumeId && <span style={{ marginLeft: 6, opacity: .6 }}>(#ID: {resumeId})</span>}
+                </div>
+              ) : (
+                <div className="re-form-header__sub">Live preview ทางด้านขวา</div>
+              )}
+            </div>
+            <div className="re-form-header__actions">
+              <button
+                className="re-btn re-btn-ghost"
+                style={{ padding: "7px 10px", fontSize: ".85rem" }}
+                onClick={() => setIsDark((d) => !d)}
+                title={isDark ? "โหมดสว่าง" : "โหมดมืด"}
+              >
+                {isDark ? "☀︎" : "☽"}
+              </button>
+              <button className="re-btn re-btn-ghost" onClick={handleGenerate} disabled={generating}>
+                {generating ? <><Spinner dark={!isDark} />กำลังสร้าง…</> : "สร้างจากโปรไฟล์"}
+              </button>
+              <button className="re-btn re-btn-primary" onClick={handleSave} disabled={saving}>
+                {saving
+                  ? <><Spinner />กำลังบันทึก…</>
+                  : resumeId ? "อัปเดต" : "บันทึก"}
+              </button>
+            </div>
+          </div>
+
+          <div className="re-form-body">
+            <FeedbackPanel resume={resume} />
+            <CompletionPanel resume={resume} />
+            <JobRoleSelector
+              jobRole={jobRole}
+              onRoleChange={setJobRole}
+              skills={resume.skills}
+              onSkillsChange={(v) => setField("skills", v)}
+            />
+
+            {/* รูปโปรไฟล์ */}
+            <div className="re-card">
+              <SLabel>รูปโปรไฟล์</SLabel>
+              <div className="re-avatar-wrap">
+                <div className="re-avatar" onClick={() => fileRef.current?.click()}>
+                  {resume.profileImage
+                    ? <img src={resume.profileImage} alt="โปรไฟล์" />
+                    : <span style={{ fontSize: "1.8rem", opacity: .35 }}>👤</span>}
+                </div>
+                <div className="re-avatar-meta">
+                  <p>รูปภาพโปรไฟล์</p>
+                  <span>JPG, PNG หรือ WebP · ไม่เกิน 5 MB</span>
+                  <div className="re-avatar-actions">
+                    <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => fileRef.current?.click()}>อัปโหลด</button>
+                    {resume.profileImage && (
+                      <button className="re-btn re-btn-danger re-btn-sm" onClick={() => setField("profileImage", "")}>ลบ</button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </Col>
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={handleImageChange} />
+            </div>
 
-            {/* RIGHT COLUMN - PREVIEW */}
-            <Col lg={7}>
-              <Card className="resume-preview-card">
-                <Card.Body style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#f5f5f5' }}>
-                  <div className="resume-preview-controls">
-                    <Button size="sm" onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}>−</Button>
-                    <span className="zoom-display">{Math.round(zoomLevel * 100)}%</span>
-                    <Button size="sm" onClick={() => setZoomLevel(Math.min(1.5, zoomLevel + 0.1))}>+</Button>
-                  </div>
-                  <div className="resume-preview-container">
-                    <div data-resume-preview className="resume-preview-wrapper" style={{ transform: `scale(${zoomLevel})` }}>
-                      <ResumePreview data={resumeData} template={selectedTemplate} colors={getTemplateColors()} designSettings={designSettings} />
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
+            {/* ข้อมูลส่วนตัว */}
+            <div className="re-card">
+              <SLabel>ข้อมูลส่วนตัว</SLabel>
+              <div className="re-input-grid">
+                <div className="re-input-full">
+                  <label className="re-field-label">ชื่อ-นามสกุล</label>
+                  <input className="re-input" placeholder="สมชาย ใจดี" value={resume.fullName} onChange={(e) => setField("fullName", e.target.value)} />
+                </div>
+                <div className="re-input-full">
+                  <label className="re-field-label">ตำแหน่งงาน</label>
+                  <input className="re-input" placeholder="Senior Frontend Developer" value={resume.jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
+                </div>
+              </div>
+            </div>
 
-        {/* CHANGE TEMPLATE MODAL */}
-        <ChangeTemplateModal 
-          show={showTemplateModal} 
-          onHide={() => setShowTemplateModal(false)}
-          onSelectTemplate={handleSelectTemplate} 
-          onSelectColor={handleSelectColor}
-          selectedColor={selectedColor} 
-          selectedTemplate={selectedTemplate} 
-          data={resumeData} 
-        />
+            {/* Summary */}
+            <div className="re-card">
+              <div className="re-card__header">
+                <SLabel>สรุปตัวเอง (Summary)</SLabel>
+                <button className="re-btn re-btn-ai" onClick={handleRewrite} disabled={rewriting}>
+                  {rewriting ? <><Spinner dark={!isDark} />กำลังปรับ…</> : "ปรับให้เป็นมืออาชีพ"}
+                </button>
+              </div>
+              <textarea
+                className="re-input re-textarea"
+                rows={4}
+                placeholder="เขียนสรุปเกี่ยวกับตัวคุณ ประสบการณ์ และเป้าหมายในอาชีพ…"
+                value={resume.summary}
+                onChange={(e) => setField("summary", e.target.value)}
+              />
+              <div className="re-char-count">{resume.summary.length} ตัวอักษร</div>
+            </div>
+
+            <SkillsSection    skills={resume.skills}       onChange={(v) => setField("skills", v)} />
+            <LanguagesSection languages={resume.languages} onChange={(v) => setField("languages", v)} />
+            <EducationSection education={resume.education} onChange={(v) => setField("education", v)} />
+            <ExperienceSection experience={resume.experience} onChange={(v) => setField("experience", v)} />
+            <div style={{ height: 12 }} />
+          </div>
+        </div>
+
+        {/* ════════ แผงขวา (Preview) ════════ */}
+        <div className="re-preview-panel">
+          <div className="re-preview-topbar">
+            <div className="re-topbar-left">
+              <div className="re-traffic-lights">
+                <span className="re-dot re-dot--red" />
+                <span className="re-dot re-dot--amber" />
+                <span className="re-dot re-dot--green" />
+              </div>
+              <span className="re-preview-filename">
+                {resume.fullName
+                  ? `${resume.fullName.toLowerCase().replace(/\s+/g, "_")}.pdf`
+                  : "resume_preview.pdf"}
+              </span>
+            </div>
+            <div className="re-topbar-right">
+              <div className="re-tmpl-switcher">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    className={`re-tmpl-btn${template === t.id ? " re-tmpl-btn--active" : ""}`}
+                    onClick={() => setTemplate(t.id)}
+                    title={t.desc}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <button className="re-btn re-btn-export" onClick={handleExportPDF} disabled={exporting}>
+                {exporting ? <><Spinner />กำลัง Export…</> : "Export PDF"}
+              </button>
+            </div>
+          </div>
+
+          <div className="re-preview-scroll">
+            <ResumePreview resume={resume} template={template} isDark={isDark} />
+          </div>
+        </div>
+
       </div>
     </>
   );

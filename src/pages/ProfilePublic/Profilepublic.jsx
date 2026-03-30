@@ -182,22 +182,23 @@ const ProfilePublic = ({ onNavigate }) => {
       <header className="profile-header">
         <div className="header-container">
           <div className="profile-picture-container" title="Profile Picture">
-            <div className="profile-picture" style={{
-              backgroundImage: profileData.profileImage && (profileData.profileImage.startsWith('data:') || profileData.profileImage.startsWith('http'))
-                ? `url(${profileData.profileImage})`
-                : 'none'
-            }}>
-              {!profileData.profileImage || (!profileData.profileImage.startsWith('data:') && !profileData.profileImage.startsWith('http'))
-                ? profileData.profileImage || ''
-                : null
-              }
-            </div>
+            <div
+              className="profile-picture"
+              style={{
+                backgroundImage: profileData.profileImage
+                  ? `url(http://localhost:3000${profileData.profileImage})`
+                  : "none",
+              }}
+            ></div>
           </div>
           <div className="header-info">
-            <h1>{profileData.name || 'Your Name'}</h1>
-            <div className="title">{profileData.title || 'Your Professional Title'}</div>
+            <h1>{profileData.name || "Your Name"}</h1>
+            <div className="title">
+              {profileData.title || "Your Professional Title"}
+            </div>
             <div className="bio">
-              {profileData.bio || 'Your professional bio goes here - Click Edit Profile to add your information'}
+              {profileData.bio ||
+                "Your professional bio goes here - Click Edit Profile to add your information"}
             </div>
             {profileData.privacy?.contact !== false && (
               <div className="profile-header-contact-row">
@@ -237,54 +238,131 @@ const ProfilePublic = ({ onNavigate }) => {
           <div className="stat-label-profile">Years Experience</div>
         </div>
         <div className="stat-card">
-          <div className="pp-stat-number">{profileData.projects?.length || '0'}+</div>
+          <div className="pp-stat-number">
+            {profileData.projects?.length || "0"}+
+          </div>
           <div className="stat-label-profile">Projects Completed</div>
         </div>
         <div className="stat-card">
-          <div className="pp-stat-number">{profileData.certifications?.length || '0'}</div>
+          <div className="pp-stat-number">
+            {profileData.certifications?.length || "0"}
+          </div>
           <div className="stat-label-profile">Certifications</div>
         </div>
       </div>
 
       <div className="content-container">
         <div className="main-column">
-
           {profileData.privacy?.summary !== false && (
             <div className="section-card">
               <div className="section-header">
                 <h2 className="pp-section-title">Professional Summary</h2>
               </div>
               <p className="summary-text">
-                {profileData.summary || profileData.bio || 'Add your professional summary in profile edit'}
+                {profileData.summary ||
+                  profileData.bio ||
+                  "Add your professional summary in profile edit"}
               </p>
-              {profileData.expertise && typeof profileData.expertise === 'string' && (
-                <ul style={{ marginLeft: '20px', marginTop: '15px', lineHeight: 1.8, color: '#555' }}>
-                  {profileData.expertise.split(',').map((item, idx) => (
-                    <li key={idx}>{item.trim()}</li>
-                  ))}
-                </ul>
-              )}
+              {profileData.expertise &&
+                typeof profileData.expertise === "string" && (
+                  <ul
+                    style={{
+                      marginLeft: "20px",
+                      marginTop: "15px",
+                      lineHeight: 1.8,
+                      color: "#555",
+                    }}
+                  >
+                    {profileData.expertise.split(",").map((item, idx) => (
+                      <li key={idx}>{item.trim()}</li>
+                    ))}
+                  </ul>
+                )}
             </div>
           )}
 
-          {profileData.privacy?.experience !== false && profileData.experience && profileData.experience.length > 0 && (
-            <div className="section-card">
-              <div className="section-header">
-                <h2 className="pp-section-title">Work Experience</h2>
+          {profileData.privacy?.experience !== false &&
+            profileData.experience &&
+            profileData.experience.length > 0 && (
+              <div className="section-card">
+                <div className="section-header">
+                  <h2 className="pp-section-title">Work Experience</h2>
+                </div>
+                <div className="timeline">
+                  {profileData.experience.map((exp) => (
+                    <div key={exp.id} className="timeline-item">
+                      <div className="timeline-period">
+                        {exp.startDate} - {exp.endDate}{" "}
+                        {calculateDuration(exp.startDate, exp.endDate)}
+                      </div>
+                      <div className="timeline-title">{exp.title}</div>
+                      <div className="timeline-company">
+                        {exp.company} {exp.location}
+                      </div>
+                      <div className="timeline-description">
+                        {exp.description}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="timeline">
-                {profileData.experience.map((exp) => (
-                  <div key={exp.id} className="timeline-item">
-                    <div className="timeline-period">
-                      {exp.startDate} - {exp.endDate} {calculateDuration(exp.startDate, exp.endDate)}
+            )}
+
+          {profileData.privacy?.projects !== false &&
+            profileData.projects &&
+            profileData.projects.length > 0 && (
+              <div className="section-card">
+                <div className="section-header">
+                  <h2 className="pp-section-title">Featured Projects</h2>
+                </div>
+                <div className="portfolio-grid">
+                  {profileData.projects.map((project) => (
+                    <div key={project.id} className="portfolio-item">
+                      <div
+                        className="portfolio-image"
+                        style={{
+                          background: project.image
+                            ? `url(${project.image}) center/cover no-repeat`
+                            : "var(--color-background-secondary)",
+                        }}
+                      />
+                      <div className="portfolio-overlay">
+                        {project.name && (
+                          <div className="portfolio-title">{project.name}</div>
+                        )}
+                        {project.description && (
+                          <div className="portfolio-desc">
+                            {project.description}
+                          </div>
+                        )}
+                        {project.techStack && (
+                          <div style={{ marginTop: "8px" }}>
+                            {project.techStack.split(",").map((tech) => (
+                              <span key={tech} className="tech-badge">
+                                {tech.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {project.url && (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ds-btn-secondary"
+                            style={{
+                              marginTop: "10px",
+                              display: "inline-block",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            View Project
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <div className="timeline-title">{exp.title}</div>
-                    <div className="timeline-company">{exp.company} {exp.location}</div>
-                    <div className="timeline-description">
-                      {exp.description}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -360,30 +438,36 @@ const ProfilePublic = ({ onNavigate }) => {
           )}
 
 
-          {profileData.privacy?.certifications !== false && profileData.certifications && profileData.certifications.length > 0 && (
-            <div className="section-card">
-              <div className="section-header">
-                <h2 className="pp-section-title">Certifications</h2>
-              </div>
-              <div>
-                {profileData.certifications.map((cert) => (
-                  <div key={cert.id} className="cert-item">
-                    <div className="cert-name">{cert.name}</div>
-                    <div className="cert-issuer">{cert.issuer}</div>
-                    <div className="cert-date">
-                      Issued: {cert.issueDate}
-                      {cert.expiryDate && ` Expires: ${cert.expiryDate}`}
+          {profileData.privacy?.certifications !== false &&
+            profileData.certifications &&
+            profileData.certifications.length > 0 && (
+              <div className="section-card">
+                <div className="section-header">
+                  <h2 className="pp-section-title">Certifications</h2>
+                </div>
+                <div>
+                  {profileData.certifications.map((cert) => (
+                    <div key={cert.id} className="cert-item">
+                      <div className="cert-name">{cert.name}</div>
+                      <div className="cert-issuer">{cert.issuer}</div>
+                      <div className="cert-date">
+                        Issued: {cert.issueDate}
+                        {cert.expiryDate && ` Expires: ${cert.expiryDate}`}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
+            )}
         </div>
 
         <div className="pp-sidebar-panel">
           <div className="pp-sidebar-sticky">
+            {/* ── Current Status ── */}
+            {profileData.privacy?.currentStatus !== false &&
+              profileData.employmentStatus && (
+                <div className="sidebar-card pp-status-card">
+                  <h3 className="sidebar-title">Current Status</h3>
 
           {/* ── Current Status ── */}
           {profileData.privacy?.currentStatus !== false && profileData.employmentStatus && (
@@ -528,12 +612,85 @@ const ProfilePublic = ({ onNavigate }) => {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {profileData.privacy?.languages !== false && profileData.languages && profileData.languages.length > 0 && (
+                  {/* Current role */}
+                  {profileData.currentRole && (
+                    <p className="pp-status-role">{profileData.currentRole}</p>
+                  )}
+
+                  {/* Available from */}
+                  {profileData.openToWork && profileData.availableFrom && (
+                    <p className="pp-status-available">
+                      Available from{" "}
+                      {new Date(profileData.availableFrom).toLocaleDateString(
+                        "en-US",
+                        { month: "short", year: "numeric" },
+                      )}
+                    </p>
+                  )}
+
+                  {/* Last updated */}
+                  {profileData.statusLastUpdated &&
+                    (() => {
+                      const days = Math.floor(
+                        (Date.now() - new Date(profileData.statusLastUpdated)) /
+                          86400000,
+                      );
+                      return (
+                        <p className="pp-status-updated">
+                          Updated{" "}
+                          {days === 0
+                            ? "today"
+                            : `${days} day${days !== 1 ? "s" : ""} ago`}
+                        </p>
+                      );
+                    })()}
+                </div>
+              )}
+
+            {profileData.privacy?.quickInfo !== false && (
+              <div className="sidebar-card">
+                <h3 className="sidebar-title">Quick Info</h3>
+                <div className="quick-info-list">
+                  {(profileData.dateOfBirth || profileData.age) && (
+                    <div className="quick-info-item">
+                      <span className="quick-info-icon">👤</span>
+                      <div>
+                        <div className="quick-info-label">AGE</div>
+                        <div className="quick-info-value">
+                          {profileData.dateOfBirth
+                            ? calculateAge(profileData.dateOfBirth)
+                            : profileData.age}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {profileData.nationality && (
+                    <div className="quick-info-item">
+                      <span className="quick-info-icon">🌍</span>
+                      <div>
+                        <div className="quick-info-label">NATIONALITY</div>
+                        <div className="quick-info-value">
+                          {profileData.nationality}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {profileData.workTypePreference && (
+                    <div className="quick-info-item">
+                      <span className="quick-info-icon">⚙️</span>
+                      <div>
+                        <div className="quick-info-label">WORK TYPE</div>
+                        <div className="quick-info-value">
+                          {profileData.workTypePreference}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="sidebar-card">
               <h3 className="sidebar-title">Languages</h3>
               <div className="language-list">
@@ -545,11 +702,127 @@ const ProfilePublic = ({ onNavigate }) => {
                 ))}
               </div>
             </div>
-          )}
 
-          </div>{/* end pp-sidebar-sticky */}
+            {profileData.privacy?.contact !== false && (
+              <div className="sidebar-card contact-social-card">
+                <div className="contact-social-header">
+                  <h3 className="contact-social-title">Contact & Social</h3>
+                </div>
+                <div className="contact-social-content">
+                  {profileData.email && (
+                    <div className="contact-item">
+                      <div className="contact-details">
+                        <p className="contact-label">📧 Email</p>
+                        <p className="contact-value">{profileData.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  {profileData.phone && (
+                    <div className="contact-item">
+                      <div className="contact-details">
+                        <p className="contact-label">📱 Phone</p>
+                        <p className="contact-value">{profileData.phone}</p>
+                      </div>
+                    </div>
+                  )}
+                  {profileData.location && (
+                    <div className="contact-item">
+                      <div className="contact-details">
+                        <p className="contact-label">📍 Location</p>
+                        <p className="contact-value">{profileData.location}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!profileData.email &&
+                    !profileData.phone &&
+                    !profileData.location && (
+                      <p className="pp-no-contact">
+                        No contact information provided
+                      </p>
+                    )}
+                </div>
+              </div>
+            )}
+
+            {profileData.privacy?.skills !== false &&
+              profileData.skills &&
+              profileData.skills.length > 0 && (
+                <div className="sidebar-card">
+                  <h3 className="sidebar-title">Technical Stack</h3>
+                  <div className="skill-list">
+                    {profileData.skills.slice(0, 5).map((skill) => (
+                      <div key={skill.id} className="skill-item">
+                        <div className="skill-name-profile">{skill.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {profileData.privacy?.education !== false &&
+              profileData.education &&
+              profileData.education.length > 0 && (
+                <div className="sidebar-card">
+                  <h3 className="sidebar-title">Education</h3>
+                  <div className="education-list">
+                    {profileData.education.map((edu) => (
+                      <div key={edu.id} className="education-item">
+                        <div className="education-degree">{edu.degree}</div>
+                        <div className="education-school">{edu.school}</div>
+                        <div>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: "var(--color-text-secondary)",
+                            }}
+                          >
+                            Year
+                          </span>
+                          <span style={{ fontSize: "13px", marginLeft: "6px" }}>
+                            {edu.endDate || edu.startDate}
+                          </span>
+                        </div>
+                        {edu.grade && (
+                          <div>
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                color: "var(--color-text-secondary)",
+                              }}
+                            >
+                              Grade
+                            </span>
+                            <span
+                              style={{ fontSize: "13px", marginLeft: "6px" }}
+                            >
+                              {edu.grade}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {profileData.privacy?.languages !== false &&
+              profileData.languages &&
+              profileData.languages.length > 0 && (
+                <div className="sidebar-card">
+                  <h3 className="sidebar-title">Languages</h3>
+                  <div className="language-list">
+                    {profileData.languages.map((lang) => (
+                      <div key={lang.id} className="pp-language-item">
+                        <span className="language-name">{lang.name}</span>
+                        <span className="language-level">{lang.level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
+          {/* end pp-sidebar-sticky */}
         </div>
-
       </div>
 
       {previewImage && (

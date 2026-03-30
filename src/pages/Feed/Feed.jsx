@@ -1,15 +1,13 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { Container, Row, Col } from "react-bootstrap";
-import { ProfileContext } from "../../ProfileContext";
 import "./Feed.css";
 import Swal from "sweetalert2";
 
-export default function Feed({ user }) {
+export default function Feed() {
   const API_POSTS = "http://localhost:3000/api/posts";
   const API_ADS = "http://localhost:3000/api/ads";
   const IMAGE_API = "http://localhost:3000/upload/";
-
-  const { profileData } = useContext(ProfileContext);
 
   const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
@@ -18,18 +16,25 @@ export default function Feed({ user }) {
   const [posts, setPosts] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
 
-  const getCurrentUser = () => {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (storedUser && storedUser.id) return storedUser;
-      if (profileData && profileData.name) return profileData;
-      return user || null;
-    } catch {
-      return null;
-    }
-  };
+  const userId = localStorage.getItem('userID');
 
-  const currentUser = getCurrentUser();
+  const { data: profileData } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+      const data = await res.json();
+      return Array.isArray(data) ? data[0] : data;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const storedUser = JSON.parse(localStorage.getItem("user") || '{}');
+  const currentUser = profileData?.name?.trim()
+    ? profileData
+    : storedUser?.name?.trim()
+      ? storedUser
+      : { name: 'User', profileImage: '👤' };
 
   const loadPosts = async () => {
     try {

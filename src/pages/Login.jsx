@@ -82,13 +82,7 @@ function Login({ setToken, setRole }) {
         if (setRole) setRole(user.role || "user");
 
         // redirect by role
-        if (user.role === "employer") {
-          window.location.href = "/jobs/manage";
-        } else if (user.role === "seeker") {
-          window.location.href = "/jobs";
-        } else {
-          window.location.href = "/feed";
-        }
+        window.location.href = "/feed";
       }, 900);
     } catch (err) {
       setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");

@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom"; // ✅ เพิ่ม Link
 import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
 import {
   FaCog,
@@ -9,13 +8,11 @@ import {
   FaUserShield,
   FaBolt,
   FaClipboardList,
+  FaBuilding,
 } from "react-icons/fa";
-import { ProfileContext } from "../ProfileContext";
 import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
-  const { profileData, isLoading } = useContext(ProfileContext);
-
   const location = useLocation();
 
   const isActive = (path) =>
@@ -25,16 +22,17 @@ export default function Header2({ role, onLogout }) {
   const isAdmin = userRole === "admin";
   const isEmployer = userRole === "employer";
 
+  const storedUser = JSON.parse(localStorage.getItem("user") || '{}');
+  const profileImage = storedUser?.profileImage || null;
   const displayName = isAdmin
     ? "Admin"
-    : isLoading
-    ? "..."
-    : profileData?.name?.trim() || "User";
+    : storedUser?.name?.trim() || "User";
 
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
       <Container>
-        <Navbar.Brand href="/feed">
+        {/* ✅ ใช้ Link แทน href */}
+        <Navbar.Brand as={Link} to="/feed">
           <FaBolt style={{ color: "var(--color-accent)", fontSize: "1rem" }} />
           Smart Persona
         </Navbar.Brand>
@@ -45,25 +43,28 @@ export default function Header2({ role, onLogout }) {
           <Nav className="ms-auto align-items-lg-center">
             {isEmployer ? (
               <>
-                <Nav.Link href="/feed" className={isActive("/feed") ? "active" : ""}>
+                <Nav.Link as={Link} to="/feed" className={isActive("/feed") ? "active" : ""}>
                   Feed
                 </Nav.Link>
-                <Nav.Link href="/jobs/manage" className={isActive("/jobs/manage") ? "active" : ""}>
+                <Nav.Link as={Link} to="/browse-jobs" className={isActive("/browse-jobs") ? "active" : ""}>
+                  Browse Jobs
+                </Nav.Link>
+                <Nav.Link as={Link} to="/jobs/manage" className={isActive("/jobs/manage") ? "active" : ""}>
                   Manage Jobs
                 </Nav.Link>
               </>
             ) : !isAdmin ? (
               <>
-                <Nav.Link href="/feed" className={isActive("/feed") ? "active" : ""}>
+                <Nav.Link as={Link} to="/feed" className={isActive("/feed") ? "active" : ""}>
                   Feed
                 </Nav.Link>
-                <Nav.Link href="/profile" className={isActive("/profile") ? "active" : ""}>
+                <Nav.Link as={Link} to="/profile" className={isActive("/profile") ? "active" : ""}>
                   Profile
                 </Nav.Link>
-                <Nav.Link href="/jobs" className={isActive("/jobs") ? "active" : ""}>
+                <Nav.Link as={Link} to="/jobs" className={isActive("/jobs") ? "active" : ""}>
                   Jobs
                 </Nav.Link>
-                <Nav.Link href="/resume" className={isActive("/resume") ? "active" : ""}>
+                <Nav.Link as={Link} to="/resume" className={isActive("/resume") ? "active" : ""}>
                   Resume
                 </Nav.Link>
               </>
@@ -72,12 +73,8 @@ export default function Header2({ role, onLogout }) {
             <Dropdown align="end" className="ms-lg-3">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">
-                  {profileData?.profileImage ? (
-                    <img
-                      src={profileData.profileImage}
-                      alt={displayName}
-                      className="avatar-img"
-                    />
+                  {profileImage && (profileImage.startsWith('data:') || profileImage.startsWith('http')) ? (
+                    <img src={profileImage} alt={displayName} className="avatar-img" />
                   ) : (
                     displayName.charAt(0).toUpperCase()
                   )}
@@ -88,13 +85,13 @@ export default function Header2({ role, onLogout }) {
               <Dropdown.Menu>
                 {isAdmin ? (
                   <>
-                    <Dropdown.Item href="/chart">
+                    <Dropdown.Item as={Link} to="/chart">
                       <FaHome /> Dashboard
                     </Dropdown.Item>
-                    <Dropdown.Item href="/ads">
+                    <Dropdown.Item as={Link} to="/ads">
                       <FaBullhorn /> Ads Management
                     </Dropdown.Item>
-                    <Dropdown.Item href="/admin">
+                    <Dropdown.Item as={Link} to="/admin">
                       <FaUserShield /> Admin Management
                     </Dropdown.Item>
                     <Dropdown.Divider />
@@ -104,7 +101,10 @@ export default function Header2({ role, onLogout }) {
                   </>
                 ) : isEmployer ? (
                   <>
-                    <Dropdown.Item href="/settings">
+                    <Dropdown.Item as={Link} to="/company-profile">
+                      <FaBuilding /> Company Profile
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/settings">
                       <FaCog /> Settings
                     </Dropdown.Item>
                     <Dropdown.Item onClick={onLogout}>
@@ -113,11 +113,11 @@ export default function Header2({ role, onLogout }) {
                   </>
                 ) : (
                   <>
-                    <Dropdown.Item href="/applications">
+                    <Dropdown.Item as={Link} to="/applications">
                       <FaClipboardList /> Applications
                     </Dropdown.Item>
                     <Dropdown.Divider />
-                    <Dropdown.Item href="/settings">
+                    <Dropdown.Item as={Link} to="/settings">
                       <FaCog /> Settings
                     </Dropdown.Item>
                     <Dropdown.Item onClick={onLogout}>

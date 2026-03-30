@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SettingsContext } from "./SettingContext";
 import "./setting.css";
 
+
 export default function Settings() {
   const navigate = useNavigate();
 
@@ -17,6 +18,8 @@ export default function Settings() {
       return updated;
     });
   };
+
+  
 
   return (
     <div className="settings-container">

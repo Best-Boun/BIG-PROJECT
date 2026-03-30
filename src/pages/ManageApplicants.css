@@ -172,6 +172,8 @@
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  line-height: 1;
+  text-align: center;
 }
 
 /* ── Avatar ──────────────────────────────────────────────────── */

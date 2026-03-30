@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Spinner } from 'react-bootstrap';
-import { FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaTimes, FaHeart } from 'react-icons/fa';
 import JobCard from '../components/JobCard';
+import { calcMatchScore } from '../utils/skillMatch';
+import { usePagination } from '../hooks/usePagination';
+import PaginationBar from '../components/PaginationBar';
 import './JobBrowse.css';
 
 const JOBS_API = 'http://localhost:3000/api/jobs';
@@ -15,15 +18,17 @@ const SALARY_RANGES = [
   { label: '200k+',        min: 200000, max: Infinity },
 ];
 
-export default function JobBrowse() {
+export default function JobBrowse({ mode = 'apply' }) {
+  const isViewOnly = mode === 'view';
+  const userId = localStorage.getItem('userID');
+
   // ✅ State Variables
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
-  const [favorites, setFavorites] = useState(
-    () => JSON.parse(localStorage.getItem('jobFavorites') || '[]')
-  );
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appliedJobs, setAppliedJobs] = useState([]);
+  const [seekerSkills, setSeekerSkills] = useState([]);
 
   // 🔍 Search & Filter States (unchanged)
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,14 +40,37 @@ export default function JobBrowse() {
   // 📱 Sidebar Toggle (unchanged)
   const [showFilters, setShowFilters] = useState(true);
 
+  const [activeTab, setActiveTab] = useState('browse'); // 'browse' | 'favorites'
+  const [sortMode, setSortMode] = useState('latest'); // 'latest' | 'recommended'
+
   useEffect(() => {
-    const userId = localStorage.getItem('userID');
+    const role = localStorage.getItem('role');
+    if (role !== 'seeker') return;
+    if (!userId) return;
+    fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        const profile = Array.isArray(data) ? data[0] : data;
+        setSeekerSkills(profile?.skills || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`http://localhost:3000/api/favorites/${userId}`)
+      .then(r => r.json())
+      .then(data => setFavorites(data.map(f => f.jobId)))
+      .catch(() => {});
+  }, [userId]);
+
+  useEffect(() => {
     if (!userId) return;
     fetch(`http://localhost:3000/api/jobs/applications/${userId}`)
       .then(r => r.json())
       .then(apps => setAppliedJobs(apps.map(a => a.jobId)))
       .catch(() => {});
-  }, []);
+  }, [userId]);
 
   // 🔄 Fetch jobs from API on mount
   useEffect(() => {
@@ -101,12 +129,27 @@ export default function JobBrowse() {
     setFilteredJobs(results);
   };
 
-  // ❤️ Favorite toggle (unchanged)
-  const handleFavoriteToggle = (jobId) => {
-    if (favorites.includes(jobId)) {
-      setFavorites(favorites.filter(id => id !== jobId));
-    } else {
-      setFavorites([...favorites, jobId]);
+  // ❤️ Favorite toggle — optimistic update, sync to DB
+  const handleFavoriteToggle = async (jobId) => {
+    const isFav = favorites.includes(jobId);
+    setFavorites(prev =>
+      isFav ? prev.filter(id => id !== jobId) : [...prev, jobId]
+    );
+    try {
+      if (isFav) {
+        await fetch(`http://localhost:3000/api/favorites/${userId}/${jobId}`, { method: 'DELETE' });
+      } else {
+        await fetch('http://localhost:3000/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, jobId }),
+        });
+      }
+    } catch {
+      // Rollback on API failure
+      setFavorites(prev =>
+        isFav ? [...prev, jobId] : prev.filter(id => id !== jobId)
+      );
     }
   };
 
@@ -180,6 +223,21 @@ export default function JobBrowse() {
   const hasActiveFilters =
     searchTerm || selectedLocation || selectedJobType || selectedLevel || selectedSalaryRange;
 
+  const baseJobs = activeTab === 'browse'
+    ? filteredJobs
+    : filteredJobs.filter(j => favorites.includes(j.id));
+
+  const displayJobs = sortMode === 'recommended' && seekerSkills.length > 0
+    ? [...baseJobs].sort((a, b) =>
+        calcMatchScore(seekerSkills, b.jobSkills) -
+        calcMatchScore(seekerSkills, a.jobSkills)
+      )
+    : [...baseJobs].sort((a, b) =>
+        new Date(b.postedDate) - new Date(a.postedDate)
+      );
+
+  const { paginatedItems, currentPage, totalPages, setCurrentPage } = usePagination(displayJobs, 3);
+
   return (
     <div className="job-browse-page">
       {/* Page Header */}
@@ -210,6 +268,7 @@ export default function JobBrowse() {
               </button>
             )}
           </div>
+
         </Container>
       </div>
 
@@ -297,15 +356,77 @@ export default function JobBrowse() {
             <div className="results-header">
               <span className="results-count">
                 {!loading && (
-                  <>{filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'} found</>
+                  <>
+                    {activeTab === 'browse'
+                      ? filteredJobs.length
+                      : filteredJobs.filter(j => favorites.includes(j.id)).length
+                    } jobs found
+                  </>
                 )}
               </span>
-              <button
-                className="toggle-filters-btn d-lg-none"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <FaFilter /> {showFilters ? 'Hide' : 'Show'} Filters
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {!isViewOnly && seekerSkills.length > 0 && (
+                  <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', borderRadius: '20px', padding: '3px' }}>
+                    <button
+                      onClick={() => setSortMode('latest')}
+                      style={{
+                        padding: '5px 14px', borderRadius: '16px', border: 'none',
+                        fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                        background: sortMode === 'latest' ? 'white' : 'transparent',
+                        color: sortMode === 'latest' ? '#111827' : '#6b7280',
+                        boxShadow: sortMode === 'latest' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Latest
+                    </button>
+                    <button
+                      onClick={() => setSortMode('recommended')}
+                      style={{
+                        padding: '5px 14px', borderRadius: '16px', border: 'none',
+                        fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                        background: sortMode === 'recommended' ? 'white' : 'transparent',
+                        color: sortMode === 'recommended' ? '#111827' : '#6b7280',
+                        boxShadow: sortMode === 'recommended' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ⚡ Recommended
+                    </button>
+                  </div>
+                )}
+                <button
+                  className="toggle-filters-btn d-lg-none"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <FaFilter /> {showFilters ? 'Hide' : 'Show'} Filters
+                </button>
+                {!isViewOnly && (
+                  <button
+                    onClick={() => setActiveTab(activeTab === 'favorites' ? 'browse' : 'favorites')}
+                    style={{
+                      padding: '8px 18px', borderRadius: '20px', border: '1.5px solid #e74c3c',
+                      fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                      background: activeTab === 'favorites' ? '#e74c3c' : 'white',
+                      color: activeTab === 'favorites' ? 'white' : '#e74c3c',
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      transition: 'all 0.2s'
+                    }}>
+                    <FaHeart />
+                    Favorites
+                    {favorites.length > 0 && (
+                      <span style={{
+                        background: activeTab === 'favorites' ? 'white' : '#e74c3c',
+                        color: activeTab === 'favorites' ? '#e74c3c' : 'white',
+                        borderRadius: '50%', width: '20px', height: '20px',
+                        fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {favorites.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Loading */}
@@ -319,28 +440,47 @@ export default function JobBrowse() {
             )}
 
             {/* Jobs Grid */}
-            {!loading && filteredJobs.length > 0 && (
-              <div className="jobs-grid">
-                {filteredJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    isFavorite={favorites.includes(job.id)}
-                    isApplied={appliedJobs.includes(job.id)}
-                    onFavoriteToggle={handleFavoriteToggle}
-                    onViewDetails={handleViewDetails}
-                    onApply={checkProfileBeforeApply}
-                  />
-                ))}
-              </div>
+            {!loading && paginatedItems.length > 0 && (
+              <>
+                <div className="jobs-grid">
+                  {paginatedItems.map((job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      isFavorite={favorites.includes(job.id)}
+                      isApplied={appliedJobs.includes(job.id)}
+                      onFavoriteToggle={!isViewOnly ? handleFavoriteToggle : null}
+                      onViewDetails={handleViewDetails}
+                      onApply={!isViewOnly ? checkProfileBeforeApply : null}
+                      seekerSkills={!isViewOnly ? seekerSkills : null}
+                    />
+                  ))}
+                </div>
+                <PaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
 
-            {/* No Results */}
-            {!loading && filteredJobs.length === 0 && (
+            {/* No Results — Browse */}
+            {!loading && activeTab === 'browse' && filteredJobs.length === 0 && (
               <div className="no-results">
                 <p className="no-results-text">No jobs found matching your criteria</p>
                 <button className="ds-btn-secondary" onClick={handleClearFilters}>
                   Clear Filters
+                </button>
+              </div>
+            )}
+
+            {/* No Results — Favorites */}
+            {!loading && activeTab === 'favorites' && filteredJobs.filter(j => favorites.includes(j.id)).length === 0 && (
+              <div className="no-results">
+                <FaHeart style={{ fontSize: '3rem', color: '#ddd', marginBottom: '16px' }} />
+                <p className="no-results-text">No favorite jobs yet</p>
+                <button className="ds-btn-secondary" onClick={() => setActiveTab('browse')}>
+                  Browse Jobs
                 </button>
               </div>
             )}

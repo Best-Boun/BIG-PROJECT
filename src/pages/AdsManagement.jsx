@@ -32,7 +32,9 @@ function AdsManagement() {
 
   const [previewAd, setPreviewAd] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  
+
+  const [clickingId, setClickingId] = useState(null);
+
   const MAX_FEED_ADS = 3;
 
   // ================= LOAD ADS =================
@@ -82,13 +84,18 @@ function AdsManagement() {
     };
 
     try {
-      await fetch(API_URL, {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newAd),
       });
+
+      if (!res.ok) throw new Error();
 
       showToast("สร้างโฆษณาสำเร็จ!");
       await loadAds();
@@ -101,9 +108,16 @@ function AdsManagement() {
   // ================= DELETE =================
   const doDelete = async (id) => {
     try {
-      await fetch(`${API_URL}/${id}`, {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (!res.ok) throw new Error();
 
       showToast("ลบโฆษณาสำเร็จ");
       await loadAds();
@@ -120,16 +134,21 @@ function AdsManagement() {
     const newStatus = target.active ? 0 : 1;
 
     try {
-      await fetch(`${API_URL}/${id}`, {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...target,
           active: newStatus,
         }),
       });
+
+      if (!res.ok) throw new Error();
 
       await loadAds();
     } catch (err) {
@@ -142,6 +161,7 @@ function AdsManagement() {
   const startEdit = (ad) => {
     setPreviewAd(null);
     setConfirmDelete(null);
+    setEditData(null); 
 
     setEditingId(ad.id);
     setEditData({ ...ad });
@@ -149,16 +169,21 @@ function AdsManagement() {
 
   const saveEdit = async () => {
     try {
-      await fetch(`${API_URL}/${editingId}`, {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/${editingId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...editData,
           date: editData.date.split("T")[0],
         }),
       });
+
+      if (!res.ok) throw new Error();
 
       showToast("บันทึกสำเร็จ");
       await loadAds();
@@ -178,8 +203,13 @@ function AdsManagement() {
     formData.append("image", file);
 
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(API_UPLOAD, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -283,16 +313,23 @@ function AdsManagement() {
                   </button>
 
                   <div className="sp-row">
-                    <button
+                    <motion.button
                       className="sp-btn sp-btn-view"
+                      whileTap={{ scale: 0.92 }} // 🔥 กดแล้วจม
+                      whileHover={{ scale: 1.05 }} // 🔥 hover ขยาย
+                      transition={{ type: "spring", stiffness: 300 }}
                       onClick={() => {
+                        setEditData(null);
                         setEditingId(null);
                         setConfirmDelete(null);
-                        setPreviewAd(ad);
+
+                        setTimeout(() => {
+                          setPreviewAd(ad);
+                        }, 0);
                       }}
                     >
                       Preview
-                    </button>
+                    </motion.button>
 
                     <button
                       className="sp-btn sp-btn-edit"
@@ -306,6 +343,7 @@ function AdsManagement() {
                       onClick={() => {
                         setPreviewAd(null);
                         setEditingId(null);
+                        setEditData(null);
                         setConfirmDelete(ad);
                       }}
                     >
@@ -319,9 +357,8 @@ function AdsManagement() {
       )}
 
       {/* ================= PREVIEW POPUP ================= */}
-
       <AnimatePresence>
-        {previewAd && (
+        {previewAd && !confirmDelete && !editingId && (
           <motion.div
             className="sp-preview-bg"
             initial={{ opacity: 0 }}
@@ -370,6 +407,8 @@ function AdsManagement() {
 
       {/* ================= DELETE ================= */}
 
+      {/* ================= DELETE ================= */}
+
       <AnimatePresence>
         {confirmDelete && (
           <motion.div className="sp-modal-bg">
@@ -378,12 +417,7 @@ function AdsManagement() {
 
               <p>{confirmDelete.name}</p>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                }}
-              >
+              <div style={{ display: "flex", gap: 10 }}>
                 <button
                   className="sp-btn sp-btn-delete"
                   onClick={() => doDelete(confirmDelete.id)}
@@ -393,10 +427,7 @@ function AdsManagement() {
 
                 <button
                   className="sp-btn sp-btn-cancel"
-                  onClick={() => {
-                    setEditingId(null);
-                    setEditData(null);
-                  }}
+                  onClick={() => setConfirmDelete(null)}
                 >
                   Cancel
                 </button>
@@ -469,13 +500,7 @@ function AdsManagement() {
                 </>
               )}
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  marginTop: 10,
-                }}
-              >
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
                 <button className="sp-btn sp-btn-save" onClick={saveEdit}>
                   Save
                 </button>

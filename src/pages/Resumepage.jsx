@@ -1,22 +1,10 @@
-import { useState, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import { FaPlus, FaArrowRight } from 'react-icons/fa';
-import { ProfileContext } from "../ProfileContext.jsx";
 import ResumeEditor from './ResumeEditor.jsx';
-import Header2 from '../components/Header2';
 
-
- const handleLogout = () => {
-        // ตัวอย่าง: ล้าง token และ redirect
-        localStorage.removeItem('token');
-        window.location.href = '/login'; // หรือใช้ useNavigate
-    };
-
-    const currentUser = { username: 'John Doe', role: 'user' }; // หรือ user จาก context/state จริง
 function ChooseModeScreen({ onSelectMode }) {
   return (
-    <>
-    <Header2 user={currentUser} onLogout={handleLogout} />
     <div className="choose-mode-container">
       <Container style={{width:'100%', padding:'20px'}} className="py-5">
         <div className="mode-header mb-5">
@@ -102,7 +90,6 @@ function ChooseModeScreen({ onSelectMode }) {
         </Card>
       </Container>
     </div>
-    </>
   );
 }
 
@@ -110,31 +97,28 @@ function ChooseModeScreen({ onSelectMode }) {
 // MAIN RESUME PAGE
 // ============================================
 export default function ResumePage() {
-  // ✅ อ่าน: ตรวจสอบ ProfileContext
-  const context = useContext(ProfileContext);
-  
-  if (!context) {
-    console.error('ProfileContext is not available');
-    return (
-      <div className="p-5 text-center">
-        <Alert variant="danger">
-          <strong>Error:</strong> Profile context is not found. Please check ProfileContext setup.
-        </Alert>
-      </div>
-    );
-  }
-
-  // ✅ อ่าน: ใช้ context.profileData หรือ object เปล่า
-  const profileData = context?.profileData || {};
-
-  // ✅ Debug: Log profile data
-  console.log('Profile Data Available:', profileData);
-
-  // State Management
+  const [profileData, setProfileData] = useState({});
+  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState(null); // null | 'editor'
   const [resumeData, setResumeData] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userID');
+    if (!userId) { setLoading(false); return; }
+
+    fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        const profile = Array.isArray(data) ? data[0] : data;
+        setProfileData(profile || {});
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="p-5 text-center">Loading...</div>;
 
   // ============================================
   // HANDLERS

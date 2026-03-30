@@ -153,7 +153,7 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
 export default function ResumeEditor({ initialData, user, onLogout }) {
   const [resumeData, setResumeData] = useState(initialData || {
     name: '', title: '', email: '', phone: '', location: '', summary: '', photo: '',
-    education: [], employment: [], languages: [], hobbies: [],
+    education: [], employment: [], languages: [], hobbies: [], references: '',
     skills: {
       languages: '',
       frontend: '',
@@ -650,6 +650,23 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
                         </div>
                       )}
                       <Button variant="primary" size="sm" onClick={addLanguage} className="w-100 mt-2"><FaPlus /> Add Language</Button>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* REFERENCES */}
+                  <Accordion.Item eventKey="7">
+                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>References</Accordion.Header>
+                    <Accordion.Body>
+                      <Form.Group>
+                        <Form.Label style={{ fontWeight: '500', fontSize: '13px' }}>References</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={3}
+                          value={resumeData.references || ''}
+                          onChange={(e) => setResumeData(prev => ({ ...prev, references: e.target.value }))}
+                          placeholder="e.g. Available upon request, or list reference contacts..."
+                        />
+                      </Form.Group>
                     </Accordion.Body>
                   </Accordion.Item>
 

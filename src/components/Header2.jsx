@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { useLocation, Link  } from "react-router-dom";
 import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
+import { SettingsContext } from "./SettingContext";
 import {
   FaCog,
   FaSignOutAlt,
@@ -14,7 +15,7 @@ import {
 import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
-  const { profileData, isLoading } = useContext();
+  useContext(SettingsContext);
   const location = useLocation();
 
   const isActive = (path) =>
@@ -30,9 +31,7 @@ export default function Header2({ role, onLogout }) {
   // 🔥 FIX ตรงนี้
   const displayName = isAdmin
     ? "Admin"
-    : isLoading
-      ? storedUser?.name || "..."
-      : profileData?.name?.trim() || storedUser?.name || "User";
+    : storedUser?.name || "User";
 
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
@@ -100,9 +99,9 @@ export default function Header2({ role, onLogout }) {
             <Dropdown align="end">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">
-                  {profileData?.profileImage ? (
+                  {storedUser?.profileImage ? (
                     <img
-                      src={`http://localhost:3000${profileData.profileImage}`}
+                      src={`http://localhost:3000${storedUser.profileImage}`}
                       alt={displayName}
                       className="avatar-img"
                     />
@@ -160,7 +159,7 @@ export default function Header2({ role, onLogout }) {
             </Dropdown>
           </div>
         </Navbar.Collapse>
-      </Container>
+      </div>
     </Navbar>
   );
 }

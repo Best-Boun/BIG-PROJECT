@@ -1,5 +1,21 @@
 ﻿import "./ResumeEditor.css";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState } from "react";
+import { Container, Row, Col, Accordion, Card, Form, Button, Modal } from "react-bootstrap";
+import { FaTrash, FaPlus, FaDownload, FaPalette } from "react-icons/fa";
+import { TemplateCorporatePhoto, TemplateSleekProfessionalPhoto, TemplateScribdStyle } from "../components/photo-resume-templates";
+
+function ResumePreview({ data, template, colors, designSettings }) {
+  const props = { data, color: colors?.primary, designSettings };
+  switch (template) {
+    case 'sleek-photo': return <TemplateSleekProfessionalPhoto {...props} />;
+    case 'scribd-style': return <TemplateScribdStyle {...props} />;
+    default: return <TemplateCorporatePhoto {...props} />;
+  }
+}
+
+function SLabel({ children }) {
+  return <span className="re-section-label">{children}</span>;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    CONSTANTS & DATA
@@ -36,6 +52,8 @@ const TEMPLATES = [
 ];
 
 const PRESET_COLORS = ['#667eea', '#3498db', '#e67e22', '#e74c3c', '#9b59b6'];
+
+const uid = () => Math.random().toString(36).slice(2, 9);
 
 function TemplateThumbnail({ template, isSelected, onClick, selectedColor, data }) {
   const getPreview = () => {
@@ -137,36 +155,26 @@ function ChangeTemplateModal({ show, onHide, onSelectTemplate, onSelectColor, se
     </Modal>
   );
 }
-
-function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M', fontStyle: 'INTER', spacing: 'M' } }) {
-  const previewData = (data && Object.keys(data).some(key => {
-    if (Array.isArray(data[key])) return data[key].length > 0;
-    return data[key];
-  })) ? data : {
-    name: '',
-    title: '',
-    location: '',
-    email: '',
-    phone: '',
-    summary: '',
-    photo: '',
-    skills: [''],
-    languages: [],
-    education: [{ degree: '', school: '', startDate: '', endDate: '' }],
-    employment: [{ position: '', company: '', startDate: '', endDate: '', description: '' }],
-    certifications: [],
-    hobbies: []
-  };
-
-  const addAll = () => available.forEach(addKeyword);
-
+export default function ResumeEditor({ initialData }) {
+  const [resumeData, setResumeData] = useState(initialData || {
+    name: '', title: '', email: '', phone: '', location: '', summary: '', photo: '',
+    education: [], employment: [], languages: [], hobbies: [], references: '',
+    skills: { languages: '', frontend: '', backend: '', databases: '', softSkills: '', devops: '' }
+  });
+  const [selectedTemplate, setSelectedTemplate] = useState('corporate-photo');
+  const [selectedColor, setSelectedColor] = useState('#2c3e50');
+  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [designSettings] = useState({ fontSize: 'M', fontStyle: 'INTER', spacing: 'M' });
+  const handleBasicChange = (field, value) => setResumeData(prev => ({ ...prev, [field]: value }));
+  const handleSelectTemplate = (tmpl) => { setSelectedTemplate(tmpl.id); setSelectedColor(tmpl.colors?.primary || '#2c3e50'); };
+  const handleSelectColor = (color) => setSelectedColor(color);
+  const getTemplateColors = () => ({ primary: selectedColor, secondary: '#764ba2' });
   const addEducation = () => setResumeData(prev => ({ ...prev, education: [...prev.education, { degree: '', school: '', faculty: '', startDate: '', endDate: '' }] }));
   const updateEducation = (idx, field, value) => setResumeData(prev => { const updated = [...prev.education]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, education: updated }; });
   const removeEducation = (idx) => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }));
 
-  const addEmployment = () => setResumeData(prev => ({ ...prev, employment: [...prev.employment, { position: '', company: '', startDate: '', endDate: '', description: '' }] }));
-  const updateEmployment = (idx, field, value) => setResumeData(prev => { const updated = [...prev.employment]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, employment: updated }; });
-  const removeEmployment = (idx) => setResumeData(prev => ({ ...prev, employment: prev.employment.filter((_, i) => i !== idx) }));
+
 
   // DOWNLOAD PDF HANDLER
   const handleDownloadPDF = async () => {
@@ -213,74 +221,7 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
     }
   };
 
-  // SKILLS
-  const skillOptions = {
-    languages: [
-      'Java', 'Python', 'JavaScript', 'TypeScript', 'C++', 'C#', 'Go', 'Rust', 
-      'PHP', 'Ruby', 'Swift', 'Kotlin', 'Scala', 'R', 'MATLAB'
-    ],
-    frontend: [
-      'React', 'Vue', 'Angular', 'Next.js', 'Svelte', 'Ember', 'Nuxt', 'Remix',
-      'HTML', 'CSS', 'SASS/SCSS', 'Tailwind CSS', 'Bootstrap', 'Material UI'
-    ],
-    backend: [
-      'Node.js', 'Django', 'Spring', 'FastAPI', 'Express', 'Flask', 'Laravel',
-      'ASP.NET', 'Ruby on Rails', 'Go Gin', 'NestJS', 'GraphQL'
-    ],
-    databases: [
-      'MySQL', 'MongoDB', 'PostgreSQL', 'Redis', 'Firebase', 'Oracle', 'SQL Server',
-      'DynamoDB', 'Cassandra', 'Elasticsearch', 'SQLite', 'MariaDB'
-    ],
-    softSkills: [
-      'Communication', 'Leadership', 'Problem-solving', 'Teamwork', 'Creativity',
-      'Time Management', 'Critical Thinking', 'Adaptability', 'Attention to Detail',
-      'Collaboration', 'Project Management', 'Presentation'
-    ],
-    devops: [
-      'Docker', 'Kubernetes', 'Git', 'GitHub', 'GitLab', 'Jenkins', 'GitHub Actions',
-      'AWS', 'Azure', 'Google Cloud', 'Linux', 'CI/CD', 'Terraform', 'Ansible'
-    ]
-  };
 
-  const skillCategories = [
-    { id: 'languages', label: 'Languages' },
-    { id: 'frontend', label: 'Frontend' },
-    { id: 'backend', label: 'Backend' },
-    { id: 'databases', label: 'Databases' },
-    { id: 'softSkills', label: 'Soft Skills' },
-    { id: 'devops', label: 'Tools & DevOps' }
-  ];
-
-  const [selectedSkillCategory, setSelectedSkillCategory] = useState('languages');
-  const [selectedSkill, setSelectedSkill] = useState('');
-  
-  const addSkill = () => {
-    if (!selectedSkill.trim()) return;
-    const current = resumeData.skills?.[selectedSkillCategory] || '';
-    const newValue = current ? current + ', ' + selectedSkill : selectedSkill;
-    setResumeData(prev => ({ ...prev, skills: { ...prev.skills, [selectedSkillCategory]: newValue } }));
-    setSelectedSkill('');
-  };
-
-  const removeSkillFromList = (skillToRemove) => {
-    const current = resumeData.skills?.[selectedSkillCategory] || '';
-    const updated = current
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s !== skillToRemove)
-      .join(', ');
-    setResumeData(prev => ({ ...prev, skills: { ...prev.skills, [selectedSkillCategory]: updated } }));
-  };
-
-  // LANGUAGES
-  const addLanguage = () => setResumeData(prev => ({ ...prev, languages: [...prev.languages, { name: '', level: 'Intermediate' }] }));
-  const updateLanguage = (idx, field, value) => setResumeData(prev => { const updated = [...prev.languages]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, languages: updated }; });
-  const removeLanguage = (idx) => setResumeData(prev => ({ ...prev, languages: prev.languages.filter((_, i) => i !== idx) }));
-
-  // HOBBIES
-  const addHobby = () => setResumeData(prev => ({ ...prev, hobbies: [...prev.hobbies, ''] }));
-  const updateHobby = (idx, value) => setResumeData(prev => { const updated = [...prev.hobbies]; updated[idx] = value; return { ...prev, hobbies: updated }; });
-  const removeHobby = (idx) => setResumeData(prev => ({ ...prev, hobbies: prev.hobbies.filter((_, i) => i !== idx) }));
 
   return (
     <>
@@ -451,54 +392,47 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
                       <Button variant="primary" size="sm" onClick={addEducation} className="w-100 mt-2"><FaPlus /> Add Education</Button>
                     </Accordion.Body>
                   </Accordion.Item>
+                </Accordion>
+                {/* ACTION BUTTONS */}
+                <div className="action-buttons">
+                  <Button variant="success" className="w-100" onClick={handleDownloadPDF}><FaDownload /> Download PDF</Button>
+                  <Button variant="outline-primary" className="w-100" onClick={() => setShowTemplateModal(true)}><FaPalette /> Change Template</Button>
+                </div>
+              </div>
+            </Col>
 
-  return (
-    <div className="re-card">
-      <SLabel>ทักษะ</SLabel>
-      <div className="re-skill-input-wrap">
-        <input
-          className="re-input"
-          placeholder="พิมพ์ทักษะ เช่น React…"
-          value={val}
-          maxLength={40}
-          onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addSkill()}
-          disabled={skills.length >= 10}
+            {/* RIGHT COLUMN - PREVIEW */}
+            <Col lg={7}>
+              <Card className="resume-preview-card">
+                <Card.Body style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#f5f5f5' }}>
+                  <div className="resume-preview-controls">
+                    <Button size="sm" onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}>−</Button>
+                    <span className="zoom-display">{Math.round(zoomLevel * 100)}%</span>
+                    <Button size="sm" onClick={() => setZoomLevel(Math.min(1.5, zoomLevel + 0.1))}>+</Button>
+                  </div>
+                  <div className="resume-preview-container">
+                    <div data-resume-preview className="resume-preview-wrapper" style={{ transform: `scale(${zoomLevel})` }}>
+                      <ResumePreview data={resumeData} template={selectedTemplate} colors={getTemplateColors()} designSettings={designSettings} />
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+
+        {/* CHANGE TEMPLATE MODAL */}
+        <ChangeTemplateModal 
+          show={showTemplateModal} 
+          onHide={() => setShowTemplateModal(false)}
+          onSelectTemplate={handleSelectTemplate} 
+          onSelectColor={handleSelectColor}
+          selectedColor={selectedColor} 
+          selectedTemplate={selectedTemplate} 
+          data={resumeData} 
         />
-        <button
-          className="re-btn re-btn-primary re-btn-sm"
-          onClick={() => addSkill()}
-          disabled={!val.trim() || skills.length >= 10}
-        >
-          เพิ่ม
-        </button>
       </div>
-      {suggestions.length > 0 && (
-        <div className="re-suggestions">
-          {suggestions.map((sk, i) => (
-            <button
-              key={sk}
-              className={`re-suggestion${hoverId === i ? " re-suggestion--hover" : ""}`}
-              onMouseEnter={() => setHoverId(i)}
-              onMouseLeave={() => setHoverId(-1)}
-              onClick={() => addSkill(sk)}
-            >
-              {sk}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="re-skill-tags">
-        {skills.map((sk) => (
-          <span key={sk} className="re-skill-tag">
-            {sk}
-            <button className="re-skill-tag__rm" onClick={() => remove(sk)}>×</button>
-          </span>
-        ))}
-      </div>
-      {skills.length === 0 && <p className="re-empty-hint">ยังไม่มีทักษะ</p>}
-      {skills.length >= 10 && <p className="re-field-hint">เพิ่มได้สูงสุด 10 ทักษะ</p>}
-    </div>
+    </>
   );
 }
 
@@ -590,53 +524,60 @@ function ExperienceSection({ experience, onChange }) {
     </div>
   );
 }
-
-/* ═══════════════════════════════════════════════════════════════
+/* ================================================================
    EDUCATION SECTION
-═══════════════════════════════════════════════════════════════ */
+================================================================ */
 function EducationSection({ education, onChange }) {
   const [adding, setAdding] = useState(false);
-  const [form, setForm]     = useState({ school: "", degree: "", startYear: "", endYear: "" });
+  const [form, setForm] = useState({ school: "", degree: "", startYear: "", endYear: "" });
 
-                {/* ACTION BUTTONS */}
-                <div className="action-buttons">
-                  <Button variant="success" className="w-100" onClick={handleDownloadPDF}><FaDownload /> Download PDF</Button>
-                  <Button variant="outline-primary" className="w-100" onClick={() => setShowTemplateModal(true)}><FaPalette /> Change Template</Button>
-                </div>
-              </div>
-            </Col>
+  const add = () => {
+    if (!form.school.trim()) return;
+    onChange([...education, { _id: uid(), ...form }]);
+    setForm({ school: "", degree: "", startYear: "", endYear: "" });
+    setAdding(false);
+  };
 
-            {/* RIGHT COLUMN - PREVIEW */}
-            <Col lg={7}>
-              <Card className="resume-preview-card">
-                <Card.Body style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#f5f5f5' }}>
-                  <div className="resume-preview-controls">
-                    <Button size="sm" onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}>−</Button>
-                    <span className="zoom-display">{Math.round(zoomLevel * 100)}%</span>
-                    <Button size="sm" onClick={() => setZoomLevel(Math.min(1.5, zoomLevel + 0.1))}>+</Button>
-                  </div>
-                  <div className="resume-preview-container">
-                    <div data-resume-preview className="resume-preview-wrapper" style={{ transform: `scale(${zoomLevel})` }}>
-                      <ResumePreview data={resumeData} template={selectedTemplate} colors={getTemplateColors()} designSettings={designSettings} />
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
+  const remove = (id) => onChange(education.filter((e) => e._id !== id));
+  const update = (id, f, v) => onChange(education.map((e) => e._id === id ? { ...e, [f]: v } : e));
 
-        {/* CHANGE TEMPLATE MODAL */}
-        <ChangeTemplateModal 
-          show={showTemplateModal} 
-          onHide={() => setShowTemplateModal(false)}
-          onSelectTemplate={handleSelectTemplate} 
-          onSelectColor={handleSelectColor}
-          selectedColor={selectedColor} 
-          selectedTemplate={selectedTemplate} 
-          data={resumeData} 
-        />
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>Education</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => setAdding((v) => !v)}>
+          {adding ? "Cancel" : "+ Add"}
+        </button>
       </div>
-    </>
+      {education.map((edu) => (
+        <div key={edu._id} className="re-list-item">
+          <div className="re-list-item__head">
+            <div>
+              <div className="re-list-item__title">{edu.school || <em style={{ opacity: .4 }}>School</em>}</div>
+              <div className="re-list-item__sub">{edu.degree}</div>
+            </div>
+            <button className="re-btn re-btn-danger" onClick={() => remove(edu._id)}>Delete</button>
+          </div>
+          <div className="re-input-grid">
+            <div className="re-input-full"><label className="re-field-label">School</label><input className="re-input" value={edu.school} onChange={(e) => update(edu._id, "school", e.target.value)} /></div>
+            <div className="re-input-full"><label className="re-field-label">Degree</label><input className="re-input" value={edu.degree} onChange={(e) => update(edu._id, "degree", e.target.value)} /></div>
+            <div><label className="re-field-label">Start Year</label><input className="re-input" placeholder="2020" value={edu.startYear} onChange={(e) => update(edu._id, "startYear", e.target.value)} /></div>
+            <div><label className="re-field-label">End Year</label><input className="re-input" placeholder="2024" value={edu.endYear} onChange={(e) => update(edu._id, "endYear", e.target.value)} /></div>
+          </div>
+        </div>
+      ))}
+      {adding && (
+        <div className="re-add-form">
+          <div className="re-input-grid">
+            <div className="re-input-full"><label className="re-field-label">School</label><input className="re-input" placeholder="University" value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} /></div>
+            <div className="re-input-full"><label className="re-field-label">Degree</label><input className="re-input" placeholder="Bachelor of Science" value={form.degree} onChange={(e) => setForm({ ...form, degree: e.target.value })} /></div>
+            <div><label className="re-field-label">Start Year</label><input className="re-input" placeholder="2020" value={form.startYear} onChange={(e) => setForm({ ...form, startYear: e.target.value })} /></div>
+            <div><label className="re-field-label">End Year</label><input className="re-input" placeholder="2024" value={form.endYear} onChange={(e) => setForm({ ...form, endYear: e.target.value })} /></div>
+          </div>
+          <button className="re-btn re-btn-primary re-btn-sm" style={{ marginTop: 10 }} onClick={add} disabled={!form.school.trim()}>Save</button>
+        </div>
+      )}
+      {education.length === 0 && !adding && <p className="re-empty-hint">No education added yet</p>}
+    </div>
   );
 }

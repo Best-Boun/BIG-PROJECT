@@ -230,7 +230,7 @@ export default function Feed() {
                         />
                       </div>
 
-                      <div className="ms-3 flex-grow-1">
+                      <div className="ms-3 grow">
                         <div className="d-flex justify-content-between">
                           <div>
                             <h6 className="mb-0">{post.username || "User"}</h6>

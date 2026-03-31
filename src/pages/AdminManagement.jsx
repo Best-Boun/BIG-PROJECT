@@ -352,7 +352,7 @@ function AdminManagement() {
                           <h4>🛠 Skills</h4>
                           <div className="am-skill-tags">
                             {profileData.skills.map((s, i) => (
-                              <span key={i} className="am-skill-tag">{s}</span>
+                              <span key={i} className="am-skill-tag">{typeof s === 'object' ? (s.name || s.skill) : s}</span>
                             ))}
                           </div>
                         </div>

@@ -283,7 +283,6 @@ function ChartPage() {
               <StatCard title="Total Users"    value={n(summary.totalUsers)}icon="👥" color={C.accent}  loading={loading} />
               <StatCard title="Users Today"    value={n(summary.todayUsers)}icon="⚡" color={C.accent2} loading={loading} />
               <StatCard title="New This Month" value={`+${n(summary.newUsersMonth)}`} icon="📈" color={C.warning} loading={loading} />
-              <StatCard title="Avg Daily Apps" value={n(summary.averageUsageMins)}  icon="📋" color={C.accent4} loading={loading} />
             </div>
           );
         })()}

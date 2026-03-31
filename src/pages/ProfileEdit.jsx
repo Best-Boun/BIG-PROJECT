@@ -158,7 +158,7 @@ function ProfileEdit({ onNavigate }) {
     });
     const [editingId, setEditingId] = useState(null);
 
-    const { data, isLoading } = useQuery({
+    const { data } = useQuery({
         queryKey: ['profile', userId],
         queryFn: async () => {
             const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
@@ -981,6 +981,7 @@ setProfile(data);
             )}
 
         </div>
+
     );
 }
 

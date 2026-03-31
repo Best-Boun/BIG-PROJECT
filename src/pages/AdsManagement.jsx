@@ -72,37 +72,19 @@ function AdsManagement() {
   }, []);
 
   // ================= CREATE =================
-  const addAd = async () => {
-    const newAd = {
-      name: "New Ad",
-      description: "คำอธิบาย...",
+  const addAd = () => {
+    setPreviewAd(null);
+    setConfirmDelete(null);
+    setEditingId("new");
+    setEditData({
+      name: "",
+      description: "",
       image: "",
       position: "feed",
       sizePreset: "medium",
       date: new Date().toISOString().split("T")[0],
-      active: 0,
-    };
-
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newAd),
-      });
-
-      if (!res.ok) throw new Error();
-
-      showToast("สร้างโฆษณาสำเร็จ!");
-      await loadAds();
-    } catch (err) {
-      console.error(err);
-      showToast("สร้างโฆษณาไม่สำเร็จ", "error");
-    }
+      active: false,
+    });
   };
 
   // ================= DELETE =================
@@ -168,11 +150,12 @@ function AdsManagement() {
   };
 
   const saveEdit = async () => {
+    const isNew = editingId === "new";
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`${API_URL}/${editingId}`, {
-        method: "PUT",
+      const res = await fetch(isNew ? API_URL : `${API_URL}/${editingId}`, {
+        method: isNew ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -185,7 +168,7 @@ function AdsManagement() {
 
       if (!res.ok) throw new Error();
 
-      showToast("บันทึกสำเร็จ");
+      showToast(isNew ? "สร้างสำเร็จ!" : "บันทึกสำเร็จ");
       await loadAds();
     } catch {
       showToast("บันทึกไม่สำเร็จ", "error");

@@ -1,12 +1,33 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Accordion, Modal } from 'react-bootstrap';
-import { FaPlus, FaTrash, FaDownload, FaPalette } from 'react-icons/fa';
-import './ResumeEditor.css';
-import {
-  TemplateCorporatePhoto,
-  TemplateSleekProfessionalPhoto,
-  TemplateScribdStyle
-} from '../components/photo-resume-templates';
+﻿import "./ResumeEditor.css";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS & DATA
+═══════════════════════════════════════════════════════════════ */
+const DRAFT_KEY = "resume_editor_v3_draft";
+const API_URL   = "http://localhost:3000/api/resume";
+
+const LANG_LEVELS = ["เจ้าของภาษา", "คล่องแคล่ว", "ขั้นสูง", "ระดับกลาง", "เบื้องต้น"];
+const LANG_LEVEL_PCT = { เจ้าของภาษา: 100, คล่องแคล่ว: 85, ขั้นสูง: 68, ระดับกลาง: 50, เบื้องต้น: 28 };
+
+const SKILL_SUGGESTIONS = [
+  "React","Vue","Angular","Next.js","TypeScript","JavaScript","Python","Node.js",
+  "Java","C#","PHP","Laravel","Django","FastAPI","GraphQL","REST API","Docker",
+  "Kubernetes","AWS","GCP","Azure","PostgreSQL","MySQL","MongoDB","Redis",
+  "Git","CI/CD","Figma","Tailwind CSS","HTML","CSS","Linux","Agile","Scrum",
+];
+
+const SUMMARY_REWRITES = [
+  (s) => (s.includes("ทำเว็บ") || s.includes("web"))
+    ? "พัฒนาเว็บแอปพลิเคชันที่มีประสิทธิภาพสูงด้วย React, Node.js และเทคโนโลยีสมัยใหม่ พร้อมมุ่งเน้นการยกระดับประสบการณ์ผู้ใช้และคุณภาพโค้ดให้ดียิ่งขึ้นอยู่เสมอ"
+    : null,
+  (s) => (s.includes("ดูแล") || s.includes("manage"))
+    ? "ขับเคลื่อนและบริหารจัดการโปรเจคด้านเทคโนโลยีให้บรรลุเป้าหมาย พร้อมนำทีมพัฒนาให้ทำงานได้อย่างมีประสิทธิภาพสูงสุดในทุกสถานการณ์"
+    : null,
+  (s) => (s.includes("วิเคราะห์") || s.includes("data") || s.includes("ข้อมูล"))
+    ? "วิเคราะห์และประมวลผลข้อมูลขนาดใหญ่เพื่อสร้าง insight เชิงธุรกิจ ด้วย Python และเครื่องมือ Data Science ชั้นนำระดับอุตสาหกรรม"
+    : null,
+];
 
 const TEMPLATES = [
   { id: 'corporate-photo', name: 'Corporate Photo', colors: { primary: '#2c3e50', secondary: '#34495e' } },
@@ -137,53 +158,7 @@ function ResumePreview({ data, template, colors, designSettings = { fontSize: 'M
     hobbies: []
   };
 
-  if (template === 'corporate-photo') {
-    return <TemplateCorporatePhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
-  }
-  if (template === 'sleek-photo') {
-    return <TemplateSleekProfessionalPhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
-  }
-  if (template === 'scribd-style') {
-    return <TemplateScribdStyle data={previewData} color={colors?.primary} designSettings={designSettings} />;
-  }
-  
-  return <TemplateCorporatePhoto data={previewData} color={colors?.primary} designSettings={designSettings} />;
-}
-
-export default function ResumeEditor({ initialData, user, onLogout }) {
-  const [resumeData, setResumeData] = useState(initialData || {
-    name: '', title: '', email: '', phone: '', location: '', summary: '', photo: '',
-    education: [], employment: [], languages: [], hobbies: [], references: '',
-    skills: {
-      languages: '',
-      frontend: '',
-      backend: '',
-      databases: '',
-      softSkills: '',
-      devops: ''
-    }
-  });
-
-  const [selectedTemplate, setSelectedTemplate] = useState('corporate-photo');
-  const [selectedColor, setSelectedColor] = useState('#2c3e50');
-  const [zoomLevel, setZoomLevel] = useState(1.0);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
-  
-  // DESIGN CONTROLS
-  const [designSettings, setDesignSettings] = useState({
-    fontSize: 'M',
-    fontStyle: 'INTER',
-    spacing: 'M'
-  });
-
-  const handleBasicChange = (field, value) => setResumeData(prev => ({ ...prev, [field]: value }));
-  const handleSelectTemplate = (template) => { setSelectedTemplate(template.id); setSelectedColor(template.colors.primary); };
-  const handleSelectColor = (color) => setSelectedColor(color);
-
-  const getTemplateColors = () => {
-    const template = TEMPLATES.find(t => t.id === selectedTemplate);
-    return { primary: selectedColor, secondary: template?.colors.secondary || '#764ba2' };
-  };
+  const addAll = () => available.forEach(addKeyword);
 
   const addEducation = () => setResumeData(prev => ({ ...prev, education: [...prev.education, { degree: '', school: '', faculty: '', startDate: '', endDate: '' }] }));
   const updateEducation = (idx, field, value) => setResumeData(prev => { const updated = [...prev.education]; updated[idx] = { ...updated[idx], [field]: value }; return { ...prev, education: updated }; });
@@ -477,274 +452,151 @@ export default function ResumeEditor({ initialData, user, onLogout }) {
                     </Accordion.Body>
                   </Accordion.Item>
 
-                  {/* EXPERIENCE */}
-                  <Accordion.Item eventKey="4">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Experience</Accordion.Header>
-                    <Accordion.Body>
-                      {(resumeData.employment || []).map((job, idx) => (
-                        <Card key={idx} className="experience-card mb-3">
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">Job Title</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              type="text" 
-                              value={job.position} 
-                              onChange={(e) => updateEmployment(idx, 'position', e.target.value)} 
-                              placeholder="e.g. Senior Product Manager"
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">Company</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              type="text" 
-                              value={job.company} 
-                              onChange={(e) => updateEmployment(idx, 'company', e.target.value)} 
-                              placeholder="Company name"
-                            />
-                          </Form.Group>
-                          <Row className="mb-3">
-                            <Col sm={6}>
-                              <Form.Group>
-                                <Form.Label className="small fw-bold">Start Date</Form.Label>
-                                <Form.Control 
-                                  size="sm" 
-                                  type="text" 
-                                  value={job.startDate} 
-                                  onChange={(e) => updateEmployment(idx, 'startDate', e.target.value)} 
-                                  placeholder="e.g. Jul 2012"
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col sm={6}>
-                              <Form.Group>
-                                <Form.Label className="small fw-bold">End Date</Form.Label>
-                                <Form.Control 
-                                  size="sm" 
-                                  type="text" 
-                                  value={job.endDate} 
-                                  onChange={(e) => updateEmployment(idx, 'endDate', e.target.value)} 
-                                  placeholder="e.g. Present"
-                                />
-                              </Form.Group>
-                            </Col>
-                          </Row>
-                          <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold">Description</Form.Label>
-                            <Form.Control 
-                              size="sm" 
-                              as="textarea" 
-                              rows={2} 
-                              value={job.description} 
-                              onChange={(e) => updateEmployment(idx, 'description', e.target.value)} 
-                              placeholder="Job responsibilities..."
-                            />
-                          </Form.Group>
-                          <Button variant="outline-danger" size="sm" onClick={() => removeEmployment(idx)} className="w-100"><FaTrash /> Delete</Button>
-                        </Card>
-                      ))}
-                      {(!resumeData.employment || resumeData.employment.length === 0) && (
-                        <div className="no-items-message">
-                          <p>No experience added yet</p>
-                        </div>
-                      )}
-                      <Button variant="primary" size="sm" onClick={addEmployment} className="w-100 mt-2"><FaPlus /> Add Experience</Button>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  return (
+    <div className="re-card">
+      <SLabel>ทักษะ</SLabel>
+      <div className="re-skill-input-wrap">
+        <input
+          className="re-input"
+          placeholder="พิมพ์ทักษะ เช่น React…"
+          value={val}
+          maxLength={40}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addSkill()}
+          disabled={skills.length >= 10}
+        />
+        <button
+          className="re-btn re-btn-primary re-btn-sm"
+          onClick={() => addSkill()}
+          disabled={!val.trim() || skills.length >= 10}
+        >
+          เพิ่ม
+        </button>
+      </div>
+      {suggestions.length > 0 && (
+        <div className="re-suggestions">
+          {suggestions.map((sk, i) => (
+            <button
+              key={sk}
+              className={`re-suggestion${hoverId === i ? " re-suggestion--hover" : ""}`}
+              onMouseEnter={() => setHoverId(i)}
+              onMouseLeave={() => setHoverId(-1)}
+              onClick={() => addSkill(sk)}
+            >
+              {sk}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="re-skill-tags">
+        {skills.map((sk) => (
+          <span key={sk} className="re-skill-tag">
+            {sk}
+            <button className="re-skill-tag__rm" onClick={() => remove(sk)}>×</button>
+          </span>
+        ))}
+      </div>
+      {skills.length === 0 && <p className="re-empty-hint">ยังไม่มีทักษะ</p>}
+      {skills.length >= 10 && <p className="re-field-hint">เพิ่มได้สูงสุด 10 ทักษะ</p>}
+    </div>
+  );
+}
 
-                  {/* SKILLS */}
-                  <Accordion.Item eventKey="5">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Skills</Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Select Category</Form.Label>
-                        <Form.Select 
-                          value={selectedSkillCategory} 
-                          onChange={(e) => {
-                            setSelectedSkillCategory(e.target.value);
-                            setSelectedSkill('');
-                          }}
-                          size="sm"
-                        >
-                          {skillCategories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>{cat.label}</option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
+/* ═══════════════════════════════════════════════════════════════
+   EXPERIENCE SECTION
+═══════════════════════════════════════════════════════════════ */
+function ExperienceSection({ experience, onChange }) {
+  const [adding, setAdding]   = useState(false);
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const [form, setForm]       = useState({ company: "", position: "", startDate: "", endDate: "", description: "" });
 
-                      <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold">Add {skillCategories.find(c => c.id === selectedSkillCategory)?.label}</Form.Label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <Form.Select 
-                            value={selectedSkill} 
-                            onChange={(e) => setSelectedSkill(e.target.value)}
-                            size="sm"
-                          >
-                            <option value="">-- Select a skill --</option>
-                            {skillOptions[selectedSkillCategory]?.map((skill) => (
-                              <option key={skill} value={skill}>{skill}</option>
-                            ))}
-                          </Form.Select>
-                          <Button 
-                            variant="primary" 
-                            size="sm" 
-                            onClick={addSkill}
-                            style={{ minWidth: '80px' }}
-                          >
-                            <FaPlus /> Add
-                          </Button>
-                        </div>
-                      </Form.Group>
+  const add = () => {
+    if (!form.company.trim()) return;
+    onChange([{ _id: uid(), ...form }, ...experience]);
+    setForm({ company: "", position: "", startDate: "", endDate: "", description: "" });
+    setAdding(false);
+  };
 
-                      {resumeData.skills?.[selectedSkillCategory] && (
-                        <div className="skills-display">
-                          <h6>
-                            Current {skillCategories.find(c => c.id === selectedSkillCategory)?.label}
-                          </h6>
-                          <div className="skills-tags">
-                            {resumeData.skills[selectedSkillCategory]
-                              .split(',')
-                              .map(skill => skill.trim())
-                              .filter(skill => skill)
-                              .map((skill, idx) => (
-                                <div
-                                  key={idx}
-                                  className="skill-tag"
-                                  onClick={() => removeSkillFromList(skill)}
-                                  title="Click to remove"
-                                >
-                                  {skill}
-                                  <span className="skill-tag-close">❌</span>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-                    </Accordion.Body>
-                  </Accordion.Item>
+  const remove = (id) => onChange(experience.filter((e) => e._id !== id));
+  const update = (id, field, value) => onChange(experience.map((e) => e._id === id ? { ...e, [field]: value } : e));
 
-                  {/* LANGUAGES */}
-                  <Accordion.Item eventKey="6">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Languages</Accordion.Header>
-                    <Accordion.Body>
-                      {(resumeData.languages || []).map((lang, idx) => (
-                        <div key={idx} className="language-item">
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', alignItems: 'flex-end' }}>
-                            <Form.Group className="mb-0">
-                              <Form.Label className="small fw-bold">Language</Form.Label>
-                              <Form.Control size="sm" type="text" value={lang.name} onChange={(e) => updateLanguage(idx, 'name', e.target.value)} placeholder="e.g. English" />
-                            </Form.Group>
-                            <Form.Group className="mb-0">
-                              <Form.Label className="small fw-bold">Level</Form.Label>
-                              <Form.Select size="sm" value={lang.level} onChange={(e) => updateLanguage(idx, 'level', e.target.value)}>
-                                <option>Basic</option><option>Intermediate</option><option>Advanced</option><option>Fluent</option><option>Native</option>
-                              </Form.Select>
-                            </Form.Group>
-                            <Button variant="outline-danger" size="sm" onClick={() => removeLanguage(idx)} className="w-100"><FaTrash /> Delete</Button>
-                          </div>
-                        </div>
-                      ))}
-                      {(!resumeData.languages || resumeData.languages.length === 0) && (
-                        <div className="no-items-message">
-                          <p>No languages added yet</p>
-                        </div>
-                      )}
-                      <Button variant="primary" size="sm" onClick={addLanguage} className="w-100 mt-2"><FaPlus /> Add Language</Button>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  const handleDrop = (targetIdx) => {
+    if (dragIdx === null || dragIdx === targetIdx) return;
+    const arr = [...experience];
+    const [moved] = arr.splice(dragIdx, 1);
+    arr.splice(targetIdx, 0, moved);
+    onChange(arr);
+    setDragIdx(null); setOverIdx(null);
+  };
 
-                  {/* REFERENCES */}
-                  <Accordion.Item eventKey="7">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>References</Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group>
-                        <Form.Label style={{ fontWeight: '500', fontSize: '13px' }}>References</Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          value={resumeData.references || ''}
-                          onChange={(e) => setResumeData(prev => ({ ...prev, references: e.target.value }))}
-                          placeholder="e.g. Available upon request, or list reference contacts..."
-                        />
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>ประสบการณ์ทำงาน</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => setAdding((v) => !v)}>
+          {adding ? "ยกเลิก" : "+ เพิ่ม"}
+        </button>
+      </div>
+      {experience.map((exp, idx) => (
+        <div
+          key={exp._id}
+          draggable
+          onDragStart={() => setDragIdx(idx)}
+          onDragOver={(e) => { e.preventDefault(); setOverIdx(idx); }}
+          onDrop={() => handleDrop(idx)}
+          onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+          className={`re-list-item${dragIdx === idx ? " re-list-item--dragging" : ""}${overIdx === idx ? " re-list-item--dragover" : ""}`}
+        >
+          <div className="re-list-item__head">
+            <div>
+              <div className="re-list-item__title">{exp.position || <em style={{ opacity: .4 }}>ตำแหน่ง</em>}</div>
+              <div className="re-list-item__sub">{exp.company}</div>
+            </div>
+            <div className="re-list-item__meta">
+              <span className="re-drag-handle">⠿</span>
+              <button className="re-btn re-btn-danger" onClick={() => remove(exp._id)}>ลบ</button>
+            </div>
+          </div>
+          <div className="re-input-grid">
+            <div><label className="re-field-label">บริษัท</label><input className="re-input" value={exp.company} onChange={(e) => update(exp._id, "company", e.target.value)} /></div>
+            <div><label className="re-field-label">ตำแหน่ง</label><input className="re-input" value={exp.position} onChange={(e) => update(exp._id, "position", e.target.value)} /></div>
+            <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" value={exp.startDate} placeholder="ม.ค. 2564" onChange={(e) => update(exp._id, "startDate", e.target.value)} /></div>
+            <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" value={exp.endDate} placeholder="ปัจจุบัน" onChange={(e) => update(exp._id, "endDate", e.target.value)} /></div>
+            <div className="re-input-full">
+              <label className="re-field-label">รายละเอียด</label>
+              <textarea className="re-input re-textarea" rows={3} value={exp.description} placeholder="รายละเอียดงานและความสำเร็จ…" onChange={(e) => update(exp._id, "description", e.target.value)} />
+            </div>
+          </div>
+        </div>
+      ))}
+      {adding && (
+        <div className="re-add-form">
+          <p className="re-section-label" style={{ marginBottom: 12 }}>เพิ่มประสบการณ์ใหม่</p>
+          <div className="re-input-grid">
+            <div><label className="re-field-label">บริษัท</label><input className="re-input" placeholder="Google" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
+            <div><label className="re-field-label">ตำแหน่ง</label><input className="re-input" placeholder="Software Engineer" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></div>
+            <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" placeholder="ม.ค. 2564" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+            <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" placeholder="ปัจจุบัน" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+            <div className="re-input-full">
+              <label className="re-field-label">รายละเอียด</label>
+              <textarea className="re-input re-textarea" rows={3} placeholder="รายละเอียดหน้าที่และความสำเร็จ…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+          </div>
+          <button className="re-btn re-btn-primary re-btn-sm" style={{ marginTop: 10 }} onClick={add} disabled={!form.company.trim()}>บันทึก</button>
+        </div>
+      )}
+      {experience.length === 0 && !adding && <p className="re-empty-hint">ยังไม่มีประสบการณ์ทำงาน</p>}
+    </div>
+  );
+}
 
-                  {/* HOBBIES */}
-                  <Accordion.Item eventKey="8">
-                    <Accordion.Header style={{ fontWeight: 'bold', color: '#333' }}>Hobbies & Interests</Accordion.Header>
-                    <Accordion.Body>
-                      {(resumeData.hobbies || []).map((hobby, idx) => (
-                        <div key={idx} className="hobby-item">
-                          <Form.Control 
-                            size="sm" 
-                            type="text" 
-                            value={hobby} 
-                            onChange={(e) => updateHobby(idx, e.target.value)} 
-                            placeholder="e.g. Photography, Gaming, Reading"
-                          />
-                          <Button variant="outline-danger" size="sm" onClick={() => removeHobby(idx)}><FaTrash /></Button>
-                        </div>
-                      ))}
-                      {(!resumeData.hobbies || resumeData.hobbies.length === 0) && (
-                        <div className="no-items-message">
-                          <p>No hobbies added yet</p>
-                        </div>
-                      )}
-                      <Button variant="primary" size="sm" onClick={addHobby} className="w-100 mt-2"><FaPlus /> Add Hobby</Button>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                </Accordion>
-
-                {/* DESIGN CONTROLS */}
-                <div className="design-controls">
-                  <h6>Design Settings</h6>
-                  
-                  <Form.Group className="mb-3">
-                    <Form.Label className="form-label">Font Size</Form.Label>
-                    <div className="design-btn-group">
-                      {['S', 'M', 'L'].map((size) => (
-                        <Button
-                          key={size}
-                          variant={designSettings.fontSize === size ? 'primary' : 'secondary'}
-                          size="sm"
-                          onClick={() => setDesignSettings(prev => ({ ...prev, fontSize: size }))}
-                        >
-                          {size} {size === 'S' ? '(SMALL)' : size === 'M' ? '(MEDIUM)' : '(LARGE)'}
-                        </Button>
-                      ))}
-                    </div>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label className="form-label">Font Style</Form.Label>
-                    <Form.Select 
-                      value={designSettings.fontStyle}
-                      onChange={(e) => setDesignSettings(prev => ({ ...prev, fontStyle: e.target.value }))}
-                      size="sm"
-                    >
-                      <option value="INTER">Inter (Modern)</option>
-                      <option value="SERIF">Serif (Classic)</option>
-                      <option value="MONO">Monospace (Technical)</option>
-                    </Form.Select>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label className="form-label">Spacing</Form.Label>
-                    <div className="design-btn-group">
-                      {['S', 'M', 'L'].map((space) => (
-                        <Button
-                          key={space}
-                          variant={designSettings.spacing === space ? 'primary' : 'secondary'}
-                          size="sm"
-                          onClick={() => setDesignSettings(prev => ({ ...prev, spacing: space }))}
-                        >
-                          {space} {space === 'S' ? '(Compact)' : space === 'M' ? '(Normal)' : '(Spacious)'}
-                        </Button>
-                      ))}
-                    </div>
-                  </Form.Group>
-                </div>
+/* ═══════════════════════════════════════════════════════════════
+   EDUCATION SECTION
+═══════════════════════════════════════════════════════════════ */
+function EducationSection({ education, onChange }) {
+  const [adding, setAdding] = useState(false);
+  const [form, setForm]     = useState({ school: "", degree: "", startYear: "", endYear: "" });
 
                 {/* ACTION BUTTONS */}
                 <div className="action-buttons">

@@ -35,7 +35,6 @@ function AdminManagement() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [roleFilter, setRoleFilter] = useState("all");
 
   // Modal
   const [modalType, setModalType] = useState(null); // "ban" | "unban" | "delete" | "profile"
@@ -151,7 +150,7 @@ function AdminManagement() {
   };
 
   const usersFiltered = useMemo(() => {
-    let list = [...allUsers];
+    let list = allUsers.filter((u) => u.role !== "admin");
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -160,14 +159,13 @@ function AdminManagement() {
           u.email?.toLowerCase().includes(q)
       );
     }
-    if (roleFilter !== "all") list = list.filter((u) => u.role === roleFilter);
     if (statusFilter === "active") list = list.filter((u) => !u.isBanned);
     if (statusFilter === "banned") list = list.filter((u) => u.isBanned);
     return list;
-  }, [allUsers, search, roleFilter, statusFilter]);
+  }, [allUsers, search, statusFilter]);
 
-  const totalBanned = allUsers.filter((u) => u.isBanned).length;
-  const totalAdmins = allUsers.filter((u) => u.role === "admin").length;
+  const totalBanned = allUsers.filter((u) => u.isBanned && u.role !== "admin").length;
+  const totalUsers = allUsers.filter((u) => u.role !== "admin").length;
 
   return (
     <div className="page-container admin-page">
@@ -206,16 +204,12 @@ function AdminManagement() {
       {/* ===== STATS ===== */}
       <div className="am-overview">
         <div className="am-stat">
-          <div className="am-stat-number">{allUsers.length}</div>
+          <div className="am-stat-number">{totalUsers}</div>
           <div className="am-stat-label">Total Users</div>
         </div>
         <div className="am-stat">
-          <div className="am-stat-number">{totalAdmins}</div>
-          <div className="am-stat-label">Admins</div>
-        </div>
-        <div className="am-stat">
-          <div className="am-stat-number">{allUsers.length - totalAdmins}</div>
-          <div className="am-stat-label">Users</div>
+          <div className="am-stat-number">{totalUsers - totalBanned}</div>
+          <div className="am-stat-label">Active</div>
         </div>
         <div className="am-stat">
           <div className="am-stat-number am-stat-banned">{totalBanned}</div>

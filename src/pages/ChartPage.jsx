@@ -42,6 +42,14 @@ const C = {
   warning:   "#e3b341",
 };
 
+const ROLE_COLORS = [
+  C.accent,
+  C.accent2,
+  C.warning,
+  C.accent4,
+  C.accent3,
+];
+
 const STATUS_COLORS = {
   Applied:   { bg: "rgba(88, 166, 255, 0.15)", color: "#58a6ff", dot: "#58a6ff" },
   Interview: { bg: "rgba(227, 179, 65, 0.15)", color: "#e3b341", dot: "#e3b341" },
@@ -150,14 +158,6 @@ function ChartPage() {
   const [recentActivities, setRecentActivities] = useState([]);
   const [topJobs, setTopJobs]           = useState([]);
   const [loading, setLoading]           = useState(true);
-
-  const ROLE_COLORS = [
-    C.accent,   // seeker
-    C.accent2,  // employer
-    C.warning,  // admin
-    C.accent4,  // others
-    C.accent3,
-  ];
 
   useEffect(() => {
     const API = "http://localhost:3000/api/dashboard";

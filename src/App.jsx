@@ -15,7 +15,7 @@ import Login from "./pages/Login";
 import Register from "./Pages/Register";
 import ChartPage from "./pages/ChartPage";
 import AdsManagement from "./pages/AdsManagement";
-import AdminManagement from "./Pages/AdminManagement";
+import AdminManagement from "./pages/AdminManagement";
 import Landing from "./pages/Landing";
 import Feature1 from "./components/Feature1";
 import ManageApplicants from "./pages/ManageApplicants";

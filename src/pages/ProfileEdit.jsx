@@ -120,7 +120,7 @@ function ProfileEdit({ onNavigate }) {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
             if (!res.ok) throw new Error('Upload failed');
             const data = await res.json();
-            return `${import.meta.env.VITE_API_URL}${data.url}`;
+           return `${import.meta.env.VITE_API_URL}${data.imageUrl}`;
         } finally {
             setUploading(false);
         }
@@ -183,7 +183,10 @@ function ProfileEdit({ onNavigate }) {
 
     useEffect(() => {
         if (data) {
-setProfile(data);
+setProfile((prev) => ({
+  ...data,
+  profileImage: prev.profileImage || data.profileImage,
+}));
         }
     }, [data]);
 
@@ -411,7 +414,10 @@ setProfile(data);
                                             e.target.value = '';
                                             try {
                                                 const url = await uploadImage(file);
-                                                setProfile({ ...profile, profileImage: url });
+                                                setProfile((prev) => ({
+                                                  ...prev,
+                                                  profileImage: url,
+                                                }));
                                             } catch {
                                                 alert('Image upload failed. Please try again.');
                                             }

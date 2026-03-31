@@ -1,7 +1,9 @@
 import { useContext } from "react";
-import { useLocation, Link  } from "react-router-dom";
-import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
+import { useLocation, Link } from "react-router-dom";
+import { Navbar, Nav, Dropdown } from "react-bootstrap";
 import { SettingsContext } from "./SettingContext";
+import { useQuery } from "@tanstack/react-query";
+
 import {
   FaCog,
   FaSignOutAlt,
@@ -12,6 +14,7 @@ import {
   FaClipboardList,
   FaBuilding,
 } from "react-icons/fa";
+
 import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
@@ -25,13 +28,29 @@ export default function Header2({ role, onLogout }) {
   const isAdmin = userRole === "admin";
   const isEmployer = userRole === "employer";
 
-  // 🔥 ดึง user จาก localStorage (สำคัญมาก)
-  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userId = localStorage.getItem("userID");
 
-  // 🔥 FIX ตรงนี้
+  // 🔥 ใช้ react-query ดึง profile จริง
+  const { data: profileData } = useQuery({
+    queryKey: ["profile", userId],
+    queryFn: async () => {
+      const res = await fetch(
+        `http://localhost:3000/api/profiles?userId=${userId}`,
+      );
+      const data = await res.json();
+      return Array.isArray(data) ? data[0] : data;
+    },
+    enabled: !!userId,
+  });
+
+  // fallback เผื่อไม่มีข้อมูล
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
   const displayName = isAdmin
     ? "Admin"
-    : storedUser?.name || "User";
+    : profileData?.name || storedUser?.name || "User";
+
+  const profileImage = profileData?.profileImage || storedUser?.profileImage;
 
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
@@ -99,9 +118,13 @@ export default function Header2({ role, onLogout }) {
             <Dropdown align="end">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">
-                  {storedUser?.profileImage ? (
+                  {profileImage ? (
                     <img
-                      src={`http://localhost:3000${storedUser.profileImage}`}
+                      src={
+                        profileImage?.startsWith("http")
+                          ? profileImage
+                          : `http://localhost:3000${profileImage}`
+                      }
                       alt={displayName}
                       className="avatar-img"
                     />

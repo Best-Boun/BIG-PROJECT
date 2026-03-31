@@ -14,6 +14,9 @@ export default function Feed() {
   const [postText, setPostText] = useState("");
   const [posts, setPosts] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
+  const [likeCounts, setLikeCounts] = useState({});
+  const [likedPosts, setLikedPosts] = useState({});
+  const [loadingLike, setLoadingLike] = useState({});
 
   const userId = localStorage.getItem('userID');
 
@@ -29,12 +32,11 @@ export default function Feed() {
   });
 
   const storedUser = JSON.parse(localStorage.getItem("user") || '{}');
-  const currentUser = profileData?.name?.trim()
-    ? profileData
-    : storedUser?.name?.trim()
-      ? storedUser
-      : { name: 'User', profileImage: '👤' };
-
+ const currentUser = profileData?.name?.trim()
+   ? { ...profileData, role: storedUser?.role }
+   : storedUser?.name?.trim()
+     ? storedUser
+     : { name: "User", profileImage: "👤", role: null };
   // ================= LOAD LIKES =================
  const loadLikes = async () => {
    try {
@@ -299,9 +301,7 @@ const loadPosts = async () => {
               <div className="d-flex align-items-center mb-3">
                 <div className="user-avatar">
                   <img
-                    src={getProfileImage(
-                      profileData?.profileImage || currentUser?.profileImage,
-                    )}
+                    src={getProfileImage(currentUser?.profileImage)}
                     className="avatar-img"
                     alt=""
                   />
@@ -330,19 +330,17 @@ const loadPosts = async () => {
               {posts.map((post) => (
                 <div key={post.id} className="post-card mb-3">
                   <div className="post-header">
-                    <div className="d-flex align-items-start w-100">
+                    <div className="d-flex justify-content-between align-items-start w-100">
                       <div className="user-avatar">
                         <img
-                          src={getProfileImage(
-                            post.profileImage || currentUser?.profileImage,
-                          )}
+                          src={getProfileImage(post.profileImage)}
                           className="avatar-img"
                           alt=""
                         />
                       </div>
 
-                      <div className="ms-3 grow">
-                        <div className="d-flex justify-content-between">
+                      <div className="ms-3 flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-start">
                           <div>
                             <h6 className="mb-0">{post.username || "User"}</h6>
                             <small className="text-muted">

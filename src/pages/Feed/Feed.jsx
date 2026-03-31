@@ -35,22 +35,127 @@ export default function Feed() {
       ? storedUser
       : { name: 'User', profileImage: '👤' };
 
+  // ================= LOAD LIKES =================
+ const loadLikes = async () => {
+   try {
+     const res = await fetch("http://localhost:3000/api/likes/counts");
+     const data = await res.json();
+
+     setLikeCounts(data.counts || {});
+   } catch (err) {
+     console.error(err);
+   }
+ };
+
+const loadLikedStatus = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/likes/bulk-status", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    const likedMap = {};
+    data.likedPosts.forEach((id) => {
+      likedMap[id] = true;
+    });
+
+    setLikedPosts(likedMap);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   // ================= LOAD POSTS =================
-  const loadPosts = async () => {
-    try {
-      const res = await fetch(API_POSTS);
-      if (!res.ok) throw new Error("โหลดโพสต์ไม่สำเร็จ");
-      const data = await res.json();
-      setPosts(data || []);
-    } catch (err) {
-      console.error("Post load error:", err);
-    }
-  };
+const loadPosts = async () => {
+  try {
+    const res = await fetch(API_POSTS);
+    if (!res.ok) throw new Error("โหลดโพสต์ไม่สำเร็จ");
+
+    const data = await res.json();
+    setPosts(data || []);
+
+    // 🚀 ยิงพร้อมกันเลย ไม่ต้อง await
+    loadLikes(); 
+    loadLikedStatus();
+  } catch (err) {
+    console.error("Post load error:", err);
+  }
+};
 
   useEffect(() => {
     loadPosts();
+    // eslint-disable-next-line
   }, []);
 
+  // ================= LIKE =================
+  const handleLike = async (postId) => {
+    if (loadingLike[postId]) return;
+
+    setLoadingLike((prev) => ({ ...prev, [postId]: true }));
+
+    const token = localStorage.getItem("token");
+
+    // 🔥 FIX: ต้อง reset loading ก่อน return
+    if (!token) {
+      setLoadingLike((prev) => ({ ...prev, [postId]: false }));
+      return;
+    }
+
+    const isLiked = likedPosts[postId];
+
+    // 🚀 Optimistic UI
+    setLikedPosts((prev) => ({
+      ...prev,
+      [postId]: !isLiked,
+    }));
+
+    setLikeCounts((prev) => ({
+      ...prev,
+      [postId]: !isLiked
+        ? (prev[postId] || 0) + 1
+        : Math.max((prev[postId] || 1) - 1, 0),
+    }));
+
+    try {
+      await fetch("http://localhost:3000/api/likes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ postId }),
+      });
+    } catch (err) {
+      console.error(err);
+
+      // ❗ rollback
+      setLikedPosts((prev) => ({
+        ...prev,
+        [postId]: isLiked,
+      }));
+
+      setLikeCounts((prev) => ({
+        ...prev,
+        [postId]: isLiked
+          ? (prev[postId] || 0) + 1
+          : Math.max((prev[postId] || 1) - 1, 0),
+      }));
+    } finally {
+      // 🔥 FIX สำคัญ
+      setLoadingLike((prev) => ({
+        ...prev,
+        [postId]: false,
+      }));
+    }
+  };
   // ================= LOAD ADS =================
   useEffect(() => {
     fetch(API_ADS)
@@ -128,55 +233,55 @@ export default function Feed() {
   };
 
   // ================= DELETE POST =================
- const deletePost = async (post) => {
-   const isOwner = Number(currentUser.id) === Number(post.userId);
+  const deletePost = async (post) => {
+    const isOwner = Number(currentUser.id) === Number(post.userId);
 
-   let message = "คุณแน่ใจนะว่าจะลบโพสต์นี้";
+    let message = "คุณแน่ใจนะว่าจะลบโพสต์นี้";
 
-   if (!isOwner && currentUser.role === "admin") {
-     message = `⚠️ คุณกำลังลบโพสของ "${post.username}"`;
-   }
+    if (!isOwner && currentUser.role === "admin") {
+      message = `⚠️ คุณกำลังลบโพสของ "${post.username}"`;
+    }
 
-   const result = await Swal.fire({
-     title: "ลบโพสต์นี้?",
-     text: message,
-     icon: "warning",
-     showCancelButton: true,
-     confirmButtonText: "ลบเลย",
-     cancelButtonText: "ยกเลิก",
-   });
+    const result = await Swal.fire({
+      title: "ลบโพสต์นี้?",
+      text: message,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ลบเลย",
+      cancelButtonText: "ยกเลิก",
+    });
 
-   if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-   try {
-     const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-     const res = await fetch(`${API_POSTS}/${post.id}`, {
-       method: "DELETE",
-       headers: {
-         Authorization: `Bearer ${token}`,
-       },
-     });
+      const res = await fetch(`${API_POSTS}/${post.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-     if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) throw new Error("Delete failed");
 
-     setPosts(posts.filter((p) => p.id !== post.id));
+      setPosts(posts.filter((p) => p.id !== post.id));
 
-     Swal.fire({
-       title: "ลบสำเร็จ!",
-       icon: "success",
-       timer: 1200,
-       showConfirmButton: false,
-     });
-   } catch (err) {
-     console.error(err);
+      Swal.fire({
+        title: "ลบสำเร็จ!",
+        icon: "success",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error(err);
 
-     Swal.fire({
-       icon: "error",
-       title: "ลบไม่สำเร็จ",
-     });
-   }
- };
+      Swal.fire({
+        icon: "error",
+        title: "ลบไม่สำเร็จ",
+      });
+    }
+  };
 
   const getProfileImage = (image) => {
     if (!image) return `https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff`;
@@ -303,6 +408,21 @@ export default function Feed() {
                   </div>
 
                   <p className="mt-2">{post.text}</p>
+                  <div className="d-flex align-items-center mt-2">
+                    <button
+                      className={`btn ${
+                        likedPosts[post.id] ? "btn-primary" : "btn-light"
+                      }`}
+                      disabled={loadingLike[post.id]}
+                      onClick={() => handleLike(post.id)}
+                    >
+                      👍 Like
+                    </button>
+
+                    <span className="ms-2">
+                      {likeCounts[post.id] || 0} likes
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

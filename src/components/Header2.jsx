@@ -160,7 +160,7 @@ export default function Header2({ role, onLogout }) {
             </Dropdown>
           </div>
         </Navbar.Collapse>
-      </div>
+      </Container>
     </Navbar>
   );
 }

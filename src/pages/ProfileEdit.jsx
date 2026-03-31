@@ -117,44 +117,10 @@ function ProfileEdit({ onNavigate }) {
         try {
             const formData = new FormData();
             formData.append('image', file);
-            // const user = JSON.parse(localStorage.getItem("currentUser"));
-
-            const res = await fetch(`http://localhost:3000/api/upload`, {
-              method: "POST",
-              body: formData,
-            });
-
-
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
             if (!res.ok) throw new Error('Upload failed');
             const data = await res.json();
-            console.log("UPLOAD RESPONSE:", data);
-
-           const imageUrl = data.url;
-
-           console.log("CALLING UPDATE PROFILE...");
-           // 🔥 update DB
-           const updateRes = await fetch(
-             "http://localhost:3000/api/users/profile",
-             {
-               method: "PUT",
-               headers: {
-                 "Content-Type": "application/json",
-                 Authorization: `Bearer ${localStorage.getItem("token")}`,
-               },
-               body: JSON.stringify({
-                 profileImage: imageUrl,
-               }),
-             },
-           );
-
-           // 🔥 debug
-           if (!updateRes.ok) {
-             console.error("UPDATE PROFILE FAILED");
-           } else {
-             console.log("UPDATE PROFILE SUCCESS");
-           }
-
-           return imageUrl;
+            return `${import.meta.env.VITE_API_URL}${data.url}`;
         } finally {
             setUploading(false);
         }
@@ -280,11 +246,15 @@ setProfile(data);
                     ? { title: '', company: '', location: '', startDate: '', endDate: '', description: '' }
                     : modalType === 'education'
                         ? { degree: '', school: '', year: '', grade: '' }
-                        : modalType === 'skill' || modalType === 'language'
-                            ? { name: '', level: 'Intermediate' }
-                            : modalType === 'certification'
-                                ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
-                                : { category: '', image: '', link: '' }
+                        : modalType === 'skill'
+                            ? { skillId: null, name: '', category: '', yearsExp: 0 }
+                            : modalType === 'language'
+                                ? { name: '', level: 'Intermediate' }
+                                : modalType === 'certification'
+                                    ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
+                                    : modalType === 'publication'
+                                        ? { title: '', subtitle: '' }
+                                        : { category: '', image: '', link: '' }
             });
             setEditingId(null);
         }
@@ -367,6 +337,7 @@ setProfile(data);
         { id: 'languages',      label: 'Languages' },
         { id: 'projects',       label: 'Projects' },
         { id: 'certifications', label: 'Certifications' },
+        { id: 'publications',   label: 'Publications' },
         { id: 'contact',        label: 'Contact & Social' },
     ];
 
@@ -677,6 +648,29 @@ setProfile(data);
                                     </div>
                                 ))
                             ) : <p className="pe-empty-text">No certifications added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 11. PUBLICATIONS */}
+                    {activeTab === 'publications' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Publications</h3>
+                                </div>
+                                <button onClick={() => openModal('publication')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.publications && profile.publications.length > 0 ? (
+                                profile.publications.map((pub) => (
+                                    <div key={pub.id} className="pe-item-card pe-item-card-flat">
+                                        <div className="pe-item-info">
+                                            <p className="pe-item-title" style={{ margin: 0 }}>{pub.title}</p>
+                                            <small className="pe-item-meta">{pub.subtitle}</small>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('publication', pub)} onDelete={() => handleDeleteItem('publication', pub.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No publications added yet.</p>}
                         </div>
                     )}
 

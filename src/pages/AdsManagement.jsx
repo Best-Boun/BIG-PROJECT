@@ -42,9 +42,6 @@ function AdsManagement() {
     try {
       const res = await fetch(`${API_URL}?t=${Date.now()}`, {
         cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
       });
 
       const data = await res.json();

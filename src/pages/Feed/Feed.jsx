@@ -178,6 +178,12 @@ export default function Feed() {
    }
  };
 
+  const getProfileImage = (image) => {
+    if (!image) return `https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff`;
+    if (image.startsWith('data:') || image.startsWith('http') || image.startsWith('blob:')) return image;
+    return `http://localhost:3000${image}`;
+  };
+
   return (
     <div className="feed-page">
       <Container fluid className="feed-container">

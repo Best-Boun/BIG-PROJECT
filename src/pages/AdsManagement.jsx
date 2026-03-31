@@ -42,9 +42,6 @@ function AdsManagement() {
     try {
       const res = await fetch(`${API_URL}?t=${Date.now()}`, {
         cache: "no-store",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
       });
 
       const data = await res.json();
@@ -75,9 +72,16 @@ function AdsManagement() {
   }, []);
 
   // ================= CREATE =================
-  const addAd = () => {
-  setPreviewAd(null);
-  setConfirmDelete(null);
+  const addAd = async () => {
+    const newAd = {
+      name: "New Ad",
+      description: "คำอธิบาย...",
+      image: "",
+      position: "feed",
+      sizePreset: "medium",
+      date: new Date().toISOString().split("T")[0],
+      active: 0,
+    };
 
     try {
       const token = localStorage.getItem("token");
@@ -187,29 +191,9 @@ function AdsManagement() {
       showToast("บันทึกไม่สำเร็จ", "error");
     }
 
-    const res = await fetch(isNew ? API_URL : `${API_URL}/${editingId}`, {
-      method: isNew ? "POST" : "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...editData,
-        date: editData.date.split("T")[0],
-      }),
-    });
-
-    if (!res.ok) throw new Error();
-
-    showToast(isNew ? "สร้างสำเร็จ!" : "บันทึกสำเร็จ");
-    await loadAds();
-  } catch {
-    showToast("บันทึกไม่สำเร็จ", "error");
-  }
-
-  setEditingId(null);
-  setEditData(null);
-};
+    setEditingId(null);
+    setEditData(null);
+  };
 
   // ================= UPLOAD IMAGE =================
   const uploadImage = async (file) => {

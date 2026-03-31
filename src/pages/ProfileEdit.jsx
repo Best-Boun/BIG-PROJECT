@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { FaImage, FaCamera } from 'react-icons/fa';
 import './ProfileEdit.css';
 
 /* ── SectionHeader ─────────────────────────────────────────── */
@@ -55,8 +57,8 @@ const ItemEditButtons = ({ onEdit, onDelete }) => (
 
 /* ── Modal wrapper ───────────────────────────────────────────── */
 const Modal = ({ children }) => (
-    <div className="pe-modal-overlay">
-        <div className="pe-modal-content">
+    <div className="pe-modal-overlay" style={{ alignItems: 'flex-start', paddingTop: '24vh' }}>
+        <div className="pe-modal-content" style={{ overflowY: 'auto', maxHeight: '85vh' }}>
             {children}
         </div>
     </div>
@@ -75,25 +77,35 @@ const ModalFooter = ({ onSave, onCancel }) => (
    ══════════════════════════════════════════════════════════════ */
 function ProfileEdit({ onNavigate }) {
     const navigate = useNavigate();
-    const [profileData, setProfileData] = useState({});
+    const userId = localStorage.getItem('userID');
+    const queryClient = useQueryClient();
+    const getAuthHeaders = () => ({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    });
     const [profile, setProfile] = useState({});
-    const [originalProfile, setOriginalProfile] = useState({});
 
-    const updateProfile = (updates) => {
-        setProfileData(prev => ({ ...prev, ...updates }));
-    };
-    const addArrayItem = (arrayName, item) => {
-        const newItem = { ...item, id: Date.now() };
-        setProfileData(prev => ({ ...prev, [arrayName]: [...(prev[arrayName] || []), newItem] }));
-    };
-    const updateArrayItem = (arrayName, id, updates) => {
-        setProfileData(prev => ({
+    const addArrayItem = (arrayName, newItem) => {
+        const arr = profile[arrayName] || [];
+        const maxId = arr.length > 0 ? Math.max(...arr.map(i => i.id || 0)) : 0;
+        setProfile(prev => ({
             ...prev,
-            [arrayName]: (prev[arrayName] || []).map(item => item.id === id ? { ...item, ...updates } : item),
+            [arrayName]: [...(prev[arrayName] || []), { ...newItem, id: maxId + 1 }]
         }));
     };
-    const removeArrayItem = (arrayName, id) => {
-        setProfileData(prev => ({ ...prev, [arrayName]: (prev[arrayName] || []).filter(item => item.id !== id) }));
+    const updateArrayItem = (arrayName, itemId, updates) => {
+        setProfile(prev => ({
+            ...prev,
+            [arrayName]: (prev[arrayName] || []).map(item =>
+                item.id === itemId ? { ...item, ...updates } : item
+            )
+        }));
+    };
+    const removeArrayItem = (arrayName, itemId) => {
+        setProfile(prev => ({
+            ...prev,
+            [arrayName]: (prev[arrayName] || []).filter(item => item.id !== itemId)
+        }));
     };
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
@@ -105,48 +117,23 @@ function ProfileEdit({ onNavigate }) {
         try {
             const formData = new FormData();
             formData.append('image', file);
-            // const user = JSON.parse(localStorage.getItem("currentUser"));
-
-            const res = await fetch(`http://localhost:3000/api/upload`, {
-              method: "POST",
-              body: formData,
-            });
-
-
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
             if (!res.ok) throw new Error('Upload failed');
             const data = await res.json();
-            console.log("UPLOAD RESPONSE:", data);
-
-           const imageUrl = data.url;
-
-           console.log("CALLING UPDATE PROFILE...");
-           // 🔥 update DB
-           const updateRes = await fetch(
-             "http://localhost:3000/api/users/profile",
-             {
-               method: "PUT",
-               headers: {
-                 "Content-Type": "application/json",
-                 Authorization: `Bearer ${localStorage.getItem("token")}`,
-               },
-               body: JSON.stringify({
-                 profileImage: imageUrl,
-               }),
-             },
-           );
-
-           // 🔥 debug
-           if (!updateRes.ok) {
-             console.error("UPDATE PROFILE FAILED");
-           } else {
-             console.log("UPDATE PROFILE SUCCESS");
-           }
-
-           return imageUrl;
+            return `${import.meta.env.VITE_API_URL}${data.url}`;
         } finally {
             setUploading(false);
         }
     };
+
+    const [masterSkills, setMasterSkills] = useState([]);
+
+    useEffect(() => {
+      fetch('http://localhost:3000/api/skills')
+        .then(r => r.json())
+        .then(data => setMasterSkills(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }, []);
 
     // Modal states (unchanged)
     const [modals, setModals] = useState({
@@ -163,65 +150,42 @@ function ProfileEdit({ onNavigate }) {
     const [forms, setForms] = useState({
         experience: { title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
         education: { degree: '', school: '', year: '', grade: '' },
-        skill: { name: '' },
+        skill: { skillId: null, name: '', category: '', yearsExp: 0 },
         language: { name: '', level: 'Intermediate' },
         certification: { name: '', issuer: '', issueDate: '', expiryDate: '' },
-        project: { name: '', image: '', description: '', url: '', techStack: '' },
+        project: { category: '', image: '', link: '' },
         publication: { title: '', subtitle: '' },
     });
     const [editingId, setEditingId] = useState(null);
 
+    const { data } = useQuery({
+        queryKey: ['profile', userId],
+        queryFn: async () => {
+            const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+            const json = await res.json();
+            const p = Array.isArray(json) ? json[0] : json;
+            if (!p) return {};
+            return {
+                ...p,
+                skills: (p.skills || []).map((s, i) =>
+                    typeof s === 'string' ? { id: i + 1, name: s } : { ...s, id: i + 1 }
+                ),
+                experience: (p.experience || []).map((e, i) => ({ ...e, id: i + 1, title: e.role || '' })),
+                education: (p.education || []).map((e, i) => ({ ...e, id: i + 1, school: e.institution || '', year: e.startDate || '' })),
+                languages: (p.languages || []).map((l, i) => ({ ...l, id: i + 1, name: l.language || l.name || '' })),
+                certifications: (p.certifications || []).map((c, i) => ({ ...c, id: i + 1, issueDate: c.date || '' })),
+                projects: (p.projects || []).map((proj, i) => ({ ...proj, id: i + 1 })),
+            };
+        },
+        enabled: !!userId,
+        staleTime: 5 * 60 * 1000,
+    });
+
     useEffect(() => {
-        const userId = localStorage.getItem('userID');
-        if (!userId) return;
-        fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
-            .then(r => r.json())
-            .then(data => {
-                const p = Array.isArray(data) ? data[0] : data;
-                if (p) {
-                    const transformed = {
-                      ...p,
-
-                      profileImage: p.profileImage || "", // 👈 เพิ่มบรรทัดนี้
-
-                      skills: (p.skills || []).map((s, i) =>
-                        typeof s === "string"
-                          ? { id: i + 1, name: s }
-                          : { ...s, id: i + 1 },
-                      ),
-                      experience: (p.experience || []).map((e, i) => ({
-                        ...e,
-                        id: i + 1,
-                        title: e.role || "",
-                      })),
-                      education: (p.education || []).map((e, i) => ({
-                        ...e,
-                        id: i + 1,
-                        school: e.institution || "",
-                        year: e.startDate || "",
-                      })),
-                      languages: (p.languages || []).map((l, i) => ({
-                        ...l,
-                        id: i + 1,
-                        name: l.language || l.name || "",
-                      })),
-                      certifications: (p.certifications || []).map((c, i) => ({
-                        ...c,
-                        id: i + 1,
-                        issueDate: c.date || "",
-                      })),
-                      projects: (p.projects || []).map((proj, i) => ({
-                        ...proj,
-                        id: i + 1,
-                      })),
-                    };
-                    setProfileData(transformed);
-                    setProfile(transformed);
-                    setOriginalProfile(JSON.parse(JSON.stringify(transformed)));
-                }
-            })
-            .catch(err => console.error('Load profile failed:', err));
-    }, []);
+        if (data) {
+setProfile(data);
+        }
+    }, [data]);
 
     const handleCustomizeClick = () => navigate('/feature1');
 
@@ -235,20 +199,45 @@ function ProfileEdit({ onNavigate }) {
         setForms({ ...forms, [formType]: { ...forms[formType], [field]: value } });
     };
 
-    const handlePrivacyToggle = (sectionName) => {
-        const currentPrivacy = profileData.privacy || {};
-        const newPrivacy = { ...currentPrivacy, [sectionName]: !currentPrivacy[sectionName] };
-        updateProfile({ ...profileData, privacy: newPrivacy });
+    const handlePrivacyToggle = async (sectionName) => {
+        const newPrivacy = {
+            ...profile.privacy,
+            [sectionName]: !getPrivacyValue(sectionName)
+        };
+
+        setProfile(prev => ({ ...prev, privacy: newPrivacy }));
+
+        try {
+            await fetch(`http://localhost:3000/api/profiles/${userId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ ...profile, privacy: newPrivacy }),
+            });
+            await queryClient.refetchQueries({ queryKey: ['profile', userId] });
+        } catch (err) {
+            console.error('Privacy save failed:', err);
+        }
     };
 
     const getPrivacyValue = (sectionName) => {
-        const val = profileData.privacy?.[sectionName];
+        const val = profile.privacy?.[sectionName];
         return val !== undefined ? val : true;
     };
 
     const openModal = (modalType, item = null) => {
         if (item) {
-            setForms({ ...forms, [modalType]: item });
+            if (modalType === 'project') {
+                setForms({
+                    ...forms,
+                    project: {
+                        category: item.category || item.techStack || '',
+                        image: item.image || '',
+                        link: item.link || item.url || '',
+                    }
+                });
+            } else {
+                setForms({ ...forms, [modalType]: item });
+            }
             setEditingId(item.id);
         } else {
             setForms({
@@ -257,11 +246,15 @@ function ProfileEdit({ onNavigate }) {
                     ? { title: '', company: '', location: '', startDate: '', endDate: '', description: '' }
                     : modalType === 'education'
                         ? { degree: '', school: '', year: '', grade: '' }
-                        : modalType === 'skill' || modalType === 'language'
-                            ? { name: '', level: 'Intermediate' }
-                            : modalType === 'certification'
-                                ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
-                                : { name: '', image: '', description: '', url: '', techStack: '' }
+                        : modalType === 'skill'
+                            ? { skillId: null, name: '', category: '', yearsExp: 0 }
+                            : modalType === 'language'
+                                ? { name: '', level: 'Intermediate' }
+                                : modalType === 'certification'
+                                    ? { name: '', issuer: '', issueDate: '', expiryDate: '' }
+                                    : modalType === 'publication'
+                                        ? { title: '', subtitle: '' }
+                                        : { category: '', image: '', link: '' }
             });
             setEditingId(null);
         }
@@ -276,7 +269,7 @@ function ProfileEdit({ onNavigate }) {
     const handleSaveItem = (itemType) => {
         const isEmpty = () => {
             const item = forms[itemType];
-            if (itemType === 'project')      return !item.name;
+            if (itemType === 'project')      return !item.category;
             if (itemType === 'publication')  return !item.title || !item.subtitle;
             if (itemType === 'skill' || itemType === 'language') return !item.name;
             if (itemType === 'experience')   return !item.title || !item.company;
@@ -311,69 +304,32 @@ function ProfileEdit({ onNavigate }) {
     };
 
     const handleSave = async () => {
-        const userId = localStorage.getItem('userID');
-        if (!userId) return;
-
-        const saveData = {
-          ...profileData,
-          ...profile,
-          profileImage: profile.profileImage,
-
-          skills: (profileData.skills || []).map((s) =>
-            typeof s === "string" ? s : s.name || "",
-          ),
-          experience: (profileData.experience || []).map((e) => ({
-            company: e.company,
-            role: e.title || e.role,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            description: e.description,
-          })),
-          education: (profileData.education || []).map((e) => ({
-            institution: e.school || e.institution,
-            degree: e.degree,
-            field: e.field || "",
-            startDate: e.year || e.startDate,
-            endDate: e.endDate,
-            grade: e.grade || null,
-          })),
-          languages: (profileData.languages || []).map((l) => ({
-            language: l.name || l.language,
-            level: l.level,
-          })),
-          certifications: (profileData.certifications || []).map((c) => ({
-            name: c.name,
-            issuer: c.issuer,
-            date: c.issueDate || c.date,
-            url: c.url,
-          })),
-          projects: (profileData.projects || []).map((p) => ({
-            name: p.name || null,
-            image: p.image || null,
-            description: p.description || null,
-            url: p.url || null,
-            techStack: p.techStack || null,
-          })),
-        };
-
+        console.log('handleSave called, userId:', userId);
+        console.log('profile:', profile);
+        if (!userId) {
+            console.log('userId is null, returning early');
+            return;
+        }
         try {
-            await fetch(`http://localhost:3000/api/profiles/${userId}`, {
+            const res = await fetch(`http://localhost:3000/api/profiles/${userId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(saveData),
+                headers: getAuthHeaders(),
+                body: JSON.stringify(profile),
             });
-            setOriginalProfile(JSON.parse(JSON.stringify({ ...profileData, ...profile })));
+            if (!res.ok) throw new Error('Save failed');
+
+            await queryClient.refetchQueries({ queryKey: ['profile', userId] });
             setShowSuccessAlert(true);
             setTimeout(() => setShowSuccessAlert(false), 3000);
         } catch (err) {
             console.error('Save failed:', err);
+            alert('Failed to save profile');
         }
     };
 
     const tabs = [
         { id: 'basic',          label: 'Basic Info' },
         { id: 'quickinfo',      label: 'Quick Info' },
-        { id: 'currentStatus',  label: 'Current Status' },
         { id: 'summary',        label: 'Summary' },
         { id: 'experience',     label: 'Experience' },
         { id: 'education',      label: 'Education' },
@@ -381,1187 +337,651 @@ function ProfileEdit({ onNavigate }) {
         { id: 'languages',      label: 'Languages' },
         { id: 'projects',       label: 'Projects' },
         { id: 'certifications', label: 'Certifications' },
-        { id: 'workprefs',      label: 'Work Prefs' },
+        { id: 'publications',   label: 'Publications' },
         { id: 'contact',        label: 'Contact & Social' },
     ];
 
     return (
-      <div className="pe-page">
-        {/* Header */}
-        <div className="pe-header">
-          <div className="pe-header-inner">
-            <h1 className="pe-header-title">Edit Profile</h1>
-            <p className="pe-header-subtitle">
-              Update your professional information
-            </p>
-          </div>
-        </div>
-
-        {/* Success Alert */}
-        {showSuccessAlert && (
-          <div className="pe-success-alert">Profile updated successfully!</div>
-        )}
-
-        {/* Main Layout */}
-        <div className="pe-layout">
-          {/* Sidebar */}
-          <aside className="pe-sidebar">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`pe-tab-btn ${activeTab === tab.id ? "active" : ""}`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </aside>
-
-          {/* Content */}
-          <div className="pe-content">
-            {/* 1. BASIC INFO */}
-            {activeTab === "basic" && (
-              <div className="pe-panel">
-                <SectionHeader
-                  title="Basic Information"
-                  sectionName="basicInfo"
-                  togglePrivacy={handlePrivacyToggle}
-                  isPublic={getPrivacyValue("basicInfo")}
-                />
-
-                <div className="pe-form-group">
-                  <label className="pe-form-label">Profile Picture</label>
-                  <div
-                    className="pe-image-upload-area"
-                    onClick={() =>
-                      document.getElementById("profile-image-input").click()
-                    }
-                    style={
-                      uploading ? { pointerEvents: "none", opacity: 0.6 } : {}
-                    }
-                  >
-                    {profile.profileImage ? (
-                      <div className="pe-image-preview">
-                        <img
-                          src={`http://localhost:3000${profile.profileImage}`}
-                          alt="Profile"
-                          className="pe-profile-img"
-                        />
-                        <p className="pe-upload-hint">
-                          {uploading ? "Uploading..." : "Click to change photo"}
-                        </p>
-                        <small className="pe-upload-note">
-                          PNG, JPG (Max 2MB)
-                        </small>
-                      </div>
-                    ) : (
-                      <div className="pe-upload-placeholder">
-                        <div className="pe-upload-icon">📷</div>
-                        <p className="pe-upload-hint">
-                          {uploading
-                            ? "Uploading..."
-                            : "Click to upload profile picture"}
-                        </p>
-                        <small className="pe-upload-note">
-                          PNG, JPG (Max 2MB)
-                        </small>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploading}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        e.target.value = "";
-
-                        try {
-                          const url = await uploadImage(file);
-
-                          console.log("SET IMAGE:", url); // 👈 เพิ่ม
-
-                          setProfile((prev) => ({
-                            ...prev,
-                            profileImage: url,
-                          }));
-                        } catch {
-                          alert("Image upload failed. Please try again.");
-                        }
-                      }}
-                      style={{ display: "none" }}
-                      id="profile-image-input"
-                    />
-                  </div>
+        <div className="pe-page">
+            {/* Header */}
+            <div className="pe-header">
+                <div className="pe-header-inner">
+                    <h1 className="pe-header-title">Edit Profile</h1>
+                    <p className="pe-header-subtitle">Update your professional information</p>
                 </div>
+            </div>
 
-                <div className="pe-form-grid">
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Full Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={profile.name || ""}
-                      onChange={handleInputChange}
-                      placeholder="Enter your full name"
-                      className="pe-form-input"
-                      style={{
-                        backgroundColor: profile.name
-                          ? "var(--color-surface)"
-                          : "#fffacd",
-                      }}
-                    />
-                  </div>
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Professional Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={profile.title || ""}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Senior Software Engineer"
-                      className="pe-form-input"
-                      style={{
-                        backgroundColor: profile.title
-                          ? "var(--color-surface)"
-                          : "#fffacd",
-                      }}
-                    />
-                  </div>
+            {/* Success Alert */}
+            {showSuccessAlert && (
+                <div className="pe-success-alert">
+                    Profile updated successfully!
                 </div>
-                <div className="pe-form-group">
-                  <label className="pe-form-label">Bio / About Me</label>
-                  <textarea
-                    name="bio"
-                    value={profile.bio || ""}
-                    onChange={handleInputChange}
-                    placeholder="Tell us about yourself..."
-                    rows="4"
-                    className="pe-form-input"
-                  />
-                </div>
-              </div>
             )}
 
-            {/* 2. QUICK INFO */}
-            {activeTab === "quickinfo" && (
-              <div className="pe-panel">
-                <SectionHeader
-                  title="Quick Information"
-                  sectionName="quickInfo"
-                  togglePrivacy={handlePrivacyToggle}
-                  isPublic={getPrivacyValue("quickInfo")}
-                />
-                <div className="pe-form-grid">
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Date of Birth</label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={profile.dateOfBirth || ""}
-                      onChange={handleInputChange}
-                      className="pe-form-input"
-                    />
-                  </div>
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">
-                      Age (manual fallback)
-                    </label>
-                    <input
-                      type="text"
-                      name="age"
-                      value={profile.age || ""}
-                      onChange={handleInputChange}
-                      placeholder="32"
-                      className="pe-form-input"
-                    />
-                  </div>
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Gender</label>
-                    <select
-                      name="gender"
-                      value={profile.gender || ""}
-                      onChange={handleInputChange}
-                      className="pe-form-input"
-                    >
-                      <option value="">-- Select --</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                      <option>Non-binary</option>
-                      <option>Prefer not to say</option>
-                    </select>
-                  </div>
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Nationality</label>
-                    <input
-                      type="text"
-                      name="nationality"
-                      value={profile.nationality || ""}
-                      onChange={handleInputChange}
-                      placeholder="American"
-                      className="pe-form-input"
-                    />
-                  </div>
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Work Type</label>
-                    <select
-                      name="workTypePreference"
-                      value={profile.workTypePreference || ""}
-                      onChange={handleInputChange}
-                      className="pe-form-input"
-                    >
-                      <option value="">-- Select --</option>
-                      <option>Remote</option>
-                      <option>On-site</option>
-                      <option>Hybrid</option>
-                      <option>Remote / Onsite</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 3. CURRENT STATUS */}
-            {activeTab === "currentStatus" && (
-              <div className="pe-panel">
-                <SectionHeader
-                  title="Current Status"
-                  sectionName="currentStatus"
-                  togglePrivacy={handlePrivacyToggle}
-                  isPublic={getPrivacyValue("currentStatus")}
-                />
-                <div className="pe-form-grid">
-                  <div className="pe-form-group">
-                    <label className="pe-form-label">Employment Status</label>
-                    <select
-                      name="employmentStatus"
-                      value={profile.employmentStatus || ""}
-                      onChange={handleInputChange}
-                      className="pe-form-input"
-                    >
-                      <option value="">-- Select --</option>
-                      <option value="employed">Employed</option>
-                      <option value="unemployed">Unemployed</option>
-                      <option value="freelance">Freelance</option>
-                      <option value="student">Student</option>
-                      <option value="retired">Retired</option>
-                    </select>
-                  </div>
-
-                  {profile.employmentStatus === "employed" && (
-                    <div className="pe-form-group">
-                      <label className="pe-form-label">Current Company</label>
-                      <input
-                        type="text"
-                        name="currentCompany"
-                        value={profile.currentCompany || ""}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Google"
-                        className="pe-form-input"
-                      />
-                    </div>
-                  )}
-
-                  {(profile.employmentStatus === "employed" ||
-                    profile.employmentStatus === "freelance") && (
-                    <div className="pe-form-group">
-                      <label className="pe-form-label">Current Role</label>
-                      <input
-                        type="text"
-                        name="currentRole"
-                        value={profile.currentRole || ""}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Senior Engineer"
-                        className="pe-form-input"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="pe-form-group" style={{ marginTop: "12px" }}>
-                  <div className="pe-privacy-row">
-                    <label className="pe-privacy-label">
-                      {profile.openToWork ? "Open to Work" : "Not Looking"}
-                    </label>
-                    {/* Dynamic toggle → keep inline */}
-                    <button
-                      onClick={() =>
-                        setProfile({
-                          ...profile,
-                          openToWork: !profile.openToWork,
-                        })
-                      }
-                      className="pe-toggle-track"
-                      style={{
-                        background: profile.openToWork
-                          ? "var(--color-success)"
-                          : "var(--color-text-tertiary)",
-                      }}
-                    >
-                      <div
-                        className="pe-toggle-thumb"
-                        style={{ left: profile.openToWork ? "26px" : "2px" }}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {profile.openToWork && (
-                  <div className="pe-form-grid" style={{ marginTop: "12px" }}>
-                    <div className="pe-form-group">
-                      <label className="pe-form-label">Available From</label>
-                      <input
-                        type="date"
-                        name="availableFrom"
-                        value={profile.availableFrom || ""}
-                        onChange={handleInputChange}
-                        className="pe-form-input"
-                      />
-                    </div>
-                    <div className="pe-form-group">
-                      <label className="pe-form-label">Notice Period</label>
-                      <input
-                        type="text"
-                        name="noticePeriod"
-                        value={profile.noticePeriod || ""}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 2 weeks"
-                        className="pe-form-input"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 4. SUMMARY */}
-            {activeTab === "summary" && (
-              <div className="pe-panel">
-                <SectionHeader
-                  title="Professional Summary"
-                  sectionName="summary"
-                  togglePrivacy={handlePrivacyToggle}
-                  isPublic={getPrivacyValue("summary")}
-                />
-                <div className="pe-form-group">
-                  <label className="pe-form-label">
-                    Your Professional Story
-                  </label>
-                  <textarea
-                    name="summary"
-                    value={profile.summary || ""}
-                    onChange={handleInputChange}
-                    placeholder="Tell your professional story..."
-                    rows="8"
-                    className="pe-form-input"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* 4. EXPERIENCE */}
-            {activeTab === "experience" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Work Experience</h3>
-                    <PrivacyToggleInline
-                      sectionName="experience"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("experience")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
-                </div>
-                {profileData.experience && profileData.experience.length > 0 ? (
-                  profileData.experience.map((exp) => (
-                    <div
-                      key={exp.id}
-                      className="pe-item-card pe-item-card-purple"
-                    >
-                      <div className="pe-item-info">
-                        <h4 className="pe-item-title">{exp.title}</h4>
-                        <p className="pe-item-sub">{exp.company}</p>
-                        <small className="pe-item-meta">
-                          {exp.startDate} - {exp.endDate}
-                        </small>
-                      </div>
-                      <ItemEditButtons
-                        onEdit={() => openModal("experience", exp)}
-                        onDelete={() => handleDeleteItem("experience", exp.id)}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <p className="pe-empty-text">No experience added yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* 5. EDUCATION */}
-            {activeTab === "education" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Education</h3>
-                    <PrivacyToggleInline
-                      sectionName="education"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("education")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
-                </div>
-                {profileData.education && profileData.education.length > 0 ? (
-                  profileData.education.map((edu) => (
-                    <div
-                      key={edu.id}
-                      className="pe-item-card pe-item-card-green"
-                    >
-                      <div className="pe-item-info">
-                        <h4 className="pe-item-title">{edu.degree}</h4>
-                        <p className="pe-item-sub">{edu.school}</p>
-                        <small className="pe-item-meta">{edu.year}</small>
-                      </div>
-                      <ItemEditButtons
-                        onEdit={() => openModal("education", edu)}
-                        onDelete={() => handleDeleteItem("education", edu.id)}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <p className="pe-empty-text">No education added yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* 6. SKILLS */}
-            {activeTab === "skills" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Skills</h3>
-                    <PrivacyToggleInline
-                      sectionName="skills"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("skill")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
-                </div>
-                {profileData.skills && profileData.skills.length > 0 ? (
-                  <div className="pe-skills-wrap">
-                    {profileData.skills.map((skill) => (
-                      <div key={skill.id} className="pe-skill-tag">
-                        <span>{skill.name}</span>
+            {/* Main Layout */}
+            <div className="pe-layout">
+                {/* Sidebar */}
+                <aside className="pe-sidebar">
+                    {tabs.map(tab => (
                         <button
-                          onClick={() => handleDeleteItem("skill", skill.id)}
-                          className="pe-skill-remove"
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`pe-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                         >
-                          ×
+                            {tab.label}
                         </button>
-                      </div>
                     ))}
-                  </div>
-                ) : (
-                  <p className="pe-empty-text">No skills added yet.</p>
-                )}
-              </div>
-            )}
+                </aside>
 
-            {/* 7. LANGUAGES */}
-            {activeTab === "languages" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Languages</h3>
-                    <PrivacyToggleInline
-                      sectionName="languages"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("language")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
-                </div>
-                {profileData.languages && profileData.languages.length > 0 ? (
-                  profileData.languages.map((lang) => (
-                    <div
-                      key={lang.id}
-                      className="pe-item-card pe-item-card-flat"
-                    >
-                      <div className="pe-item-info">
-                        <p className="pe-item-title" style={{ margin: 0 }}>
-                          {lang.name}
-                        </p>
-                        <small className="pe-item-meta">{lang.level}</small>
-                      </div>
-                      <ItemEditButtons
-                        onEdit={() => openModal("language", lang)}
-                        onDelete={() => handleDeleteItem("language", lang.id)}
-                      />
+                {/* Content */}
+                <div className="pe-content">
+
+                    {/* 1. BASIC INFO */}
+                    {activeTab === 'basic' && (
+                        <div className="pe-panel">
+                            <SectionHeader title="Basic Information" sectionName="basicInfo" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('basicInfo')} />
+
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Profile Picture</label>
+                                <div
+                                    className="pe-image-upload-area"
+                                    onClick={() => document.getElementById('profile-image-input').click()}
+                                    style={uploading ? { pointerEvents: 'none', opacity: 0.6 } : {}}
+                                >
+                                    {profile.profileImage ? (
+                                        <div className="pe-image-preview">
+                                            <img src={profile.profileImage} alt="Profile" className="pe-profile-img" />
+                                            <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to change photo'}</p>
+                                            <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
+                                        </div>
+                                    ) : (
+                                        <div className="pe-upload-placeholder">
+                                            <div className="pe-upload-icon"><FaCamera /></div>
+                                            <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to upload profile picture'}</p>
+                                            <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        disabled={uploading}
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            e.target.value = '';
+                                            try {
+                                                const url = await uploadImage(file);
+                                                setProfile({ ...profile, profileImage: url });
+                                            } catch {
+                                                alert('Image upload failed. Please try again.');
+                                            }
+                                        }}
+                                        style={{ display: 'none' }}
+                                        id="profile-image-input"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pe-form-grid">
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Full Name</label>
+                                    <input type="text" name="name" value={profile.name || ''} onChange={handleInputChange} placeholder="Enter your full name" className="pe-form-input" maxLength={60}
+                                        style={{ backgroundColor: profile.name ? 'var(--color-surface)' : '#fffacd' }} />
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Professional Title</label>
+                                    <input type="text" name="title" value={profile.title || ''} onChange={handleInputChange} placeholder="e.g. Senior Software Engineer" className="pe-form-input" maxLength={80}
+                                        style={{ backgroundColor: profile.title ? 'var(--color-surface)' : '#fffacd' }} />
+                                </div>
+                            </div>
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Bio / About Me</label>
+                                <textarea name="bio" value={profile.bio || ''} onChange={handleInputChange} placeholder="Tell us about yourself..." rows="4" className="pe-form-input" maxLength={300} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. QUICK INFO */}
+                    {activeTab === 'quickinfo' && (
+                        <div className="pe-panel">
+                            <SectionHeader title="Quick Information" sectionName="quickInfo" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('quickInfo')} />
+                            <div className="pe-form-grid">
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Date of Birth</label>
+                                    <input type="date" name="dateOfBirth" value={profile.dateOfBirth || ''} onChange={handleInputChange} className="pe-form-input" />
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Gender</label>
+                                    <select name="gender" value={profile.gender || ''} onChange={handleInputChange} className="pe-form-input">
+                                        <option value="">-- Select --</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                        <option>Non-binary</option>
+                                        <option>Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Nationality</label>
+                                    <select name="nationality" value={['Thai','American','British','Japanese','Chinese'].includes(profile.nationality) ? profile.nationality : profile.nationality ? 'Other' : ''} onChange={(e) => { if (e.target.value !== 'Other') handleInputChange(e); else setProfile({ ...profile, nationality: '' }); }} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}>
+                                        <option value="">-- Select --</option>
+                                        <option value="Thai">Thai</option>
+                                        <option value="American">American</option>
+                                        <option value="British">British</option>
+                                        <option value="Japanese">Japanese</option>
+                                        <option value="Chinese">Chinese</option>
+                                        <option value="Other">Other (specify)</option>
+                                    </select>
+                                    {!['Thai','American','British','Japanese','Chinese',''].includes(profile.nationality) && (
+                                        <input type="text" name="nationality" value={profile.nationality || ''} onChange={handleInputChange} placeholder="Enter your nationality" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', marginTop: '8px' }} />
+                                    )}
+                                </div>
+                                <div className="pe-form-group">
+                                    <label className="pe-form-label">Work Type</label>
+                                    <select name="workTypePreference" value={profile.workTypePreference || ''} onChange={handleInputChange} className="pe-form-input">
+                                        <option value="">-- Select --</option>
+                                        <option>Remote</option>
+                                        <option>On-site</option>
+                                        <option>Hybrid</option>
+                                        <option>Remote / Onsite</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 4. SUMMARY */}
+                    {activeTab === 'summary' && (
+                        <div className="pe-panel">
+                            <SectionHeader title="Professional Summary" sectionName="summary" togglePrivacy={handlePrivacyToggle} isPublic={getPrivacyValue('summary')} />
+                            <div className="pe-form-group">
+                                <label className="pe-form-label">Your Professional Story</label>
+                                <textarea name="summary" value={profile.summary || ''} onChange={handleInputChange} placeholder="Tell your professional story..." rows="8" className="pe-form-input" maxLength={1000} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 4. EXPERIENCE */}
+                    {activeTab === 'experience' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Work Experience</h3>
+                                    <PrivacyToggleInline sectionName="experience" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('experience')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.experience && profile.experience.length > 0 ? (
+                                profile.experience.map((exp) => (
+                                    <div key={exp.id} className="pe-item-card pe-item-card-purple">
+                                        <div className="pe-item-info">
+                                            <h4 className="pe-item-title">{exp.title}</h4>
+                                            <p className="pe-item-sub">{exp.company}</p>
+                                            <small className="pe-item-meta">{exp.startDate} - {exp.endDate}</small>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('experience', exp)} onDelete={() => handleDeleteItem('experience', exp.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No experience added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 5. EDUCATION */}
+                    {activeTab === 'education' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Education</h3>
+                                    <PrivacyToggleInline sectionName="education" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('education')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.education && profile.education.length > 0 ? (
+                                profile.education.map((edu) => (
+                                    <div key={edu.id} className="pe-item-card pe-item-card-green">
+                                        <div className="pe-item-info">
+                                            <h4 className="pe-item-title">{edu.degree}</h4>
+                                            <p className="pe-item-sub">{edu.school}</p>
+                                            <small className="pe-item-meta">{edu.year}</small>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('education', edu)} onDelete={() => handleDeleteItem('education', edu.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No education added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 6. SKILLS */}
+                    {activeTab === 'skills' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Skills</h3>
+                                    <PrivacyToggleInline sectionName="skills" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('skill')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.skills && profile.skills.length > 0 ? (
+                                <div className="pe-skills-wrap">
+                                    {profile.skills.map((skill) => (
+                                        <div key={skill.id} className="pe-skill-tag">
+                                            <span>
+                                              {skill.name}
+                                              {skill.yearsExp > 0 ? (
+                                                <span style={{ fontSize: '0.7rem', color: '#6b7280', marginLeft: 4 }}>
+                                                  · {skill.yearsExp}yr{skill.yearsExp > 1 ? 's' : ''}
+                                                </span>
+                                              ) : ''}
+                                            </span>
+                                            <button onClick={() => handleDeleteItem('skill', skill.id)} className="pe-skill-remove">×</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : <p className="pe-empty-text">No skills added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 7. LANGUAGES */}
+                    {activeTab === 'languages' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Languages</h3>
+                                    <PrivacyToggleInline sectionName="languages" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('language')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.languages && profile.languages.length > 0 ? (
+                                profile.languages.map((lang) => (
+                                    <div key={lang.id} className="pe-item-card pe-item-card-flat">
+                                        <div className="pe-item-info">
+                                            <p className="pe-item-title" style={{ margin: 0 }}>{lang.name || lang.language}</p>
+                                            <small className="pe-item-meta">{lang.level}</small>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('language', lang)} onDelete={() => handleDeleteItem('language', lang.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No languages added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 8. PROJECTS */}
+                    {activeTab === 'projects' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Featured Projects</h3>
+                                    <PrivacyToggleInline sectionName="projects" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('project')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.projects && profile.projects.length > 0 ? (
+                                profile.projects.map((proj) => (
+                                    <div key={proj.id} className="pe-item-card pe-item-card-yellow">
+                                        <div className="pe-item-info">
+                                            <p className="pe-item-title">{proj.category || proj.techStack || '(No category)'}</p>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('project', proj)} onDelete={() => handleDeleteItem('project', proj.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No projects added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 10. CERTIFICATIONS */}
+                    {activeTab === 'certifications' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Certifications</h3>
+                                    <PrivacyToggleInline sectionName="certifications" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                                <button onClick={() => openModal('certification')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.certifications && profile.certifications.length > 0 ? (
+                                profile.certifications.map((cert) => (
+                                    <div key={cert.id} className="pe-item-card pe-item-card-violet pe-item-overflow">
+                                        <div className="pe-item-info pe-item-overflow">
+                                            <p className="pe-item-title pe-item-overflow" style={{ margin: 0 }}>{cert.name}</p>
+                                            <p className="pe-item-sub pe-item-overflow">{cert.issuer}</p>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('certification', cert)} onDelete={() => handleDeleteItem('certification', cert.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No certifications added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 11. PUBLICATIONS */}
+                    {activeTab === 'publications' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Publications</h3>
+                                </div>
+                                <button onClick={() => openModal('publication')} className="pe-add-btn">+ Add</button>
+                            </div>
+                            {profile.publications && profile.publications.length > 0 ? (
+                                profile.publications.map((pub) => (
+                                    <div key={pub.id} className="pe-item-card pe-item-card-flat">
+                                        <div className="pe-item-info">
+                                            <p className="pe-item-title" style={{ margin: 0 }}>{pub.title}</p>
+                                            <small className="pe-item-meta">{pub.subtitle}</small>
+                                        </div>
+                                        <ItemEditButtons onEdit={() => openModal('publication', pub)} onDelete={() => handleDeleteItem('publication', pub.id)} />
+                                    </div>
+                                ))
+                            ) : <p className="pe-empty-text">No publications added yet.</p>}
+                        </div>
+                    )}
+
+                    {/* 12. CONTACT & SOCIAL */}
+                    {activeTab === 'contact' && (
+                        <div className="pe-panel">
+                            <div className="pe-section-header">
+                                <div className="pe-section-title-row">
+                                    <h3 className="pe-section-title">Contact & Social</h3>
+                                    <PrivacyToggleInline sectionName="contact" getPrivacyValue={getPrivacyValue} handlePrivacyToggle={handlePrivacyToggle} />
+                                </div>
+                            </div>
+                            <div className="pe-form-grid">
+                                {[
+                                    ['email',     'text',  'Email',     'alex@example.com'],
+                                    ['phone',     'tel',   'Phone',     '+1 (555) 123-4567'],
+                                    ['location',  'text',  'Location',  'San Francisco, CA'],
+                                    ['website',   'text',  'Website',   'https://yourwebsite.com'],
+                                    ['linkedin',  'text',  'LinkedIn',  'https://linkedin.com/in/yourprofile'],
+                                    ['github',    'text',  'GitHub',    'https://github.com/yourprofile'],
+                                ].map(([name, type, label, placeholder]) => (
+                                    <div key={name} className="pe-form-group">
+                                        <label className="pe-form-label">{label}</label>
+                                        <input type={type} name={name} value={profile[name] || ''} onChange={handleInputChange} placeholder={placeholder} className="pe-form-input" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ACTION BUTTONS */}
+                    <div className="pe-action-bar">
+                        <button className="pe-customize-btn" onClick={handleCustomizeClick}>
+                            Customize
+                        </button>
+                        <div className="pe-action-right">
+                            <button onClick={handleSave} className="pe-save-btn">
+                                Save All Changes
+                            </button>
+                            <button onClick={() => onNavigate('profile')} className="pe-view-btn">
+                                View Profile
+                            </button>
+                        </div>
                     </div>
-                  ))
-                ) : (
-                  <p className="pe-empty-text">No languages added yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* 8. PROJECTS */}
-            {activeTab === "projects" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Featured Projects</h3>
-                    <PrivacyToggleInline
-                      sectionName="projects"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("project")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
                 </div>
-                {profileData.projects && profileData.projects.length > 0 ? (
-                  profileData.projects.map((proj) => (
-                    <div
-                      key={proj.id}
-                      className="pe-item-card pe-item-card-yellow"
-                    >
-                      <div className="pe-item-info">
-                        <h4 className="pe-item-title">{proj.name}</h4>
-                        <p className="pe-item-sub">{proj.description}</p>
-                      </div>
-                      <ItemEditButtons
-                        onEdit={() => openModal("project", proj)}
-                        onDelete={() => handleDeleteItem("project", proj.id)}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <p className="pe-empty-text">No projects added yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* 10. CERTIFICATIONS */}
-            {activeTab === "certifications" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Certifications</h3>
-                    <PrivacyToggleInline
-                      sectionName="certifications"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                  <button
-                    onClick={() => openModal("certification")}
-                    className="pe-add-btn"
-                  >
-                    + Add
-                  </button>
-                </div>
-                {profileData.certifications &&
-                profileData.certifications.length > 0 ? (
-                  profileData.certifications.map((cert) => (
-                    <div
-                      key={cert.id}
-                      className="pe-item-card pe-item-card-violet pe-item-overflow"
-                    >
-                      <div className="pe-item-info pe-item-overflow">
-                        <p
-                          className="pe-item-title pe-item-overflow"
-                          style={{ margin: 0 }}
-                        >
-                          {cert.name}
-                        </p>
-                        <p className="pe-item-sub pe-item-overflow">
-                          {cert.issuer}
-                        </p>
-                      </div>
-                      <ItemEditButtons
-                        onEdit={() => openModal("certification", cert)}
-                        onDelete={() =>
-                          handleDeleteItem("certification", cert.id)
-                        }
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <p className="pe-empty-text">No certifications added yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* 11. WORK PREFERENCES */}
-            {activeTab === "workprefs" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Work Preferences</h3>
-                    <PrivacyToggleInline
-                      sectionName="workPreferences"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                </div>
-                <div className="pe-form-grid">
-                  {[
-                    [
-                      "jobTypes",
-                      "text",
-                      "Employment Type",
-                      "Full-time, Contract",
-                    ],
-                    [
-                      "workLocations",
-                      "text",
-                      "Work Locations",
-                      "Remote, Onsite",
-                    ],
-                    ["salaryRange", "text", "Salary Range", "$180k - $220k"],
-                    ["availability", "text", "Availability", "Available now"],
-                    ["noticePeriod", "text", "Notice Period", "2 weeks"],
-                  ].map(([name, type, label, placeholder]) => (
-                    <div key={name} className="pe-form-group">
-                      <label className="pe-form-label">{label}</label>
-                      <input
-                        type={type}
-                        name={name}
-                        value={profile[name] || ""}
-                        onChange={handleInputChange}
-                        placeholder={placeholder}
-                        className="pe-form-input"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 12. CONTACT & SOCIAL */}
-            {activeTab === "contact" && (
-              <div className="pe-panel">
-                <div className="pe-section-header">
-                  <div className="pe-section-title-row">
-                    <h3 className="pe-section-title">Contact & Social</h3>
-                    <PrivacyToggleInline
-                      sectionName="contact"
-                      getPrivacyValue={getPrivacyValue}
-                      handlePrivacyToggle={handlePrivacyToggle}
-                    />
-                  </div>
-                </div>
-                <div className="pe-form-grid">
-                  {[
-                    ["email", "email", "Email", "alex@example.com"],
-                    ["phone", "tel", "Phone", "+1 (555) 123-4567"],
-                    ["location", "text", "Location", "San Francisco, CA"],
-                    ["website", "url", "Website", "https://yourwebsite.com"],
-                    [
-                      "linkedin",
-                      "url",
-                      "LinkedIn",
-                      "https://linkedin.com/in/yourprofile",
-                    ],
-                    [
-                      "github",
-                      "url",
-                      "GitHub",
-                      "https://github.com/yourprofile",
-                    ],
-                    [
-                      "twitter",
-                      "url",
-                      "Twitter/X",
-                      "https://twitter.com/yourhandle",
-                    ],
-                    [
-                      "medium",
-                      "url",
-                      "Medium",
-                      "https://medium.com/@yourhandle",
-                    ],
-                  ].map(([name, type, label, placeholder]) => (
-                    <div key={name} className="pe-form-group">
-                      <label className="pe-form-label">{label}</label>
-                      <input
-                        type={type}
-                        name={name}
-                        value={profile[name] || ""}
-                        onChange={handleInputChange}
-                        placeholder={placeholder}
-                        className="pe-form-input"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ACTION BUTTONS */}
-            <div className="pe-action-bar">
-              <button
-                className="pe-customize-btn"
-                onClick={handleCustomizeClick}
-              >
-                Customize
-              </button>
-              <div className="pe-action-right">
-                <button onClick={handleSave} className="pe-save-btn">
-                  Save All Changes
-                </button>
-                <button
-                  onClick={() => onNavigate("profile")}
-                  className="pe-view-btn"
-                >
-                  View Profile
-                </button>
-              </div>
             </div>
-          </div>
+
+            {/* ── MODALS ─────────────────────────────────────── */}
+
+            {/* Experience Modal */}
+            {modals.experience && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Experience</h3>
+                    {[['title','text','Job Title','Senior Developer'],['company','text','Company','Company Name'],['location','text','Location','City, Country']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.experience[field]} onChange={(e) => handleFormChange('experience', field, e.target.value)} placeholder={ph} className="pe-form-input" />
+                        </div>
+                    ))}
+                    <div className="pe-date-row" style={{ marginBottom: '15px' }}>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Start Date</label>
+                            <input type="month" value={forms.experience.startDate} onChange={(e) => handleFormChange('experience', 'startDate', e.target.value)} className="pe-form-input" />
+                        </div>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">End Date</label>
+                            <div className="pe-present-row">
+                                <input type="month" value={forms.experience.endDate === 'Present' ? '' : forms.experience.endDate} onChange={(e) => handleFormChange('experience', 'endDate', e.target.value)} className="pe-form-input" />
+                                {/* Dynamic active state → inline */}
+                                <button
+                                    onClick={() => handleFormChange('experience', 'endDate', 'Present')}
+                                    className="pe-present-btn"
+                                    style={{
+                                        backgroundColor: forms.experience.endDate === 'Present' ? 'var(--color-text-primary)' : 'var(--color-border)',
+                                        color: forms.experience.endDate === 'Present' ? 'white' : 'var(--color-text-primary)'
+                                    }}
+                                >Present</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Description</label>
+                        <textarea value={forms.experience.description} onChange={(e) => handleFormChange('experience', 'description', e.target.value)} placeholder="What you did..." rows="4" className="pe-form-input" />
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('experience')} onCancel={() => closeModal('experience')} />
+                </Modal>
+            )}
+
+            {/* Education Modal */}
+            {modals.education && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Education</h3>
+                    {[['degree','text','Degree','Bachelor of Science'],['school','text','School/University','University Name']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.education[field]} onChange={(e) => handleFormChange('education', field, e.target.value)} placeholder={ph} className="pe-form-input" />
+                        </div>
+                    ))}
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Year</label>
+                        <input type="number" value={forms.education.year} onChange={(e) => handleFormChange('education', 'year', e.target.value)} placeholder="2020" min="1900" max="2100" step="1" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Grade/GPA</label>
+                        <input type="number" value={forms.education.grade} onChange={(e) => { const val = parseFloat(e.target.value); if (e.target.value === '' || (val >= 0 && val <= 4)) { handleFormChange('education', 'grade', e.target.value); } }} placeholder="3.80" min="0" max="4" step="0.01" style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('education')} onCancel={() => closeModal('education')} />
+                </Modal>
+            )}
+
+            {/* Skill Modal */}
+            {modals.skill && (
+                <Modal>
+                    <h3 style={{ marginTop: 0 }}>{editingId ? 'Edit' : 'Add'} Skill</h3>
+
+                    {/* Category */}
+                    <select
+                        value={forms.skill.category || ''}
+                        onChange={(e) => {
+                            const newCategory = e.target.value;
+                            setForms(prev => ({
+                                ...prev,
+                                skill: { ...prev.skill, category: newCategory, skillId: null, name: '' }
+                            }));
+                        }}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+                    >
+                        <option value="">-- Select Category --</option>
+                        {[...new Set(masterSkills.map(s => s.category))].map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+
+                    {/* Skill */}
+                    {forms.skill.category && (
+                        <div style={{ marginTop: '12px' }}>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>Skill</label>
+                            <select
+                                value={forms.skill.skillId || ''}
+                                onChange={(e) => {
+                                    const selected = masterSkills.find(s => s.id === parseInt(e.target.value));
+                                    if (selected) {
+                                        setForms(prev => ({
+                                            ...prev,
+                                            skill: { ...prev.skill, skillId: selected.id, name: selected.name }
+                                        }));
+                                    }
+                                }}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+                            >
+                                <option value="">-- Select Skill --</option>
+                                {masterSkills
+                                    .filter(s => s.category === forms.skill.category)
+                                    .map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Years of Experience */}
+                    {forms.skill.skillId && (
+                        <div style={{ marginTop: '12px' }}>
+                            <label style={{ fontWeight: 600, display: 'block', marginBottom: '5px', color: '#333' }}>
+                                Years of Experience
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="30"
+                                value={forms.skill.yearsExp || 0}
+                                onChange={(e) => handleFormChange('skill', 'yearsExp', parseInt(e.target.value) || 0)}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+                                placeholder="e.g. 2"
+                            />
+                            <small style={{ color: '#6b7280' }}>
+                                0 = Beginner · 1-2 yrs = Intermediate · 3+ yrs = Advanced
+                            </small>
+                        </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                        <button onClick={() => handleSaveItem('skill')} style={{ flex: 1, padding: '10px', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
+                        <button onClick={() => closeModal('skill')} style={{ flex: 1, padding: '10px', backgroundColor: 'white', color: '#374151', border: '1px solid #E5E7EB', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
+                    </div>
+                </Modal>
+            )}
+
+            {/* Language Modal */}
+            {modals.language && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Language</h3>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Language Name</label>
+                        <select value={forms.language.name} onChange={(e) => handleFormChange('language', 'name', e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
+                            <option value="">-- Select Language --</option>
+                            <option>Thai</option><option>English</option><option>Japanese</option>
+                            <option>Chinese</option><option>Korean</option><option>French</option>
+                            <option>German</option><option>Spanish</option>
+                        </select>
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Proficiency</label>
+                        <select value={forms.language.level} onChange={(e) => handleFormChange('language', 'level', e.target.value)} className="pe-form-input">
+                            <option value="Native">Native</option>
+                            <option value="Fluent">Fluent</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Beginner">Beginner</option>
+                        </select>
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('language')} onCancel={() => closeModal('language')} />
+                </Modal>
+            )}
+
+            {/* Certification Modal */}
+            {modals.certification && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Certification</h3>
+                    {[['name','text','Certification Name','e.g. AWS Certified'],['issuer','text','Issuer','e.g. Amazon Web Services']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.certification[field]} onChange={(e) => handleFormChange('certification', field, e.target.value)} placeholder={ph} className="pe-form-input" />
+                        </div>
+                    ))}
+                    <div className="pe-form-grid" style={{ marginBottom: '15px' }}>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Issue Date</label>
+                            <input type="date" value={forms.certification.issueDate} onChange={(e) => handleFormChange('certification', 'issueDate', e.target.value)} className="pe-form-input" />
+                        </div>
+                        <div className="pe-form-group">
+                            <label className="pe-form-label">Expiry Date</label>
+                            <input type="date" value={forms.certification.expiryDate} onChange={(e) => handleFormChange('certification', 'expiryDate', e.target.value)} className="pe-form-input" />
+                        </div>
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('certification')} onCancel={() => closeModal('certification')} />
+                </Modal>
+            )}
+
+            {/* Project Modal */}
+            {modals.project && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Project</h3>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Category</label>
+                        <select value={forms.project.category} onChange={(e) => handleFormChange('project', 'category', e.target.value)} className="pe-form-input">
+                            <option value="">-- Select Category --</option>
+                            <option>Frontend</option>
+                            <option>Backend</option>
+                            <option>Full Stack</option>
+                            <option>Mobile</option>
+                            <option>Database Design</option>
+                            <option>DevOps</option>
+                            <option>UI/UX Design</option>
+                            <option>Data Science</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Preview Image</label>
+                        <div className="pe-image-upload-area pe-image-upload-sm" onClick={() => document.getElementById('project-image-input').click()} style={uploading ? { pointerEvents: 'none', opacity: 0.6 } : {}}>
+                            {forms.project.image ? (
+                                <div className="pe-image-preview">
+                                    <img src={forms.project.image} alt="Project" className="pe-project-img" />
+                                    <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to change image'}</p>
+                                </div>
+                            ) : (
+                                <div className="pe-upload-placeholder">
+                                    <div className="pe-upload-icon"><FaImage /></div>
+                                    <p className="pe-upload-hint">{uploading ? 'Uploading...' : 'Click to upload project image'}</p>
+                                    <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
+                                </div>
+                            )}
+                            <input type="file" accept="image/*" disabled={uploading} onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                e.target.value = '';
+                                try {
+                                    const url = await uploadImage(file);
+                                    handleFormChange('project', 'image', url);
+                                } catch {
+                                    alert('Image upload failed. Please try again.');
+                                }
+                            }} style={{ display: 'none' }} id="project-image-input" />
+                        </div>
+                    </div>
+                    <div className="pe-form-group" style={{ marginBottom: '15px' }}>
+                        <label className="pe-form-label">Project URL</label>
+                        <input type="text" value={forms.project.link} onChange={(e) => handleFormChange('project', 'link', e.target.value)} placeholder="https://..." className="pe-form-input" />
+                    </div>
+                    <ModalFooter onSave={() => handleSaveItem('project')} onCancel={() => closeModal('project')} />
+                </Modal>
+            )}
+
+            {/* Publication Modal */}
+            {modals.publication && (
+                <Modal>
+                    <h3 className="pe-modal-title">{editingId ? 'Edit' : 'Add'} Publication</h3>
+                    {[['title','text','Publication Title','Article/Paper title'],['subtitle','text','Publication/Source','Where published']].map(([field,type,label,ph]) => (
+                        <div key={field} className="pe-form-group" style={{ marginBottom: '15px' }}>
+                            <label className="pe-form-label">{label}</label>
+                            <input type={type} value={forms.publication[field]} onChange={(e) => handleFormChange('publication', field, e.target.value)} placeholder={ph} className="pe-form-input" />
+                        </div>
+                    ))}
+                    <ModalFooter onSave={() => handleSaveItem('publication')} onCancel={() => closeModal('publication')} />
+                </Modal>
+            )}
+
         </div>
 
-        {/* ── MODALS ─────────────────────────────────────── */}
-
-        {/* Experience Modal */}
-        {modals.experience && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Experience
-            </h3>
-            {[
-              ["title", "text", "Job Title", "Senior Developer"],
-              ["company", "text", "Company", "Company Name"],
-              ["location", "text", "Location", "City, Country"],
-            ].map(([field, type, label, ph]) => (
-              <div
-                key={field}
-                className="pe-form-group"
-                style={{ marginBottom: "15px" }}
-              >
-                <label className="pe-form-label">{label}</label>
-                <input
-                  type={type}
-                  value={forms.experience[field]}
-                  onChange={(e) =>
-                    handleFormChange("experience", field, e.target.value)
-                  }
-                  placeholder={ph}
-                  className="pe-form-input"
-                />
-              </div>
-            ))}
-            <div className="pe-date-row" style={{ marginBottom: "15px" }}>
-              <div className="pe-form-group">
-                <label className="pe-form-label">Start Date</label>
-                <input
-                  type="month"
-                  value={forms.experience.startDate}
-                  onChange={(e) =>
-                    handleFormChange("experience", "startDate", e.target.value)
-                  }
-                  className="pe-form-input"
-                />
-              </div>
-              <div className="pe-form-group">
-                <label className="pe-form-label">End Date</label>
-                <div className="pe-present-row">
-                  <input
-                    type="month"
-                    value={
-                      forms.experience.endDate === "Present"
-                        ? ""
-                        : forms.experience.endDate
-                    }
-                    onChange={(e) =>
-                      handleFormChange("experience", "endDate", e.target.value)
-                    }
-                    className="pe-form-input"
-                  />
-                  {/* Dynamic active state → inline */}
-                  <button
-                    onClick={() =>
-                      handleFormChange("experience", "endDate", "Present")
-                    }
-                    className="pe-present-btn"
-                    style={{
-                      backgroundColor:
-                        forms.experience.endDate === "Present"
-                          ? "var(--color-text-primary)"
-                          : "var(--color-border)",
-                      color:
-                        forms.experience.endDate === "Present"
-                          ? "white"
-                          : "var(--color-text-primary)",
-                    }}
-                  >
-                    Present
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Description</label>
-              <textarea
-                value={forms.experience.description}
-                onChange={(e) =>
-                  handleFormChange("experience", "description", e.target.value)
-                }
-                placeholder="What you did..."
-                rows="4"
-                className="pe-form-input"
-              />
-            </div>
-            <ModalFooter
-              onSave={() => handleSaveItem("experience")}
-              onCancel={() => closeModal("experience")}
-            />
-          </Modal>
-        )}
-
-        {/* Education Modal */}
-        {modals.education && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Education
-            </h3>
-            {[
-              ["degree", "text", "Degree", "Bachelor of Science"],
-              ["school", "text", "School/University", "University Name"],
-              ["year", "text", "Year", "2020"],
-              ["grade", "text", "Grade/GPA", "3.8/4.0"],
-            ].map(([field, type, label, ph]) => (
-              <div
-                key={field}
-                className="pe-form-group"
-                style={{ marginBottom: "15px" }}
-              >
-                <label className="pe-form-label">{label}</label>
-                <input
-                  type={type}
-                  value={forms.education[field]}
-                  onChange={(e) =>
-                    handleFormChange("education", field, e.target.value)
-                  }
-                  placeholder={ph}
-                  className="pe-form-input"
-                />
-              </div>
-            ))}
-            <ModalFooter
-              onSave={() => handleSaveItem("education")}
-              onCancel={() => closeModal("education")}
-            />
-          </Modal>
-        )}
-
-        {/* Skill Modal */}
-        {modals.skill && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Skill
-            </h3>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Skill Name</label>
-              <input
-                type="text"
-                value={forms.skill.name}
-                onChange={(e) =>
-                  handleFormChange("skill", "name", e.target.value)
-                }
-                placeholder="e.g. React, Python"
-                className="pe-form-input"
-              />
-            </div>
-            <ModalFooter
-              onSave={() => handleSaveItem("skill")}
-              onCancel={() => closeModal("skill")}
-            />
-          </Modal>
-        )}
-
-        {/* Language Modal */}
-        {modals.language && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Language
-            </h3>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Language Name</label>
-              <input
-                type="text"
-                value={forms.language.name}
-                onChange={(e) =>
-                  handleFormChange("language", "name", e.target.value)
-                }
-                placeholder="e.g. English, Thai"
-                className="pe-form-input"
-              />
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Proficiency</label>
-              <select
-                value={forms.language.level}
-                onChange={(e) =>
-                  handleFormChange("language", "level", e.target.value)
-                }
-                className="pe-form-input"
-              >
-                <option value="Native">Native</option>
-                <option value="Fluent">Fluent</option>
-                <option value="Advanced">Advanced</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Beginner">Beginner</option>
-              </select>
-            </div>
-            <ModalFooter
-              onSave={() => handleSaveItem("language")}
-              onCancel={() => closeModal("language")}
-            />
-          </Modal>
-        )}
-
-        {/* Certification Modal */}
-        {modals.certification && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Certification
-            </h3>
-            {[
-              ["name", "text", "Certification Name", "e.g. AWS Certified"],
-              ["issuer", "text", "Issuer", "e.g. Amazon Web Services"],
-            ].map(([field, type, label, ph]) => (
-              <div
-                key={field}
-                className="pe-form-group"
-                style={{ marginBottom: "15px" }}
-              >
-                <label className="pe-form-label">{label}</label>
-                <input
-                  type={type}
-                  value={forms.certification[field]}
-                  onChange={(e) =>
-                    handleFormChange("certification", field, e.target.value)
-                  }
-                  placeholder={ph}
-                  className="pe-form-input"
-                />
-              </div>
-            ))}
-            <div className="pe-form-grid" style={{ marginBottom: "15px" }}>
-              <div className="pe-form-group">
-                <label className="pe-form-label">Issue Date</label>
-                <input
-                  type="date"
-                  value={forms.certification.issueDate}
-                  onChange={(e) =>
-                    handleFormChange(
-                      "certification",
-                      "issueDate",
-                      e.target.value,
-                    )
-                  }
-                  className="pe-form-input"
-                />
-              </div>
-              <div className="pe-form-group">
-                <label className="pe-form-label">Expiry Date</label>
-                <input
-                  type="date"
-                  value={forms.certification.expiryDate}
-                  onChange={(e) =>
-                    handleFormChange(
-                      "certification",
-                      "expiryDate",
-                      e.target.value,
-                    )
-                  }
-                  className="pe-form-input"
-                />
-              </div>
-            </div>
-            <ModalFooter
-              onSave={() => handleSaveItem("certification")}
-              onCancel={() => closeModal("certification")}
-            />
-          </Modal>
-        )}
-
-        {/* Project Modal */}
-        {modals.project && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Project
-            </h3>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Project Name</label>
-              <input
-                type="text"
-                value={forms.project.name}
-                onChange={(e) =>
-                  handleFormChange("project", "name", e.target.value)
-                }
-                placeholder="Project Name"
-                className="pe-form-input"
-              />
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Project Image</label>
-              <div
-                className="pe-image-upload-area pe-image-upload-sm"
-                onClick={() =>
-                  document.getElementById("project-image-input").click()
-                }
-                style={uploading ? { pointerEvents: "none", opacity: 0.6 } : {}}
-              >
-                {forms.project.image ? (
-                  <div className="pe-image-preview">
-                    <img
-                      src={forms.project.image}
-                      alt="Project"
-                      className="pe-project-img"
-                    />
-                    <p className="pe-upload-hint">
-                      {uploading ? "Uploading..." : "Click to change image"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="pe-upload-placeholder">
-                    <div className="pe-upload-icon">🖼️</div>
-                    <p className="pe-upload-hint">
-                      {uploading
-                        ? "Uploading..."
-                        : "Click to upload project image"}
-                    </p>
-                    <small className="pe-upload-note">PNG, JPG (Max 2MB)</small>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    e.target.value = "";
-                    try {
-                      const url = await uploadImage(file);
-                      handleFormChange("project", "image", url);
-                    } catch {
-                      alert("Image upload failed. Please try again.");
-                    }
-                  }}
-                  style={{ display: "none" }}
-                  id="project-image-input"
-                />
-              </div>
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Description</label>
-              <textarea
-                value={forms.project.description}
-                onChange={(e) =>
-                  handleFormChange("project", "description", e.target.value)
-                }
-                placeholder="Project description..."
-                rows="3"
-                className="pe-form-input"
-              />
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Project URL</label>
-              <input
-                type="text"
-                value={forms.project.url}
-                onChange={(e) =>
-                  handleFormChange("project", "url", e.target.value)
-                }
-                placeholder="https://..."
-                className="pe-form-input"
-              />
-            </div>
-            <div className="pe-form-group" style={{ marginBottom: "15px" }}>
-              <label className="pe-form-label">Tech Stack</label>
-              <input
-                type="text"
-                value={forms.project.techStack}
-                onChange={(e) =>
-                  handleFormChange("project", "techStack", e.target.value)
-                }
-                placeholder="React, Node.js, MySQL"
-                className="pe-form-input"
-              />
-            </div>
-            <ModalFooter
-              onSave={() => handleSaveItem("project")}
-              onCancel={() => closeModal("project")}
-            />
-          </Modal>
-        )}
-
-        {/* Publication Modal */}
-        {modals.publication && (
-          <Modal>
-            <h3 className="pe-modal-title">
-              {editingId ? "Edit" : "Add"} Publication
-            </h3>
-            {[
-              ["title", "text", "Publication Title", "Article/Paper title"],
-              ["subtitle", "text", "Publication/Source", "Where published"],
-            ].map(([field, type, label, ph]) => (
-              <div
-                key={field}
-                className="pe-form-group"
-                style={{ marginBottom: "15px" }}
-              >
-                <label className="pe-form-label">{label}</label>
-                <input
-                  type={type}
-                  value={forms.publication[field]}
-                  onChange={(e) =>
-                    handleFormChange("publication", field, e.target.value)
-                  }
-                  placeholder={ph}
-                  className="pe-form-input"
-                />
-              </div>
-            ))}
-            <ModalFooter
-              onSave={() => handleSaveItem("publication")}
-              onCancel={() => closeModal("publication")}
-            />
-          </Modal>
-        )}
-      </div>
     );
 }
 

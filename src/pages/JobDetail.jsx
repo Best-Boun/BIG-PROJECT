@@ -11,12 +11,23 @@ import {
   FaArrowLeft,
   FaCheck,
   FaShare,
+  FaBullseye,
+  FaHospital,
+  FaUmbrellaBeach,
+  FaBook,
+  FaRocket,
+  FaBolt,
+  FaStar,
 } from 'react-icons/fa';
+import { calcMatchScore } from '../utils/skillMatch';
 import './JobDetail.css';
 
 const JOBS_API = 'http://localhost:3000/api/jobs';
 
-export default function JobDetail() {
+export default function JobDetail({ role }) {
+  const isSeeker = role === 'seeker';
+  const backPath = role === 'employer' ? '/browse-jobs' : '/jobs';
+
   // ✅ State (unchanged)
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,8 +37,14 @@ export default function JobDetail() {
   const [loading, setLoading] = useState(true);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [similarJobs, setSimilarJobs] = useState([]);
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [seekerSkills, setSeekerSkills] = useState([]);
 
-  const benefitIcons = ['🎯', '💰', '🏥', '🏖️', '📚', '🚀', '⚡', '🌟'];
+  const benefitIcons = [
+    <FaBullseye />, <FaMoneyBillWave />, <FaHospital />,
+    <FaUmbrellaBeach />, <FaBook />, <FaRocket />,
+    <FaBolt />, <FaStar />
+  ];
 
   // 📄 Fetch job from API
   useEffect(() => {
@@ -39,6 +56,15 @@ export default function JobDetail() {
       })
       .then(data => {
         setJob(data);
+
+        // fetch company profile if userId exists
+        if (data.userId) {
+          fetch(`http://localhost:3000/api/companies/${data.userId}`)
+            .then(r => r.json())
+            .then(cp => { if (!cp.error) setCompanyProfile(cp); })
+            .catch(() => {});
+        }
+
         // fetch similar jobs separately — errors here don't affect main job display
         fetch(JOBS_API)
           .then(r => r.json())
@@ -48,6 +74,19 @@ export default function JobDetail() {
       .catch(() => setJob(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!isSeeker) return;
+    const userId = localStorage.getItem('userID');
+    if (!userId) return;
+    fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        const profile = Array.isArray(data) ? data[0] : data;
+        setSeekerSkills(profile?.skills || []);
+      })
+      .catch(() => {});
+  }, [isSeeker]);
 
   useEffect(() => {
     const userId = localStorage.getItem('userID');
@@ -76,9 +115,16 @@ export default function JobDetail() {
     setTimeout(() => setShowSuccessAlert(false), 3000);
   };
 
+  const renderLogo = (logo, size = 40) => {
+    if (!logo) return <FaBriefcase size={size * 0.5} />;
+    if (logo.startsWith('http') || logo.startsWith('data:')) {
+      return <img src={logo} alt="logo" style={{ width: size, height: size, objectFit: 'cover', borderRadius: 8 }} />;
+    }
+    return <span style={{ fontSize: size * 0.6 }}>{logo}</span>;
+  };
+
   const checkProfileBeforeApply = async () => {
-    const role = localStorage.getItem('role');
-    if (role !== 'seeker') return;
+    if (!isSeeker) return;
 
     const userId = localStorage.getItem('userID');
     if (!userId) return;
@@ -101,6 +147,14 @@ export default function JobDetail() {
     } catch (err) {
       console.error('Check profile failed:', err);
     }
+  };
+
+  const getPostedLabel = (postedDate) => {
+    if (!postedDate) return 'Recently';
+    const days = Math.floor((new Date() - new Date(postedDate)) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
   };
 
   const handleShare = () => {
@@ -132,7 +186,7 @@ export default function JobDetail() {
         <Container className="text-center py-5">
           <h2>Job Not Found</h2>
           <p>Sorry, we couldn't find the job you're looking for.</p>
-          <button className="ds-btn-primary mt-3" onClick={() => navigate('/jobs')}>
+          <button className="ds-btn-primary mt-3" onClick={() => navigate(backPath)}>
             <FaArrowLeft /> Back to Jobs
           </button>
         </Container>
@@ -145,7 +199,7 @@ export default function JobDetail() {
       {/* Back Bar */}
       <div className="jd-back-bar">
         <Container>
-          <button className="jd-back-btn" onClick={() => navigate('/jobs')}>
+          <button className="jd-back-btn" onClick={() => navigate(backPath)}>
             <FaArrowLeft /> Back to Jobs
           </button>
         </Container>
@@ -174,10 +228,18 @@ export default function JobDetail() {
             <div className="jd-header-card">
               <div className="jd-header-top">
                 <div className="jd-header-left">
-                  <div className="jd-company-logo">{job.logo}</div>
+                  <div className="jd-company-logo">{renderLogo(job.logo, 48)}</div>
                   <div className="jd-header-info">
                     <h1 className="jd-job-title">{job.title}</h1>
-                    <p className="jd-company-name">{job.company}</p>
+                    <a
+                      href={`/company/${job.userId}`}
+                      className="jd-company-name"
+                      style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                      onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                      onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                    >
+                      {job.company}
+                    </a>
                     <div className="jd-meta">
                       <span className="jd-meta-item">
                         <FaMapMarkerAlt /> {job.location}
@@ -186,19 +248,21 @@ export default function JobDetail() {
                         <FaBriefcase /> {job.type}
                       </span>
                       <span className="jd-meta-item">
-                        <FaClock /> Posted 2 days ago
+                        <FaClock /> Posted {getPostedLabel(job.postedDate)}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="jd-header-actions">
-                  <button
-                    className={`jd-action-btn ${isFavorite ? 'is-favorite' : ''}`}
-                    onClick={handleFavoriteToggle}
-                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                  </button>
+                  {isSeeker && (
+                    <button
+                      className={`jd-action-btn ${isFavorite ? 'is-favorite' : ''}`}
+                      onClick={handleFavoriteToggle}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                  )}
                   <button className="jd-action-btn" onClick={handleShare} title="Share job">
                     <FaShare />
                   </button>
@@ -225,17 +289,19 @@ export default function JobDetail() {
             </div>
 
             {/* Requirements */}
-            <div className="jd-section">
-              <h2 className="jd-section-title">Requirements</h2>
-              <ul className="jd-requirements">
-                {job.requirements.map((req, idx) => (
-                  <li key={idx}>
-                    <FaCheck className="jd-check-icon" />
-                    {req}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {job.requirements && job.requirements.length > 0 && (
+              <div className="jd-section">
+                <h2 className="jd-section-title">Requirements</h2>
+                <ul className="jd-requirements">
+                  {job.requirements.map((req, idx) => (
+                    <li key={idx}>
+                      <FaCheck className="jd-check-icon" />
+                      {req}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Benefits */}
             {job.benefits && job.benefits.length > 0 && (
@@ -264,7 +330,8 @@ export default function JobDetail() {
           {/* RIGHT — Sidebar */}
           <Col lg={4}>
             <div className="jd-sidebar-panel">
-            {/* Apply Card */}
+            {/* Apply Card — seeker only */}
+            {isSeeker && (
             <div className="jd-apply-card">
               <h3 className="jd-apply-title">Ready to Apply?</h3>
               <p className="jd-applicants-text">
@@ -292,28 +359,40 @@ export default function JobDetail() {
                 </div>
                 <div className="jd-stat">
                   <span className="jd-stat-label">Posted</span>
-                  <span className="jd-stat-value">2 days ago</span>
+                  <span className="jd-stat-value">{getPostedLabel(job.postedDate)}</span>
                 </div>
                 <div className="jd-stat">
                   <span className="jd-stat-label">Match Score</span>
-                  <span className="jd-stat-value jd-match-score">95%</span>
+                  <span className="jd-stat-value jd-match-score">
+                    {job.jobSkills?.length > 0
+                      ? `${calcMatchScore(seekerSkills, job.jobSkills)}%`
+                      : 'N/A'}
+                  </span>
                 </div>
               </div>
             </div>
+            )}
 
             {/* Company Card */}
             <div className="jd-company-card">
               <h3 className="jd-card-title">About the Company</h3>
               <div className="jd-company-wrapper">
-                <div className="jd-company-logo-large">{job.logo}</div>
+                <div className="jd-company-logo-large">{renderLogo(job.logo, 56)}</div>
                 <div className="jd-company-details">
-                  <h4 className="jd-company-title">{job.company}</h4>
+                  <a
+                    href={`/company/${job.userId}`}
+                    className="jd-company-title"
+                    style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                    {job.company}
+                  </a>
                   <div className="jd-company-info">
                     {[
-                      ['Industry', 'Technology'],
-                      ['Size', '10,000+ employees'],
-                      ['Founded', '2010'],
-                      ['Rating', '4.5 / 5.0'],
+                      ['Industry', companyProfile?.industry || '-'],
+                      ['Size', companyProfile?.size || '-'],
+                      ['Founded', companyProfile?.founded || '-'],
                     ].map(([label, value]) => (
                       <div key={label} className="jd-info-row">
                         <span className="jd-info-label">{label}</span>
@@ -335,7 +414,7 @@ export default function JobDetail() {
                     className="jd-similar-item"
                     onClick={() => navigate(`/jobs/${similarJob.id}`)}
                   >
-                    <span className="jd-similar-logo">{similarJob.logo}</span>
+                    <span className="jd-similar-logo">{renderLogo(similarJob.logo, 32)}</span>
                     <div className="jd-similar-info">
                       <p className="jd-similar-title">{similarJob.title}</p>
                       <p className="jd-similar-company">{similarJob.company}</p>

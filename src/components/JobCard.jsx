@@ -6,10 +6,12 @@
 
 import { useState } from 'react';
 import { Card, Button } from 'react-bootstrap';
-import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaClock, FaUsers, FaCheck, FaBriefcase } from 'react-icons/fa';
+import { calcMatchScore } from '../utils/skillMatch';
 import './JobCard.css';
 
-export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, onViewDetails, onApply }) {
+export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, onViewDetails, onApply, seekerSkills }) {
+  const matchScore = seekerSkills ? calcMatchScore(seekerSkills, job.jobSkills) : null;
     // ✅ อธิบาย props:
     // - job: object ข้อมูลงาน
     // - isFavorite: boolean ว่า save งานนี้ไหม
@@ -19,12 +21,22 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
 
     const [isHovered, setIsHovered] = useState(false);
 
+    const renderLogo = (logo) => {
+      if (!logo) return <FaBriefcase size={18} />;
+      if (logo.startsWith('http') || logo.startsWith('data:')) {
+        return <img src={logo} alt="logo" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 6 }} />;
+      }
+      return <span>{logo}</span>;
+    };
+
     // ฟังก์ชันได้จำนวนวันที่มีการโพสต์
     const getDaysPosted = (postedDate) => {
         const today = new Date();
         const posted = new Date(postedDate);
         const days = Math.floor((today - posted) / (1000 * 60 * 60 * 24));
-        return days === 0 ? 'Today' : `${days} days ago`;
+        if (days === 0) return 'Today';
+        if (days === 1) return '1 day ago';
+        return `${days} days ago`;
     };
 
     return (
@@ -36,25 +48,36 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
             {/* Card Header - Company Logo + Title + Favorite Button */}
             <Card.Header className="job-card-header">
                 <div className="company-info">
-                    <span className="company-logo">{job.logo}</span>
+                    <span className="company-logo">{renderLogo(job.logo)}</span>
                     <div className="company-details">
                         <h5 className="job-title">{job.title}</h5>
-                        <p className="company-name">{job.company}</p>
+                        <a
+                          href={`/company/${job.userId}`}
+                          className="company-name"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                          {job.company}
+                        </a>
                     </div>
                 </div>
 
                 {/* Favorite Button */}
-                <button 
-                    className="favorite-btn"
-                    onClick={() => onFavoriteToggle(job.id)}
-                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                    {isFavorite ? (
-                        <FaHeart style={{ color: '#e74c3c' }} />
-                    ) : (
-                        <FaRegHeart />
-                    )}
-                </button>
+                {onFavoriteToggle && (
+                  <button
+                      className="favorite-btn"
+                      onClick={() => onFavoriteToggle(job.id)}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                      {isFavorite ? (
+                          <FaHeart style={{ color: '#e74c3c' }} />
+                      ) : (
+                          <FaRegHeart />
+                      )}
+                  </button>
+                )}
             </Card.Header>
 
             {/* Card Body - Job Details */}
@@ -88,22 +111,34 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
                 </p>
 
                 {/* Requirements Preview */}
-                <div className="job-requirements">
+                {job.requirements && job.requirements.length > 0 && (
+                  <div className="job-requirements">
                     <span className="requirements-label">Requirements:</span>
                     <ul style={{ fontSize: '0.85rem', marginBottom: 0 }}>
-                        {job.requirements.slice(0, 2).map((req, idx) => (
-                            <li key={idx}>{req}</li>
-                        ))}
-                        {job.requirements.length > 2 && (
-                            <li>+{job.requirements.length - 2} more</li>
-                        )}
+                      {job.requirements.slice(0, 2).map((req, idx) => (
+                        <li key={idx}>{req}</li>
+                      ))}
+                      {job.requirements.length > 2 && (
+                        <li>+{job.requirements.length - 2} more</li>
+                      )}
                     </ul>
-                </div>
+                  </div>
+                )}
 
                 {/* Applicants Count */}
                 <p className="applicants-count">
-                    👥 {job.applicants} applicants
+                    <FaUsers /> {job.applicants} applicants
                 </p>
+                {matchScore !== null && (
+                  <p style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: matchScore >= 70 ? '#16a34a' : matchScore >= 40 ? '#ca8a04' : '#dc2626',
+                    margin: '4px 0 0'
+                  }}>
+                    ⚡ {matchScore}% Match
+                  </p>
+                )}
             </Card.Body>
 
             {/* Card Footer - Action Buttons */}
@@ -116,13 +151,15 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
                 >
                     View Details
                 </Button>
-                <button
-                    className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
-                    onClick={() => !isApplied && onApply(job.id)}
-                    disabled={isApplied}
-                >
-                    {isApplied ? '✓ Already Applied' : 'Apply Now'}
-                </button>
+                {onApply && (
+                  <button
+                      className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
+                      onClick={() => !isApplied && onApply(job.id)}
+                      disabled={isApplied}
+                  >
+                      {isApplied ? <><FaCheck /> Already Applied</> : 'Apply Now'}
+                  </button>
+                )}
             </Card.Footer>
         </Card>
     );

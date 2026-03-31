@@ -1,6 +1,7 @@
 import { useContext } from "react";
-import { useLocation } from "react-router-dom";
-import { Navbar, Nav, Dropdown } from "react-bootstrap";
+import { useLocation, Link  } from "react-router-dom";
+import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
+import { SettingsContext } from "./SettingContext";
 import {
   FaCog,
   FaSignOutAlt,
@@ -9,12 +10,12 @@ import {
   FaUserShield,
   FaBolt,
   FaClipboardList,
+  FaBuilding,
 } from "react-icons/fa";
-import { ProfileContext } from "../ProfileContext";
 import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
-  const { profileData, isLoading } = useContext(ProfileContext);
+  useContext(SettingsContext);
   const location = useLocation();
 
   const isActive = (path) =>
@@ -30,9 +31,7 @@ export default function Header2({ role, onLogout }) {
   // 🔥 FIX ตรงนี้
   const displayName = isAdmin
     ? "Admin"
-    : isLoading
-      ? storedUser?.name || "..."
-      : profileData?.name?.trim() || storedUser?.name || "User";
+    : storedUser?.name || "User";
 
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
@@ -100,9 +99,9 @@ export default function Header2({ role, onLogout }) {
             <Dropdown align="end">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">
-                  {profileData?.profileImage ? (
+                  {storedUser?.profileImage ? (
                     <img
-                      src={`http://localhost:3000${profileData.profileImage}`}
+                      src={`http://localhost:3000${storedUser.profileImage}`}
                       alt={displayName}
                       className="avatar-img"
                     />
@@ -116,14 +115,14 @@ export default function Header2({ role, onLogout }) {
               <Dropdown.Menu>
                 {isAdmin ? (
                   <>
-                    <Dropdown.Item href="/chart">
+                    <Dropdown.Item as={Link} to="/chart">
                       <FaHome /> Dashboard
                     </Dropdown.Item>
-                    <Dropdown.Item href="/ads">
+                    <Dropdown.Item as={Link} to="/ads">
                       <FaBullhorn /> Ads Management
                     </Dropdown.Item>
                     <Dropdown.Item href="/admin">
-                      <FaUserShield /> Admin Management
+                      <FaUserShield /> User Management
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Item onClick={onLogout}>
@@ -132,7 +131,10 @@ export default function Header2({ role, onLogout }) {
                   </>
                 ) : isEmployer ? (
                   <>
-                    <Dropdown.Item href="/settings">
+                    <Dropdown.Item as={Link} to="/company-profile">
+                      <FaBuilding /> Company Profile
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/settings">
                       <FaCog /> Settings
                     </Dropdown.Item>
                     <Dropdown.Item onClick={onLogout}>
@@ -141,11 +143,11 @@ export default function Header2({ role, onLogout }) {
                   </>
                 ) : (
                   <>
-                    <Dropdown.Item href="/applications">
+                    <Dropdown.Item as={Link} to="/applications">
                       <FaClipboardList /> Applications
                     </Dropdown.Item>
                     <Dropdown.Divider />
-                    <Dropdown.Item href="/settings">
+                    <Dropdown.Item as={Link} to="/settings">
                       <FaCog /> Settings
                     </Dropdown.Item>
                     <Dropdown.Item onClick={onLogout}>

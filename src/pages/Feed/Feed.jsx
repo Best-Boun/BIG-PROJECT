@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { Container, Row, Col } from "react-bootstrap";
-import { ProfileContext } from "../../ProfileContext";
 import "./Feed.css";
 import Swal from "sweetalert2";
 
-export default function Feed({ user }) {
+export default function Feed() {
   const API_POSTS = "http://localhost:3000/api/posts";
   const API_ADS = "http://localhost:3000/api/ads/public";
-
-  const { profileData } = useContext(ProfileContext);
 
   const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
@@ -17,35 +15,25 @@ export default function Feed({ user }) {
   const [posts, setPosts] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
 
-  const [likeCounts, setLikeCounts] = useState({});
-  const [likedPosts, setLikedPosts] = useState({});
-  const [loadingLike, setLoadingLike] = useState({});
-  // ================= PROFILE IMAGE FIX =================
-  const getProfileImage = (img) => {
-    if (!img || img === "NULL") {
-      return "https://ui-avatars.com/api/?name=User";
-    }
+  const userId = localStorage.getItem('userID');
 
-    if (img.startsWith("/upload")) {
-      return `http://localhost:3000${img}`;
-    }
+  const { data: profileData } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+      const data = await res.json();
+      return Array.isArray(data) ? data[0] : data;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
 
-    return img;
-  };
-
-  // ================= CURRENT USER =================
-  const getCurrentUser = () => {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (storedUser && storedUser.id) return storedUser;
-      if (profileData && profileData.name) return profileData;
-      return user || null;
-    } catch {
-      return null;
-    }
-  };
-
-  const currentUser = getCurrentUser();
+  const storedUser = JSON.parse(localStorage.getItem("user") || '{}');
+  const currentUser = profileData?.name?.trim()
+    ? profileData
+    : storedUser?.name?.trim()
+      ? storedUser
+      : { name: 'User', profileImage: '👤' };
 
   // ================= LOAD LIKES =================
  const loadLikes = async () => {
@@ -295,6 +283,12 @@ const loadPosts = async () => {
     }
   };
 
+  const getProfileImage = (image) => {
+    if (!image) return `https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff`;
+    if (image.startsWith('data:') || image.startsWith('http') || image.startsWith('blob:')) return image;
+    return `http://localhost:3000${image}`;
+  };
+
   return (
     <div className="feed-page">
       <Container fluid className="feed-container">
@@ -347,7 +341,7 @@ const loadPosts = async () => {
                         />
                       </div>
 
-                      <div className="ms-3 flex-grow-1">
+                      <div className="ms-3 grow">
                         <div className="d-flex justify-content-between">
                           <div>
                             <h6 className="mb-0">{post.username || "User"}</h6>

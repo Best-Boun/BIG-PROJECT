@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Pagination } from 'react-bootstrap';
-import { FaDownload, FaTrash } from 'react-icons/fa';
+import { FaBan } from 'react-icons/fa';
 import './Applications.css';
 
 const JOBS_API = 'http://localhost:3000/api/jobs';
@@ -75,6 +75,14 @@ export default function Applications() {
       case 'rejected':  return 'ds-status-dot ds-status-rejected';
       default:          return 'ds-status-dot';
     }
+  };
+
+  const renderLogo = (logo) => {
+    if (!logo) return <span className="apps-logo-fallback">🏢</span>;
+    if (logo.startsWith('http') || logo.startsWith('data:') || logo.startsWith('/')) {
+      return <img src={logo} alt="logo" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />;
+    }
+    return <span>{logo}</span>;
   };
 
   return (
@@ -154,7 +162,7 @@ export default function Applications() {
                 <div key={app.jobId} className="apps-table-row">
                   {/* Company / Position */}
                   <div className="col-company apps-col-company">
-                    <span className="apps-company-logo">{app.logo}</span>
+                    <span className="apps-company-logo">{renderLogo(app.logo)}</span>
                     <div className="apps-job-info">
                       <p className="apps-job-title">{app.title}</p>
                       <p className="apps-company-name">{app.company}</p>
@@ -186,15 +194,12 @@ export default function Applications() {
                     >
                       View
                     </a>
-                    <button className="ds-btn-ghost apps-action-btn" title="Download Resume">
-                      <FaDownload />
-                    </button>
                     <button
                       className="apps-delete-btn"
                       title="Delete"
                       onClick={() => handleDeleteApplication(app.id, app.jobId)}
                     >
-                      <FaTrash />
+                      <FaBan />
                     </button>
                   </div>
                 </div>

@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaGlobe, FaLinkedin, FaGithub, FaEye, FaExternalLinkAlt, FaImage, FaTimes, FaUserAstronaut, FaCog } from 'react-icons/fa';
+import { MdPublic } from 'react-icons/md';
 import './Profilepublic.css';
 
 const calculateAge = (dateOfBirth) => {
@@ -12,34 +15,35 @@ const calculateAge = (dateOfBirth) => {
 };
 
 const ProfilePublic = ({ onNavigate }) => {
-  const [profileData, setProfileData] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const userId = localStorage.getItem('userID');
+  const [previewImage, setPreviewImage] = useState(null);
 
-  useEffect(() => {
-    const userId = localStorage.getItem('userID');
-    if (!userId) { setIsLoading(false); return; }
-    fetch(`http://localhost:3000/api/profiles?userId=${userId}`)
-      .then(r => r.json())
-      .then(data => {
-        const p = Array.isArray(data) ? data[0] : data;
-        if (p) {
-          const transformed = {
-            ...p,
-            skills: (p.skills || []).map((s, i) =>
-              typeof s === 'string' ? { id: i + 1, name: s, level: '' } : { ...s, id: i + 1 }
-            ),
-            experience: (p.experience || []).map((e, i) => ({ ...e, id: i + 1, title: e.role || '' })),
-            education: (p.education || []).map((e, i) => ({ ...e, id: i + 1, school: e.institution || '', year: e.startDate || '' })),
-            languages: (p.languages || []).map((l, i) => ({ ...l, id: i + 1, name: l.language || l.name || '' })),
-            certifications: (p.certifications || []).map((c, i) => ({ ...c, id: i + 1, issueDate: c.date || '' })),
-            projects: (p.projects || []).map((proj, i) => ({ ...proj, id: i + 1 })),
-          };
-          setProfileData(transformed);
-        }
-      })
-      .catch(err => console.error('Load profile failed:', err))
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+      const json = await res.json();
+      const p = Array.isArray(json) ? json[0] : json;
+      if (!p) return {};
+      return {
+        ...p,
+        skills: (p.skills || []).map((s, i) =>
+          typeof s === 'string' ? { id: i + 1, name: s, level: '' } : { ...s, id: i + 1 }
+        ),
+        experience: (p.experience || []).map((e, i) => ({ ...e, id: i + 1, title: e.role || '' })),
+        education: (p.education || []).map((e, i) => ({ ...e, id: i + 1, school: e.institution || '', year: e.startDate || '' })),
+        languages: (p.languages || []).map((l, i) => ({ ...l, id: i + 1, name: l.language || l.name || '' })),
+        certifications: (p.certifications || []).map((c, i) => ({ ...c, id: i + 1, issueDate: c.date || '' })),
+        projects: (p.projects || []).map((proj, i) => ({ ...proj, id: i + 1 })),
+      };
+    },
+    enabled: !!userId,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+  });
+
+  const profileData = data || {};
 
   const calculateDuration = (startDate, endDate) => {
     if (!startDate) return '';
@@ -142,13 +146,6 @@ const ProfilePublic = ({ onNavigate }) => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  };
-
-  const currentUser = { username: 'John Doe', role: 'user' };
-
   if (isLoading) {
     return (
       <div className="pp-loading">
@@ -161,7 +158,7 @@ const ProfilePublic = ({ onNavigate }) => {
   if (!hasProfileData) {
     return (
       <div className="pp-empty">
-        <div className="pp-empty-icon">👤</div>
+        <div className="pp-empty-icon"><FaUserAstronaut /></div>
         <h1 className="pp-empty-title">Create Profile</h1>
         <p className="pp-empty-desc">
           Start building your professional profile to showcase your skills and experience
@@ -178,36 +175,51 @@ const ProfilePublic = ({ onNavigate }) => {
       <header className="profile-header">
         <div className="header-container">
           <div className="profile-picture-container" title="Profile Picture">
-            <div
-              className="profile-picture"
-              style={{
-                backgroundImage: profileData.profileImage
-                  ? `url(http://localhost:3000${profileData.profileImage})`
-                  : "none",
-              }}
-            ></div>
+            <div className="profile-picture" style={{
+              backgroundImage: profileData.profileImage && (profileData.profileImage.startsWith('data:') || profileData.profileImage.startsWith('http'))
+                ? `url(${profileData.profileImage})`
+                : 'none'
+            }}>
+              {!profileData.profileImage || (!profileData.profileImage.startsWith('data:') && !profileData.profileImage.startsWith('http'))
+                ? profileData.profileImage || ''
+                : null
+              }
+            </div>
           </div>
           <div className="header-info">
-            <h1>{profileData.name || "Your Name"}</h1>
-            <div className="title">
-              {profileData.title || "Your Professional Title"}
-            </div>
+            <h1>{profileData.name || 'Your Name'}</h1>
+            <div className="title">{profileData.title || 'Your Professional Title'}</div>
             <div className="bio">
-              {profileData.bio ||
-                "Your professional bio goes here - Click Edit Profile to add your information"}
+              {profileData.bio || 'Your professional bio goes here - Click Edit Profile to add your information'}
             </div>
-            <div className="social-links">
-              {profileData.github && (
-                <a
-                  href={profileData.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-link"
-                >
-                  GitHub
-                </a>
-              )}
-            </div>
+            {profileData.privacy?.contact !== false && (
+              <div className="profile-header-contact-row">
+                {profileData.location && (
+                  <span className="profile-header-contact-item"><FaMapMarkerAlt />{profileData.location}</span>
+                )}
+                {profileData.email && (
+                  <span className="profile-header-contact-item"><FaEnvelope />{profileData.email}</span>
+                )}
+                {profileData.phone && (
+                  <span className="profile-header-contact-item"><FaPhone />{profileData.phone}</span>
+                )}
+                {profileData.website && (
+                  <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="profile-header-social-btn">
+                    <FaGlobe />
+                  </a>
+                )}
+                {profileData.linkedin && (
+                  <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer" className="profile-header-social-btn">
+                    <FaLinkedin />
+                  </a>
+                )}
+                {profileData.github && (
+                  <a href={profileData.github} target="_blank" rel="noopener noreferrer" className="profile-header-social-btn">
+                    <FaGithub />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -218,479 +230,347 @@ const ProfilePublic = ({ onNavigate }) => {
           <div className="stat-label-profile">Years Experience</div>
         </div>
         <div className="stat-card">
-          <div className="pp-stat-number">
-            {profileData.projects?.length || "0"}+
-          </div>
+          <div className="pp-stat-number">{profileData.projects?.length || '0'}+</div>
           <div className="stat-label-profile">Projects Completed</div>
         </div>
         <div className="stat-card">
-          <div className="pp-stat-number">
-            {profileData.certifications?.length || "0"}
-          </div>
+          <div className="pp-stat-number">{profileData.certifications?.length || '0'}</div>
           <div className="stat-label-profile">Certifications</div>
         </div>
       </div>
 
       <div className="content-container">
         <div className="main-column">
+
           {profileData.privacy?.summary !== false && (
             <div className="section-card">
               <div className="section-header">
                 <h2 className="pp-section-title">Professional Summary</h2>
               </div>
               <p className="summary-text">
-                {profileData.summary ||
-                  profileData.bio ||
-                  "Add your professional summary in profile edit"}
+                {profileData.summary || profileData.bio || 'Add your professional summary in profile edit'}
               </p>
-              {profileData.expertise &&
-                typeof profileData.expertise === "string" && (
-                  <ul
-                    style={{
-                      marginLeft: "20px",
-                      marginTop: "15px",
-                      lineHeight: 1.8,
-                      color: "#555",
-                    }}
-                  >
-                    {profileData.expertise.split(",").map((item, idx) => (
-                      <li key={idx}>{item.trim()}</li>
-                    ))}
-                  </ul>
-                )}
+              {profileData.expertise && typeof profileData.expertise === 'string' && (
+                <ul style={{ marginLeft: '20px', marginTop: '15px', lineHeight: 1.8, color: '#555' }}>
+                  {profileData.expertise.split(',').map((item, idx) => (
+                    <li key={idx}>{item.trim()}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
 
-          {profileData.privacy?.experience !== false &&
-            profileData.experience &&
-            profileData.experience.length > 0 && (
-              <div className="section-card">
-                <div className="section-header">
-                  <h2 className="pp-section-title">Work Experience</h2>
-                </div>
-                <div className="timeline">
-                  {profileData.experience.map((exp) => (
-                    <div key={exp.id} className="timeline-item">
-                      <div className="timeline-period">
-                        {exp.startDate} - {exp.endDate}{" "}
-                        {calculateDuration(exp.startDate, exp.endDate)}
-                      </div>
-                      <div className="timeline-title">{exp.title}</div>
-                      <div className="timeline-company">
-                        {exp.company} {exp.location}
-                      </div>
-                      <div className="timeline-description">
-                        {exp.description}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {profileData.privacy?.projects !== false &&
-            profileData.projects &&
-            profileData.projects.length > 0 && (
-              <div className="section-card">
-                <div className="section-header">
-                  <h2 className="pp-section-title">Featured Projects</h2>
-                </div>
-                <div className="portfolio-grid">
-                  {profileData.projects.map((project) => (
-                    <div key={project.id} className="portfolio-item">
-                      <div
-                        className="portfolio-image"
-                        style={{
-                          background: project.image
-                            ? `url(${project.image}) center/cover no-repeat`
-                            : "var(--color-background-secondary)",
-                        }}
-                      />
-                      <div className="portfolio-overlay">
-                        {project.name && (
-                          <div className="portfolio-title">{project.name}</div>
-                        )}
-                        {project.description && (
-                          <div className="portfolio-desc">
-                            {project.description}
-                          </div>
-                        )}
-                        {project.techStack && (
-                          <div style={{ marginTop: "8px" }}>
-                            {project.techStack.split(",").map((tech) => (
-                              <span key={tech} className="tech-badge">
-                                {tech.trim()}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {project.url && (
-                          <a
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ds-btn-secondary"
-                            style={{
-                              marginTop: "10px",
-                              display: "inline-block",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            View Project
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {profileData.privacy?.workPreferences !== false && (
+          {profileData.privacy?.experience !== false && profileData.experience && profileData.experience.length > 0 && (
             <div className="section-card">
               <div className="section-header">
-                <h2 className="pp-section-title">Work Preferences</h2>
+                <h2 className="pp-section-title">Work Experience</h2>
               </div>
-              <div className="work-preferences-grid">
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: "15px",
-                    marginBottom: "15px",
-                  }}
-                >
-                  <div className="work-style-item">
-                    <div className="work-style-icon">💼</div>
-                    <div className="work-style-title">Employment Type</div>
-                    <div className="work-style-desc">
-                      {profileData.jobTypes || ""}
+              <div className="timeline">
+                {profileData.experience.map((exp) => (
+                  <div key={exp.id} className="timeline-item">
+                    <div className="timeline-period">
+                      {exp.startDate} - {exp.endDate} {calculateDuration(exp.startDate, exp.endDate)}
+                    </div>
+                    <div className="timeline-title">{exp.title}</div>
+                    <div className="timeline-company">{exp.company} {exp.location}</div>
+                    <div className="timeline-description">
+                      {exp.description}
                     </div>
                   </div>
-                  <div className="work-style-item">
-                    <div className="work-style-icon">📍</div>
-                    <div className="work-style-title">Location</div>
-                    <div className="work-style-desc">
-                      {profileData.workLocations || ""}
-                    </div>
-                  </div>
-                  <div className="work-style-item">
-                    <div className="work-style-icon">💰</div>
-                    <div className="work-style-title">Salary Range</div>
-                    <div className="work-style-desc">
-                      {profileData.salaryRange || ""}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                    gap: "15px",
-                    maxWidth: "66.66%",
-                    margin: "0 auto",
-                  }}
-                >
-                  <div className="work-style-item">
-                    <div className="work-style-icon">⏰</div>
-                    <div className="work-style-title">Availability</div>
-                    <div className="work-style-desc">
-                      {profileData.availability || ""}
-                    </div>
-                  </div>
-                  <div className="work-style-item">
-                    <div className="work-style-icon">📋</div>
-                    <div className="work-style-title">Notice Period</div>
-                    <div className="work-style-desc">
-                      {profileData.noticePeriod || ""}
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
 
-          {profileData.privacy?.certifications !== false &&
-            profileData.certifications &&
-            profileData.certifications.length > 0 && (
-              <div className="section-card">
-                <div className="section-header">
-                  <h2 className="pp-section-title">Certifications</h2>
-                </div>
-                <div>
-                  {profileData.certifications.map((cert) => (
-                    <div key={cert.id} className="cert-item">
-                      <div className="cert-name">{cert.name}</div>
-                      <div className="cert-issuer">{cert.issuer}</div>
-                      <div className="cert-date">
-                        Issued: {cert.issueDate}
-                        {cert.expiryDate && ` Expires: ${cert.expiryDate}`}
+{profileData.privacy?.projects !== false && profileData.projects && profileData.projects.length > 0 && (
+            <div className="section-card">
+              <div className="section-header">
+                <h2 className="pp-section-title">Featured Projects</h2>
+              </div>
+              <div className="portfolio-grid">
+                {profileData.projects.map((project) => (
+                  <div key={project.id} className="portfolio-item" style={{ position: 'relative' }}>
+                    {project.category && (
+                      <span style={{
+                        position: 'absolute', top: '10px', right: '10px', zIndex: 3,
+                        background: '#6a11cb', color: 'white', fontSize: '0.7rem',
+                        fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
+                      }}>
+                        {project.category}
+                      </span>
+                    )}
+                    <div className="portfolio-image" style={{
+                      backgroundImage: project.image ? `url(${project.image})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundSize: 'cover', backgroundPosition: 'center'
+                    }}>
+                      {!project.image && <div style={{ fontSize: '2rem', color: 'rgba(255,255,255,0.5)' }}><FaImage /></div>}
+                    </div>
+                    <div className="portfolio-overlay">
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {project.image && (
+                          <button
+                            onClick={() => setPreviewImage(project.image)}
+                            style={{
+                              flex: 1, padding: '7px', background: '#6a11cb', color: 'white',
+                              border: 'none', borderRadius: '8px', fontSize: '0.78rem',
+                              fontWeight: 600, cursor: 'pointer', display: 'flex',
+                              alignItems: 'center', justifyContent: 'center', gap: '5px',
+                              transition: 'transform 0.15s ease, filter 0.15s ease',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.2)'}
+                            onMouseLeave={e => { e.currentTarget.style.filter = ''; e.currentTarget.style.transform = 'scale(1)'; }}
+                            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.93)'}
+                            onMouseUp={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                          >
+                            <FaEye /> Preview
+                          </button>
+                        )}
+                        {project.url && (
+                          <button
+                            onClick={() => window.open(project.url, '_blank')}
+                            style={{
+                              flex: 1, padding: '7px', background: 'rgba(255,255,255,0.2)',
+                              color: 'white', border: '1px solid rgba(255,255,255,0.4)',
+                              borderRadius: '8px', fontSize: '0.78rem', fontWeight: 600,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', gap: '5px',
+                              transition: 'transform 0.15s ease, background 0.15s ease',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1)'; }}
+                            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.93)'}
+                            onMouseUp={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                          >
+                            <FaExternalLinkAlt /> Visit
+                          </button>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
+
+
+          {profileData.privacy?.certifications !== false && profileData.certifications && profileData.certifications.length > 0 && (
+            <div className="section-card">
+              <div className="section-header">
+                <h2 className="pp-section-title">Certifications</h2>
+              </div>
+              <div>
+                {profileData.certifications.map((cert) => (
+                  <div key={cert.id} className="cert-item">
+                    <div className="cert-name">{cert.name}</div>
+                    <div className="cert-issuer">{cert.issuer}</div>
+                    <div className="cert-date">
+                      Issued: {cert.issueDate}
+                      {cert.expiryDate && ` Expires: ${cert.expiryDate}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
 
         <div className="pp-sidebar-panel">
           <div className="pp-sidebar-sticky">
-            {/* ── Current Status ── */}
-            {profileData.privacy?.currentStatus !== false &&
-              profileData.employmentStatus && (
-                <div className="sidebar-card pp-status-card">
-                  <h3 className="sidebar-title">Current Status</h3>
 
-                  {/* Status badge */}
-                  <div className="pp-status-badge-row">
-                    {profileData.employmentStatus === "employed" && (
-                      <span className="pp-status-badge pp-status-employed">
-                        Employed
-                        {profileData.currentCompany
-                          ? ` at ${profileData.currentCompany}`
-                          : ""}
-                      </span>
-                    )}
-                    {profileData.employmentStatus === "unemployed" && (
-                      <span className="pp-status-badge pp-status-unemployed">
-                        Currently Unemployed
-                      </span>
-                    )}
-                    {profileData.employmentStatus === "freelance" && (
-                      <span className="pp-status-badge pp-status-freelance">
-                        Freelancer
-                      </span>
-                    )}
-                    {profileData.employmentStatus === "student" && (
-                      <span className="pp-status-badge pp-status-student">
-                        Student
-                      </span>
-                    )}
-                    {profileData.employmentStatus === "retired" && (
-                      <span className="pp-status-badge pp-status-retired">
-                        Retired
-                      </span>
-                    )}
-                    {profileData.openToWork && (
-                      <span className="pp-status-badge pp-status-open">
-                        Open to Work
-                      </span>
-                    )}
-                  </div>
+          {/* ── Current Status ── */}
+          {profileData.privacy?.currentStatus !== false && profileData.employmentStatus && (
+            <div className="sidebar-card pp-status-card">
+              <h3 className="sidebar-title">Current Status</h3>
 
-                  {/* Current role */}
-                  {profileData.currentRole && (
-                    <p className="pp-status-role">{profileData.currentRole}</p>
-                  )}
+              {/* Status badge */}
+              <div className="pp-status-badge-row">
+                {profileData.employmentStatus === 'employed' && (
+                  <span className="pp-status-badge pp-status-employed">
+                    Employed{profileData.currentCompany ? ` at ${profileData.currentCompany}` : ''}
+                  </span>
+                )}
+                {profileData.employmentStatus === 'unemployed' && (
+                  <span className="pp-status-badge pp-status-unemployed">Currently Unemployed</span>
+                )}
+                {profileData.employmentStatus === 'freelance' && (
+                  <span className="pp-status-badge pp-status-freelance">Freelancer</span>
+                )}
+                {profileData.employmentStatus === 'student' && (
+                  <span className="pp-status-badge pp-status-student">Student</span>
+                )}
+                {profileData.employmentStatus === 'retired' && (
+                  <span className="pp-status-badge pp-status-retired">Retired</span>
+                )}
+                {profileData.openToWork && (
+                  <span className="pp-status-badge pp-status-open">Open to Work</span>
+                )}
+              </div>
 
-                  {/* Available from */}
-                  {profileData.openToWork && profileData.availableFrom && (
-                    <p className="pp-status-available">
-                      Available from{" "}
-                      {new Date(profileData.availableFrom).toLocaleDateString(
-                        "en-US",
-                        { month: "short", year: "numeric" },
-                      )}
-                    </p>
-                  )}
-
-                  {/* Last updated */}
-                  {profileData.statusLastUpdated &&
-                    (() => {
-                      const days = Math.floor(
-                        (Date.now() - new Date(profileData.statusLastUpdated)) /
-                          86400000,
-                      );
-                      return (
-                        <p className="pp-status-updated">
-                          Updated{" "}
-                          {days === 0
-                            ? "today"
-                            : `${days} day${days !== 1 ? "s" : ""} ago`}
-                        </p>
-                      );
-                    })()}
-                </div>
+              {/* Current role */}
+              {profileData.currentRole && (
+                <p className="pp-status-role">{profileData.currentRole}</p>
               )}
 
-            {profileData.privacy?.quickInfo !== false && (
-              <div className="sidebar-card">
-                <h3 className="sidebar-title">Quick Info</h3>
-                <div className="quick-info-list">
-                  {(profileData.dateOfBirth || profileData.age) && (
-                    <div className="quick-info-item">
-                      <span className="quick-info-icon">👤</span>
-                      <div>
-                        <div className="quick-info-label">AGE</div>
-                        <div className="quick-info-value">
-                          {profileData.dateOfBirth
-                            ? calculateAge(profileData.dateOfBirth)
-                            : profileData.age}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {profileData.nationality && (
-                    <div className="quick-info-item">
-                      <span className="quick-info-icon">🌍</span>
-                      <div>
-                        <div className="quick-info-label">NATIONALITY</div>
-                        <div className="quick-info-value">
-                          {profileData.nationality}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {profileData.workTypePreference && (
-                    <div className="quick-info-item">
-                      <span className="quick-info-icon">⚙️</span>
-                      <div>
-                        <div className="quick-info-label">WORK TYPE</div>
-                        <div className="quick-info-value">
-                          {profileData.workTypePreference}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+              {/* Available from */}
+              {profileData.openToWork && profileData.availableFrom && (
+                <p className="pp-status-available">
+                  Available from {new Date(profileData.availableFrom).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </p>
+              )}
 
+              {/* Last updated */}
+              {profileData.statusLastUpdated && (() => {
+                const days = Math.floor((Date.now() - new Date(profileData.statusLastUpdated)) / 86400000);
+                return (
+                  <p className="pp-status-updated">
+                    Updated {days === 0 ? 'today' : `${days} day${days !== 1 ? 's' : ''} ago`}
+                  </p>
+                );
+              })()}
+            </div>
+          )}
+
+          {profileData.privacy?.quickInfo !== false && (
             <div className="sidebar-card">
-              <div className="action-buttons">
-                <button onClick={handleShareProfile} className="pp-share-btn">
-                  Share Profile
-                </button>
-                <button
-                  onClick={() => onNavigate("edit")}
-                  className="pp-edit-btn"
-                >
-                  {hasProfileData ? "Edit Profile" : "Create Profile"}
-                </button>
+              <h3 className="sidebar-title">Quick Info</h3>
+              <div className="quick-info-list">
+                {(profileData.dateOfBirth || profileData.age) && (
+                  <div className="quick-info-item">
+                    <span className="quick-info-icon"><FaUserAstronaut /></span>
+                    <div>
+                      <div className="quick-info-label">AGE</div>
+                      <div className="quick-info-value">
+                        {profileData.dateOfBirth ? calculateAge(profileData.dateOfBirth) : profileData.age}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {profileData.nationality && (
+                  <div className="quick-info-item">
+                    <span className="quick-info-icon"><MdPublic /></span>
+                    <div>
+                      <div className="quick-info-label">NATIONALITY</div>
+                      <div className="quick-info-value">{profileData.nationality}</div>
+                    </div>
+                  </div>
+                )}
+                {profileData.workTypePreference && (
+                  <div className="quick-info-item">
+                    <span className="quick-info-icon"><FaCog /></span>
+                    <div>
+                      <div className="quick-info-label">WORK TYPE</div>
+                      <div className="quick-info-value">{profileData.workTypePreference}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+          )}
 
-            {profileData.privacy?.contact !== false && (
-              <div className="sidebar-card contact-social-card">
-                <div className="contact-social-header">
-                  <h3 className="contact-social-title">Contact & Social</h3>
-                </div>
-                <div className="contact-social-content">
-                  {profileData.email && (
-                    <div className="contact-item">
-                      <div className="contact-details">
-                        <p className="contact-label">📧 Email</p>
-                        <p className="contact-value">{profileData.email}</p>
-                      </div>
-                    </div>
-                  )}
-                  {profileData.phone && (
-                    <div className="contact-item">
-                      <div className="contact-details">
-                        <p className="contact-label">📱 Phone</p>
-                        <p className="contact-value">{profileData.phone}</p>
-                      </div>
-                    </div>
-                  )}
-                  {profileData.location && (
-                    <div className="contact-item">
-                      <div className="contact-details">
-                        <p className="contact-label">📍 Location</p>
-                        <p className="contact-value">{profileData.location}</p>
-                      </div>
-                    </div>
-                  )}
-                  {!profileData.email &&
-                    !profileData.phone &&
-                    !profileData.location && (
-                      <p className="pp-no-contact">
-                        No contact information provided
-                      </p>
-                    )}
-                </div>
-              </div>
-            )}
-
-            {profileData.privacy?.skills !== false &&
-              profileData.skills &&
-              profileData.skills.length > 0 && (
-                <div className="sidebar-card">
-                  <h3 className="sidebar-title">Technical Stack</h3>
-                  <div className="skill-list">
-                    {profileData.skills.slice(0, 5).map((skill) => (
-                      <div key={skill.id} className="skill-item">
-                        <div className="skill-name-profile">{skill.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            {profileData.privacy?.education !== false &&
-              profileData.education &&
-              profileData.education.length > 0 && (
-                <div className="sidebar-card">
-                  <h3 className="sidebar-title">Education</h3>
-                  <div className="education-list">
-                    {profileData.education.map((edu) => (
-                      <div key={edu.id} className="education-item">
-                        <div className="education-degree">{edu.degree}</div>
-                        <div className="education-school">{edu.school}</div>
-                        <div>
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              color: "var(--color-text-secondary)",
-                            }}
-                          >
-                            Year
-                          </span>
-                          <span style={{ fontSize: "13px", marginLeft: "6px" }}>
-                            {edu.endDate || edu.startDate}
-                          </span>
-                        </div>
-                        {edu.grade && (
-                          <div>
-                            <span
-                              style={{
-                                fontSize: "11px",
-                                color: "var(--color-text-secondary)",
-                              }}
-                            >
-                              Grade
-                            </span>
-                            <span
-                              style={{ fontSize: "13px", marginLeft: "6px" }}
-                            >
-                              {edu.grade}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            {profileData.privacy?.languages !== false &&
-              profileData.languages &&
-              profileData.languages.length > 0 && (
-                <div className="sidebar-card">
-                  <h3 className="sidebar-title">Languages</h3>
-                  <div className="language-list">
-                    {profileData.languages.map((lang) => (
-                      <div key={lang.id} className="pp-language-item">
-                        <span className="language-name">{lang.name}</span>
-                        <span className="language-level">{lang.level}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+          <div className="sidebar-card">
+            <div className="action-buttons">
+              <button onClick={handleShareProfile} className="pp-share-btn">
+                Share Profile
+              </button>
+              <button onClick={() => onNavigate('edit')} className="pp-edit-btn">
+                {hasProfileData ? 'Edit Profile' : 'Create Profile'}
+              </button>
+            </div>
           </div>
-          {/* end pp-sidebar-sticky */}
+
+
+          {profileData.privacy?.skills !== false && profileData.skills && profileData.skills.length > 0 && (
+            <div className="sidebar-card">
+              <h3 className="sidebar-title">Technical Stack</h3>
+              {['Languages', 'Frontend', 'Backend', 'Database', 'DevOps & Cloud'].map(cat => {
+                const catSkills = profileData.skills.filter(s => s.category === cat);
+                if (catSkills.length === 0) return null;
+                return (
+                  <div key={cat} style={{ marginBottom: '12px' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6a11cb', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{cat}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {catSkills.map(skill => (
+                        <span key={skill.id} style={{ padding: '3px 10px', background: 'rgba(106,17,203,0.08)', border: '1px solid rgba(106,17,203,0.2)', borderRadius: '20px', fontSize: '0.78rem', color: '#6a11cb', fontWeight: 500 }}>
+                          {skill.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {profileData.privacy?.education !== false && profileData.education && profileData.education.length > 0 && (
+            <div className="sidebar-card">
+              <h3 className="sidebar-title">Education</h3>
+              <div className="education-list">
+                {profileData.education.map((edu) => (
+                  <div key={edu.id} className="education-item">
+                    <div className="education-degree">{edu.degree}</div>
+                    <div className="education-school">{edu.school}</div>
+                    <div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Year</span>
+                      <span style={{ fontSize: '13px', marginLeft: '6px' }}>{edu.endDate || edu.startDate}</span>
+                    </div>
+                    {edu.grade && (
+                      <div>
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Grade</span>
+                        <span style={{ fontSize: '13px', marginLeft: '6px' }}>{edu.grade}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {profileData.privacy?.languages !== false && profileData.languages && profileData.languages.length > 0 && (
+            <div className="sidebar-card">
+              <h3 className="sidebar-title">Languages</h3>
+              <div className="language-list">
+                {profileData.languages.map((lang) => (
+                  <div key={lang.id} className="pp-language-item">
+                    <span className="language-name">{lang.language || lang.name}</span>
+                    <span className="language-level">{lang.level}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          </div>{/* end pp-sidebar-sticky */}
         </div>
+
       </div>
+
+      {previewImage && (
+        <div
+          onClick={() => setPreviewImage(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, cursor: 'zoom-out', padding: '20px'
+          }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+            <img src={previewImage} alt="Project Preview"
+              style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
+            <button
+              onClick={() => setPreviewImage(null)}
+              style={{
+                position: 'absolute', top: '-12px', right: '-12px',
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: 'white', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1rem', fontWeight: 700, color: '#333',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+              }}>
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

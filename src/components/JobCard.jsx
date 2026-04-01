@@ -23,10 +23,17 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
 
     const renderLogo = (logo) => {
       if (!logo) return <FaBriefcase size={18} />;
-      if (logo.startsWith('http') || logo.startsWith('data:')) {
-        return <img src={logo} alt="logo" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 6 }} />;
+      if (logo.startsWith('http') || logo.startsWith('data:') || logo.startsWith('/')) {
+        return (
+          <img
+            src={logo}
+            alt="logo"
+            style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 6 }}
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        );
       }
-      return <span>{logo}</span>;
+      return <FaBriefcase size={18} />;
     };
 
     // ฟังก์ชันได้จำนวนวันที่มีการโพสต์

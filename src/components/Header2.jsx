@@ -76,6 +76,12 @@ export default function Header2({ role, onLogout }) {
                     Feed
                   </Nav.Link>
                   <Nav.Link
+                    href="/browse-jobs"
+                    className={isActive("/browse-jobs") ? "active" : ""}
+                  >
+                    Browse Jobs
+                  </Nav.Link>
+                  <Nav.Link
                     href="/jobs/manage"
                     className={isActive("/jobs/manage") ? "active" : ""}
                   >

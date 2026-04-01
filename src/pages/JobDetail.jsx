@@ -116,11 +116,18 @@ export default function JobDetail({ role }) {
   };
 
   const renderLogo = (logo, size = 40) => {
-    if (!logo) return <FaBriefcase size={size * 0.5} />;
-    if (logo.startsWith('http') || logo.startsWith('data:')) {
-      return <img src={logo} alt="logo" style={{ width: size, height: size, objectFit: 'cover', borderRadius: 8 }} />;
+    if (!logo) return <FaBriefcase size={size * 0.6} />;
+    if (logo.startsWith('http') || logo.startsWith('data:') || logo.startsWith('/')) {
+      return (
+        <img
+          src={logo}
+          alt="logo"
+          style={{ width: size, height: size, objectFit: 'cover', borderRadius: 6 }}
+          onError={(e) => { e.target.replaceWith(Object.assign(document.createElement('span'), { innerHTML: '🏢' })); }}
+        />
+      );
     }
-    return <span style={{ fontSize: size * 0.6 }}>{logo}</span>;
+    return <FaBriefcase size={size * 0.6} />;
   };
 
   const checkProfileBeforeApply = async () => {

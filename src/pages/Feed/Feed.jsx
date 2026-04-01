@@ -32,11 +32,12 @@ export default function Feed() {
   });
 
   const storedUser = JSON.parse(localStorage.getItem("user") || '{}');
- const currentUser = profileData?.name?.trim()
-   ? { ...profileData, role: storedUser?.role }
-   : storedUser?.name?.trim()
-     ? storedUser
-     : { name: "User", profileImage: "👤", role: null };
+ const currentUser = {
+   id: Number(localStorage.getItem("userID")),
+   username: profileData?.name || storedUser?.name || "User",
+   profileImage: profileData?.profileImage || storedUser?.profileImage || null,
+   role: storedUser?.role || null,
+ };
   // ================= LOAD LIKES =================
  const loadLikes = async () => {
    try {
@@ -285,11 +286,23 @@ const loadPosts = async () => {
     }
   };
 
-  const getProfileImage = (image) => {
-    if (!image) return `https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff`;
-    if (image.startsWith('data:') || image.startsWith('http') || image.startsWith('blob:')) return image;
-    return `http://localhost:3000${image}`;
-  };
+const getProfileImage = (image) => {
+  if (!image || image === "👤") {
+    return "https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff";
+  }
+
+  // 🔥 ถ้าเป็น URL อยู่แล้ว → ใช้เลย
+  if (image.startsWith("http")) {
+    return image;
+  }
+
+  // กันกรณีไม่มี /
+  if (!image.startsWith("/")) {
+    image = "/" + image;
+  }
+
+  return `http://localhost:3000${image}`;
+};
 
   return (
     <div className="feed-page">
@@ -311,8 +324,8 @@ const loadPosts = async () => {
                   type="text"
                   className="form-control ms-3"
                   placeholder={`What's on your mind, ${
-                    currentUser?.name || "User"
-                  }?`}
+  currentUser?.username || "User"
+}?`}
                   value={postText}
                   onChange={(e) => setPostText(e.target.value)}
                 />
@@ -350,7 +363,7 @@ const loadPosts = async () => {
                             </small>
                           </div>
 
-                          {currentUser &&
+                          {currentUser?.id &&
                             (Number(currentUser.id) === Number(post.userId) ||
                               currentUser.role === "admin") && (
                               <div style={{ position: "relative" }}>

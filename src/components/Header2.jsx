@@ -19,6 +19,7 @@ import {
 import "./Header2.css";
 
 export default function Header2({ role, onLogout }) {
+ 
   useContext(SettingsContext);
   const location = useLocation();
 
@@ -29,7 +30,8 @@ export default function Header2({ role, onLogout }) {
   const isAdmin = userRole === "admin";
   const isEmployer = userRole === "employer";
 
-  const userId = localStorage.getItem("userID");
+const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+const userId = currentUser?.id;
 
   // 🔥 ใช้ react-query ดึง profile จริง
   const { data: profileData } = useQuery({
@@ -39,20 +41,43 @@ export default function Header2({ role, onLogout }) {
         `http://localhost:3000/api/profiles?userId=${userId}`,
       );
       const data = await res.json();
-      return Array.isArray(data) ? data[0] : data;
+      if (Array.isArray(data)) {
+        return data[0] || null;
+      }
+      return data;
     },
     enabled: !!userId,
   });
 
+  // console.log("HEADER profileData:", profileData);
+
   // fallback เผื่อไม่มีข้อมูล
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const displayName = isAdmin
-    ? "Admin"
-    : profileData?.name || storedUser?.name || "User";
 
-  const profileImage = profileData?.profileImage || storedUser?.profileImage;
+ 
 
+const displayName =
+  (profileData && profileData.name) || currentUser?.name || "User";
+
+const profileImage =
+  (profileData && profileData.profileImage) ||
+  currentUser?.profileImage ||
+  null;
+
+   const getProfileImage = (image) => {
+     if (!image) {
+       return `https://ui-avatars.com/api/?name=${displayName}&background=6a11cb&color=fff`;
+     }
+
+     if (image.startsWith("http")) return image;
+
+     if (image.startsWith("/upload")) {
+       return `http://localhost:3000${image}`;
+     }
+
+     return `http://localhost:3000/upload/${image}`;
+   };
+   
   return (
     <Navbar expand="lg" sticky="top" className="navbar-custom">
       <div className="navbar-inner">
@@ -133,22 +158,23 @@ export default function Header2({ role, onLogout }) {
           <div className="ms-auto d-flex align-items-center gap-2">
             <NotificationBell />
             <Dropdown align="end">
-              <Dropdown.Toggle variant="light">
-                <span className="user-avatar">
-                  {profileImage ? (
-                    <img
-                      src={
-                        profileImage?.startsWith("http")
-                          ? profileImage
-                          : `http://localhost:3000${profileImage}`
-                      }
-                      alt={displayName}
-                      className="avatar-img"
-                    />
-                  ) : (
-                    displayName.charAt(0).toUpperCase()
-                  )}
-                </span>
+              <Dropdown.Toggle
+                variant="light"
+                className="d-flex align-items-center gap-2"
+              >
+                <img
+                  key={profileImage} // 👈 เพิ่มอันนี้
+                  src={getProfileImage(profileImage)}
+                  onError={(e) => {
+                    e.target.src =
+                      "https://ui-avatars.com/api/?name=" +
+                      displayName +
+                      "&background=6a11cb&color=fff";
+                  }}
+                  alt={displayName}
+                  className="avatar-img"
+                  style={{ width: 32, height: 32, borderRadius: "50%" }}
+                />
                 {displayName}
               </Dropdown.Toggle>
 

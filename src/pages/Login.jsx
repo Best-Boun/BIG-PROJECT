@@ -24,8 +24,8 @@ function Login({ setToken, setRole }) {
   const typingTimerRef = useRef(null);
 
   // 🔥 dropdown
-  const [showUsers, setShowUsers] = useState(false);
-  const [savedUsers, setSavedUsers] = useState([]);
+const [_showUsers, setShowUsers] = useState(false);
+const [_savedUsers, setSavedUsers] = useState([]);
 
   useEffect(() => {
     document.body.classList.add("login-page");
@@ -33,87 +33,89 @@ function Login({ setToken, setRole }) {
     return () => document.body.classList.remove("login-page");
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsBannedError(false);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  console.log("AXIOS:", axios); // 🔥 ใส่ตรงนี้
+  setError("");
+  setIsBannedError(false);
 
-    const email = userRef.current.value.trim();
-    const password = passRef.current.value.trim();
+  const email = userRef.current.value.trim();
+  const password = passRef.current.value.trim();
 
-    if (!email || !password) {
-      setError("⚠️ กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
-      animateError();
-      return;
+  if (!email || !password) {
+    setError("⚠️ กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
+    animateError();
+    return;
+  }
+
+  try {
+    const res = await axios.post("http://localhost:3000/api/auth/login", {
+      email: email,
+      password: password,
+    });
+
+    const user = res.data.user;
+    const token = res.data.token;
+
+    // 🔥 save login history
+    const existingUsers = JSON.parse(localStorage.getItem("loginUsers")) || [];
+
+    const alreadyExists = existingUsers.find((u) => u.id === user.id);
+
+    let updatedUsers;
+
+    if (alreadyExists) {
+      updatedUsers = [user, ...existingUsers.filter((u) => u.id !== user.id)];
+    } else {
+      updatedUsers = [user, ...existingUsers];
     }
 
-    try {
-      const res = await axios.post("http://localhost:3000/api/auth/login", {
-        email: email,
-        password: password,
-      });
+    localStorage.setItem(
+      "loginUsers",
+      JSON.stringify(updatedUsers.slice(0, 5)),
+    );
 
-      const user = res.data.user;
-      const token = res.data.token;
+    animateSuccess();
 
-      // 🔥 save login history
-      const existingUsers =
-        JSON.parse(localStorage.getItem("loginUsers")) || [];
-
-      const alreadyExists = existingUsers.find((u) => u.id === user.id);
-
-      let updatedUsers;
-
-      if (alreadyExists) {
-        updatedUsers = [user, ...existingUsers.filter((u) => u.id !== user.id)];
-      } else {
-        updatedUsers = [user, ...existingUsers];
-      }
+    setTimeout(() => {
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", user.role || "user");
 
       localStorage.setItem(
-        "loginUsers",
-        JSON.stringify(updatedUsers.slice(0, 5)),
+        "currentUser",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage || null,
+        }),
       );
 
-      animateSuccess();
+      localStorage.setItem("userID", user.id.toString());
+      localStorage.setItem("userId", user.id.toString());
+      localStorage.setItem("userName", user.name);
 
-      setTimeout(() => {
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", user.role || "user");
+      if (setToken) setToken(token);
+      if (setRole) setRole(user.role || "user");
 
-        localStorage.setItem("currentUser", JSON.stringify(user));
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            id: user.id,
-            name: user.name,
-            role: user.role || "user",
-            profileImage: user.profileImage || "/default-avatar.png",
-          }),
-        );
-
-        localStorage.setItem("userID", user.id.toString());
-        localStorage.setItem("userName", user.name);
-
-        if (setToken) setToken(token);
-        if (setRole) setRole(user.role || "user");
-
-        // redirect by role
-        window.location.href = "/feed";
-      }, 900);
-    } catch (err) {
-      const data = err.response?.data;
-      if (data?.banned) {
-        setIsBannedError(true);
-        setError("🚫 บัญชีของคุณถูกแบนโดยผู้ดูแลระบบ ไม่สามารถเข้าใช้งานได้ กรุณาติดต่อผู้ดูแลระบบ");
-      } else {
-        setIsBannedError(false);
-        setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-      }
-      animateError();
+      // redirect by role
+      window.location.href = "/feed";
+    }, 900);
+  } catch (err) {
+    const data = err.response?.data;
+    if (data?.banned) {
+      setIsBannedError(true);
+      setError(
+        "🚫 บัญชีของคุณถูกแบนโดยผู้ดูแลระบบ ไม่สามารถเข้าใช้งานได้ กรุณาติดต่อผู้ดูแลระบบ",
+      );
+    } else {
+      setIsBannedError(false);
+      setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
     }
-  };
+    animateError();
+  }
+};
 
   const animateError = () => {
     setShake(true);
@@ -173,18 +175,18 @@ function Login({ setToken, setRole }) {
 
         <p className="subtitle">Sign in to your account</p>
 
-        <Form onSubmit={handleLogin} className="login-form">
-          <Form.Group className="mb-3" style={{ position: "relative" }}>
+        <form className="login-form" onSubmit={handleLogin}>
+          {/* EMAIL */}
+          <div className="mb-3" style={{ position: "relative" }}>
             <div className="input-with-icon">
               <i className="bi bi-envelope" />
-              <Form.Control
+              <input
                 type="text"
                 placeholder="Email หรือ Username"
                 ref={userRef}
-                className="animated-input"
+                className="form-control animated-input"
                 onChange={onUserChange}
                 onFocus={() => {
-                  // 🔥 FIX ตรงนี้
                   const users =
                     JSON.parse(localStorage.getItem("loginUsers")) || [];
                   console.log("🔥 โหลดใหม่:", users);
@@ -197,35 +199,18 @@ function Login({ setToken, setRole }) {
                 }}
               />
             </div>
+          </div>
 
-            {/* 🔥 DROPDOWN */}
-            {showUsers && savedUsers.length > 0 && (
-              <div className="user-dropdown">
-                {savedUsers.map((u) => (
-                  <div
-                    key={u.id}
-                    className="user-item"
-                    onMouseDown={() => {
-                      userRef.current.value = u.email;
-                      setShowUsers(false);
-                    }}
-                  >
-                    👤 {u.name} ({u.email})
-                  </div>
-                ))}
-              </div>
-            )}
-          </Form.Group>
-
-          <Form.Group className="mb-3" style={{ position: "relative" }}>
+          {/* PASSWORD */}
+          <div className="mb-3" style={{ position: "relative" }}>
             <div className={`password-wrapper ${blinkEye ? "blink" : ""}`}>
               <i className="bi bi-lock password-icon-left" />
 
-              <Form.Control
+              <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 ref={passRef}
-                className="password-input animated-input"
+                className="form-control password-input animated-input"
                 onFocus={onPasswordFocus}
                 onBlur={onPasswordBlur}
               />
@@ -237,31 +222,32 @@ function Login({ setToken, setRole }) {
                 onClick={togglePassword}
               />
             </div>
-          </Form.Group>
+          </div>
 
+          {/* ERROR */}
           {error && (
-            <div className={`login-error-box ${isBannedError ? "banned-error" : ""}`}>
+            <div
+              className={`login-error-box ${isBannedError ? "banned-error" : ""}`}
+            >
               <p className="login-error">{error}</p>
-              {isBannedError && (
-                <p className="login-ban-sub">หากคุณคิดว่านี้เป็นความผิดพลาด กรุณาติดต่อทีมงาน</p>
-              )}
             </div>
           )}
 
-          <Button className="login-btn glow" type="submit">
+          {/* LOGIN BUTTON */}
+          <button className="login-btn glow" type="submit">
             เข้าสู่ระบบ
-          </Button>
+          </button>
+        </form>
 
-          <div className="divider">หรือ</div>
+        <div className="divider">หรือ</div>
 
-          <Button
-            className="login-btn secondary"
-            type="button"
-            onClick={() => (window.location.href = "/register")}
-          >
-            สมัครสมาชิกใหม่
-          </Button>
-        </Form>
+        <Button
+          className="login-btn secondary"
+          type="button"
+          onClick={() => (window.location.href = "/register")}
+        >
+          สมัครสมาชิกใหม่
+        </Button>
       </div>
     </div>
   );

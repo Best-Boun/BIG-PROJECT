@@ -4,6 +4,9 @@ import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaGlobe, FaLinkedin, FaGithub, FaE
 import { MdPublic } from 'react-icons/md';
 import './Profilepublic.css';
 
+
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const calculateAge = (dateOfBirth) => {
   if (!dateOfBirth) return '';
   const today = new Date();
@@ -15,13 +18,13 @@ const calculateAge = (dateOfBirth) => {
 };
 
 const ProfilePublic = ({ onNavigate }) => {
-  const userId = localStorage.getItem('userID');
+ const userId = localStorage.getItem("userId");
   const [previewImage, setPreviewImage] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['profile', userId],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+      const res = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`);
       const json = await res.json();
       const p = Array.isArray(json) ? json[0] : json;
       if (!p) return {};
@@ -44,6 +47,8 @@ const ProfilePublic = ({ onNavigate }) => {
   });
 
   const profileData = data || {};
+  console.log("USER ID (frontend):", userId);
+  console.log("PROFILE DATA:", profileData);
 
   const calculateDuration = (startDate, endDate) => {
     if (!startDate) return '';
@@ -96,35 +101,9 @@ const ProfilePublic = ({ onNavigate }) => {
     return totalYears;
   };
 
-  const hasRealProfileData = () => {
-    if (!profileData) return false;
+ 
 
-    const name = profileData.name?.trim();
-    const title = profileData.title?.trim();
-    const bio = profileData.bio?.trim();
-    const email = profileData.email?.trim();
-    const phone = profileData.phone?.trim();
-    const location = profileData.location?.trim();
-    const website = profileData.website?.trim();
-    const linkedin = profileData.linkedin?.trim();
-    const github = profileData.github?.trim();
-    const summary = profileData.summary?.trim();
-
-    if (name || title || bio || email || phone || location || website || linkedin || github || summary) {
-      return true;
-    }
-
-    if (profileData.skills?.length > 0) return true;
-    if (profileData.experience?.length > 0) return true;
-    if (profileData.education?.length > 0) return true;
-    if (profileData.certifications?.length > 0) return true;
-    if (profileData.projects?.length > 0) return true;
-    if (profileData.languages?.length > 0) return true;
-
-    return false;
-  };
-
-  const hasProfileData = hasRealProfileData();
+  const hasProfileData = !!profileData?.userId;
 
   const handleShareProfile = () => {
     const profileUrl = window.location.href;
@@ -187,9 +166,7 @@ const ProfilePublic = ({ onNavigate }) => {
                     })`
                   : "none",
               }}
-            >
-              
-            </div>
+            ></div>
           </div>
           <div className="header-info">
             <h1>{profileData.name || "Your Name"}</h1>

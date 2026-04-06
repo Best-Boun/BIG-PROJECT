@@ -461,3 +461,12 @@ body.layout-compact .feed-container {
   max-width: 900px !important;
 }
 
+.comment-modal {
+  width: 500px;
+  max-height: 80vh;
+
+  overflow-y: auto;   /* 🔥 แก้ตรงนี้ */
+  overflow-x: hidden; /* กันแกนขวา */
+
+  overscroll-behavior: contain;
+}

@@ -365,7 +365,7 @@ export default function JobBrowse({ mode = 'apply' }) {
                 )}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {!isViewOnly && seekerSkills.length > 0 && (
+                {!isViewOnly && (
                   <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', borderRadius: '20px', padding: '3px' }}>
                     <button
                       onClick={() => setSortMode('latest')}
@@ -380,19 +380,21 @@ export default function JobBrowse({ mode = 'apply' }) {
                     >
                       Latest
                     </button>
-                    <button
-                      onClick={() => setSortMode('recommended')}
-                      style={{
-                        padding: '5px 14px', borderRadius: '16px', border: 'none',
-                        fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
-                        background: sortMode === 'recommended' ? 'white' : 'transparent',
-                        color: sortMode === 'recommended' ? '#111827' : '#6b7280',
-                        boxShadow: sortMode === 'recommended' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      ⚡ Recommended
-                    </button>
+                    {seekerSkills.length > 0 && (
+                      <button
+                        onClick={() => setSortMode('recommended')}
+                        style={{
+                          padding: '5px 14px', borderRadius: '16px', border: 'none',
+                          fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                          background: sortMode === 'recommended' ? 'white' : 'transparent',
+                          color: sortMode === 'recommended' ? '#111827' : '#6b7280',
+                          boxShadow: sortMode === 'recommended' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        ⚡ Recommended
+                      </button>
+                    )}
                   </div>
                 )}
                 <button

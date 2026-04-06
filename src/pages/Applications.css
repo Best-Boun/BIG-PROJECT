@@ -416,3 +416,15 @@
     animation: none !important;
   }
 }
+
+.apps-delete-btn::before,
+.apps-delete-btn::after {
+  display: none !important;
+}
+
+.apps-delete-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  pointer-events: none;
+}

@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import NotificationBell from './NotificationBell';
 import { useLocation, Link } from "react-router-dom";
 import { Navbar, Nav, Dropdown } from "react-bootstrap";
 import { SettingsContext } from "./SettingContext";
@@ -87,6 +88,12 @@ export default function Header2({ role, onLogout }) {
                   >
                     Manage Jobs
                   </Nav.Link>
+                  <Nav.Link href="/seekers" className={isActive("/seekers") ? "active" : ""}>
+                    Find Seekers
+                  </Nav.Link>
+                  <Nav.Link href="/chat" className={isActive("/chat") ? "active" : ""}>
+                    Messages
+                  </Nav.Link>
                 </>
               ) : (
                 <>
@@ -114,13 +121,17 @@ export default function Header2({ role, onLogout }) {
                   >
                     Resume
                   </Nav.Link>
+                  <Nav.Link href="/chat" className={isActive("/chat") ? "active" : ""}>
+                    Messages
+                  </Nav.Link>
                 </>
               )}
             </Nav>
           </div>
 
           {/* RIGHT USER */}
-          <div className="ms-auto">
+          <div className="ms-auto d-flex align-items-center gap-2">
+            <NotificationBell />
             <Dropdown align="end">
               <Dropdown.Toggle variant="light">
                 <span className="user-avatar">

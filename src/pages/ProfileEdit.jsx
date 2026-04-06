@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { calculateProfileCompleteness } from '../ProfileContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { FaImage, FaCamera } from 'react-icons/fa';
@@ -351,6 +352,48 @@ setProfile((prev) => ({
                 <div className="pe-header-inner">
                     <h1 className="pe-header-title">Edit Profile</h1>
                     <p className="pe-header-subtitle">Update your professional information</p>
+                    {(() => {
+                      const score = calculateProfileCompleteness(profile);
+                      const missing = [
+                        !profile.name?.trim() && 'Name',
+                        !profile.title?.trim() && 'Title',
+                        !profile.summary?.trim() && 'Summary',
+                        !profile.phone?.trim() && 'Phone',
+                        !profile.location?.trim() && 'Location',
+                        !(profile.experience?.length > 0) && 'Experience',
+                        !(profile.education?.length > 0) && 'Education',
+                        !(profile.skills?.length > 0) && 'Skills',
+                      ].filter(Boolean);
+
+                      return (
+                        <div style={{ marginTop: '12px', maxWidth: '400px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                              Profile completeness
+                            </span>
+                            <span style={{
+                              fontSize: '13px', fontWeight: 600,
+                              color: score >= 80 ? 'var(--color-success)' : score >= 50 ? '#f59e0b' : 'var(--color-error)'
+                            }}>
+                              {score}%
+                            </span>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--color-border)', borderRadius: '99px', overflow: 'hidden' }}>
+                            <div style={{
+                              height: '100%', borderRadius: '99px',
+                              width: `${score}%`,
+                              background: score >= 80 ? 'var(--color-success)' : score >= 50 ? '#f59e0b' : 'var(--color-error)',
+                              transition: 'width 0.4s ease',
+                            }} />
+                          </div>
+                          {missing.length > 0 && (
+                            <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '6px' }}>
+                              Missing: {missing.slice(0, 3).join(', ')}{missing.length > 3 ? ` +${missing.length - 3} more` : ''}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                 </div>
             </div>
 

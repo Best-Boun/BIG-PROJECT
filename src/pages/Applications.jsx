@@ -43,12 +43,23 @@ export default function Applications() {
   };
 
   // 🗑️ Delete application from API + local state
-  const handleDeleteApplication = (appId, jobId) => {
-    fetch(`http://localhost:3000/api/jobs/applications/${appId}`, { method: 'DELETE' })
-      .catch(err => console.error('Delete failed:', err));
-    const updated = applications.filter(app => app.jobId !== jobId);
-    setApplications(updated);
-    filterApplications(updated, selectedFilter);
+  const handleDeleteApplication = async (appId, jobId) => {
+    const confirmed = window.confirm('ยืนยันการยกเลิก application นี้?');
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/jobs/applications/${appId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Delete failed');
+
+      const updated = applications.filter(app => app.id !== appId);
+      setApplications(updated);
+      filterApplications(updated, selectedFilter);
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('ไม่สามารถยกเลิก application ได้');
+    }
   };
 
   // 📊 Stats (unchanged)

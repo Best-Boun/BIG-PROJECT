@@ -692,14 +692,51 @@ export default function ResumeEditor() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
-  /* ── โหลด draft เมื่อเปิดหน้า ── */
+  /* ── โหลดข้อมูลเมื่อเปิดหน้า: พยายามดึง Profile ก่อน ถ้าไม่มีค่อยโหลด Draft ── */
   useEffect(() => {
-    const draft = loadDraft();
-    if (draft?.data) {
-      setResume({ ...EMPTY_RESUME, ...draft.data });
-      if (draft.data._resumeId) setResumeId(draft.data._resumeId);
-      setDraftBanner(true);
-    }
+    (async () => {
+      // try to fetch profile data first (if user is logged in)
+      const userId = localStorage.getItem("userID");
+      if (userId) {
+        try {
+          const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const p = data[0];
+              const mapped = {
+                fullName:     p.name || "",
+                jobTitle:     p.title || "",
+                summary:      p.summary || "",
+                profileImage: p.profileImage || "",
+                skills:       Array.isArray(p.skills) ? p.skills.map((s) => (typeof s === "string" ? s : s.skill)) : [],
+                experience:   Array.isArray(p.experience) ? p.experience.map((e) => ({ _id: uid(), position: e.role || "", company: e.company || "", startDate: e.startDate || "", endDate: e.endDate || "", description: e.description || "" })) : [],
+                education:    Array.isArray(p.education)  ? p.education.map((e) => ({ _id: uid(), school: e.institution || "", degree: e.degree || "", startYear: e.startDate ? String(e.startDate).slice(0,4) : "", endYear: e.endDate ? String(e.endDate).slice(0,4) : "" })) : [],
+                languages:    Array.isArray(p.languages)  ? p.languages.map((l) => ({ _id: uid(), name: l.language || "", level: l.level || "" })) : [],
+              };
+
+              // don't let stale draft override a freshly loaded profile
+              try { clearDraft(); } catch (e) { /* ignore */ }
+
+              setResume(mapped);
+              setResumeId(null);
+              return; // profile found — done
+            }
+          }
+        } catch (err) {
+          // ignore profile fetch errors — fallback to draft
+          // console.debug("profile fetch failed:", err);
+        }
+      }
+
+      // fallback: apply saved draft only if present
+      const draft = loadDraft();
+      if (draft?.data) {
+        setResume({ ...EMPTY_RESUME, ...draft.data });
+        if (draft.data._resumeId) setResumeId(draft.data._resumeId);
+        setDraftBanner(true);
+      }
+    })();
   }, []);
 
   /* ── Auto-save draft ทุก 1.5 วินาที ── */
@@ -736,6 +773,9 @@ export default function ResumeEditor() {
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "generate ไม่สำเร็จ");
+
+      // clear any saved draft so it won't override freshly generated resume
+      try { clearDraft(); } catch (e) { /* ignore */ }
 
       setResume({
         fullName:     json.fullName     || "",

@@ -23,6 +23,12 @@ const STATUS_BADGE = {
   rejected:  { bg: '#f3f4f6', color: '#6b7280' },
 };
 
+const getImageUrl = (img) => {
+  if (!img) return null;
+  if (img.startsWith('http')) return img;
+  return `${API}${img.startsWith('/') ? img : '/' + img}`;
+};
+
 export default function ApplicantProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -125,15 +131,17 @@ export default function ApplicantProfile() {
             <div className="ap-card ap-identity-card">
               <div className="ap-identity-row">
                 <div className="ap-avatar-lg">
-                  {profile.profileImage || profile.photo ? (
+                  {getImageUrl(profile.profileImage || profile.photo) ? (
                     <img
-                      src={
-                        profile.profileImage
-                          ? `http://localhost:3000${profile.profileImage}`
-                          : profile.photo
-                      }
+                      src={(() => {
+                        const img = profile.profileImage || profile.photo;
+                        if (!img) return null;
+                        if (img.startsWith("http") || img.startsWith("data:")) return img;
+                        return `http://localhost:3000${img.startsWith("/") ? "" : "/"}${img}`;
+                      })()}
                       alt={displayName}
                       className="ap-avatar-img"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : (
                     <span className="ap-avatar-initials">

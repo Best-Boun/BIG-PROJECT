@@ -66,9 +66,9 @@ export default function JobDetail({ role }) {
         }
 
         // fetch similar jobs separately — errors here don't affect main job display
-        fetch(JOBS_API)
+        fetch(`${JOBS_API}/${id}/similar`)
           .then(r => r.json())
-          .then(all => setSimilarJobs(all.filter(j => String(j.id) !== String(id)).slice(0, 2)))
+          .then(data => setSimilarJobs(Array.isArray(data) ? data : []))
           .catch(() => {});
       })
       .catch(() => setJob(null))
@@ -164,13 +164,28 @@ export default function JobDetail({ role }) {
     return `${days} days ago`;
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const url = window.location.href;
+    const text = `${job.title} at ${job.company}`;
+
+    // navigator.share — mobile / supported browsers
     if (navigator.share) {
-      navigator.share({
-        title: job.title,
-        text: `Check out this job: ${job.title} at ${job.company}`,
-        url: window.location.href,
-      });
+      try {
+        await navigator.share({ title: job.title, text, url });
+        return;
+      } catch {
+        // user cancelled — ไม่ต้องทำอะไร
+        return;
+      }
+    }
+
+    // fallback — copy to clipboard
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    } catch {
+      // clipboard ไม่ได้รับอนุญาต — fallback สุดท้าย
+      prompt('Copy this link:', url);
     }
   };
 

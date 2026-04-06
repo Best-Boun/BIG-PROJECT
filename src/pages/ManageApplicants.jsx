@@ -187,7 +187,13 @@ export default function ManageApplicants() {
                   <div className="ma-avatar-wrap">
                     <div className="ma-avatar">
                       {app.profileImage ? (
-                        <img src={app.profileImage} alt={app.name} className="ma-avatar-img" />
+                        <img
+                          src={app.profileImage.startsWith("http")
+                            ? app.profileImage
+                            : `http://localhost:3000${app.profileImage.startsWith("/") ? "" : "/"}${app.profileImage}`}
+                          alt={app.name}
+                          className="ma-avatar-img"
+                        />
                       ) : (
                         <span className="ma-avatar-initials">{getInitials(app.name)}</span>
                       )}

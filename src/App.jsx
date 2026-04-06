@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ErrorBoundary from './components/ErrorBoundary';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
@@ -25,6 +26,8 @@ import Unauthorized from "./pages/Unauthorized";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CompanyProfile from "./pages/CompanyProfile/CompanyProfile";
 import CompanyPublic from "./pages/CompanyPublic/CompanyPublic";
+import SeekerSearch from './pages/SeekerSearch';
+import Chat from './pages/Chat';
 
 
 function ProfilepublicWrapper() {

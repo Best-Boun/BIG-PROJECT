@@ -3,9 +3,10 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./AdsManagement.css";
 
-const API_URL = "http://localhost:3000/api/ads";
-const API_UPLOAD = "http://localhost:3000/api/ads/upload";
-const IMAGE_BASE = "http://localhost:3000/upload/";
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API_URL = `${BASE_URL}/api/ads`;
+
+const IMAGE_BASE = `${BASE_URL}/upload/`;
 
 // ---------------- TOAST ----------------
 const showToast = (msg, type = "success") => {
@@ -40,8 +41,13 @@ function AdsManagement() {
   // ================= LOAD ADS =================
   const loadAds = async () => {
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(`${API_URL}?t=${Date.now()}`, {
         cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await res.json();
@@ -59,6 +65,7 @@ function AdsManagement() {
       }));
 
       setAds(normalized);
+      console.log("ADS:", normalized);
     } catch (err) {
       console.error(err);
       showToast("โหลดโฆษณาไม่สำเร็จ", "error");
@@ -149,66 +156,68 @@ function AdsManagement() {
     setEditData({ ...ad });
   };
 
-  const saveEdit = async () => {
-    const isNew = editingId === "new";
-    try {
-      const token = localStorage.getItem("token");
+ const saveEdit = async () => {
+   const isNew = editingId === "new";
 
-      const res = await fetch(isNew ? API_URL : `${API_URL}/${editingId}`, {
-        method: isNew ? "POST" : "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...editData,
-          date: editData.date.split("T")[0],
-        }),
-      });
+   try {
+     const token = localStorage.getItem("token");
 
-      if (!res.ok) throw new Error();
+     // ✅ สร้าง formData ก่อน
+     const formData = new FormData();
 
-      showToast(isNew ? "สร้างสำเร็จ!" : "บันทึกสำเร็จ");
-      await loadAds();
-    } catch {
-      showToast("บันทึกไม่สำเร็จ", "error");
-    }
+     formData.append("name", editData.name);
+     formData.append("description", editData.description);
+     formData.append("active", editData.active ? 1 : 0);
+     formData.append(
+       "date",
+       editData.date || new Date().toISOString().split("T")[0],
+     );
 
-    setEditingId(null);
-    setEditData(null);
-  };
+    
+
+     // 🔥 มีไฟล์ใหม่
+     if (editData.file) {
+       formData.append("image", editData.file);
+     }
+
+     // 🔥 กดลบรูป
+     else if (editData.removeImage) {
+       formData.append("image", ""); // ⭐ อันนี้สำคัญสุด
+     }
+
+     // 🔥 ไม่ได้แก้รูป
+     else if (editData.image) {
+       formData.append("image", editData.image);
+     }
+
+     // ✅ ยิง API
+     const res = await fetch(isNew ? API_URL : `${API_URL}/${editingId}`, {
+       method: isNew ? "POST" : "PUT",
+       headers: {
+         Authorization: `Bearer ${token}`,
+       },
+       body: formData,
+     });
+
+     console.log("STATUS:", res.status);
+
+     if (!res.ok) throw new Error("API ERROR");
+
+     showToast(isNew ? "สร้างสำเร็จ!" : "บันทึกสำเร็จ");
+
+     await loadAds();
+
+     setEditingId(null);
+     setEditData(null);
+   } catch (err) {
+     console.error("SAVE ERROR:", err);
+     showToast("บันทึกไม่สำเร็จ", "error");
+   }
+ };
+  
 
   // ================= UPLOAD IMAGE =================
-  const uploadImage = async (file) => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(API_UPLOAD, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      setEditData((prev) => ({
-        ...prev,
-        image: data.filename,
-      }));
-
-      showToast("อัปโหลดรูปสำเร็จ");
-    } catch (err) {
-      console.error(err);
-      showToast("อัปโหลดรูปไม่สำเร็จ", "error");
-    }
-  };
+  
 
   // ================= SEARCH =================
   const filtered = ads.filter((a) => {
@@ -323,12 +332,7 @@ function AdsManagement() {
 
                     <button
                       className="sp-btn sp-btn-delete"
-                      onClick={() => {
-                        setPreviewAd(null);
-                        setEditingId(null);
-                        setEditData(null);
-                        setConfirmDelete(ad);
-                      }}
+                      onClick={() => setConfirmDelete(ad)}
                     >
                       Delete
                     </button>
@@ -452,18 +456,23 @@ function AdsManagement() {
                 type="file"
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  if (file) uploadImage(file);
+
+                  if (file) {
+                    setEditData({
+                      ...editData,
+                      file: file, // 🔥 เก็บ file ไว้
+                    });
+                  }
                 }}
               />
 
               {editData.image && (
-                <>
+                <div className="image-preview">
                   <img
                     src={`${IMAGE_BASE}${editData.image}`}
                     alt=""
                     style={{
                       width: 150,
-                      marginTop: 10,
                       borderRadius: 8,
                     }}
                   />
@@ -474,13 +483,14 @@ function AdsManagement() {
                       setEditData({
                         ...editData,
                         image: "",
+                        file: null,
+                        removeImage: true,
                       })
                     }
-                    style={{ marginTop: 8 }}
                   >
                     Delete Image
                   </button>
-                </>
+                </div>
               )}
 
               <div style={{ display: "flex", gap: 10, marginTop: 10 }}>

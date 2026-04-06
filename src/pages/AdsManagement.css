@@ -220,18 +220,19 @@
   background:#ef4444 !important;
   color:white !important;
 
-  margin-left:12px;   /* ห่างจากรูป */
-  padding:6px 12px;   /* ขนาดเล็กลง */
-  font-size:13px;
+  margin-top:10px;   /* ✅ ลงล่างแทน */
+  margin-left:0;     /* ✅ เอาออก */
 
-  border-radius:8px;  /* มุมโค้ง */
+  padding:6px 12px;
+  font-size:13px;
+  border-radius:8px;
 
   box-shadow:0 2px 6px rgba(0,0,0,0.15);
 }
-
 .sp-btn-remove-img:hover{
   background:#dc2626 !important;
 }
+
 
 /* =========================================================
    EDIT PANEL

@@ -12,7 +12,7 @@ const showPopup = (text, type = "info") => {
   el.textContent = text;
   document.body.appendChild(el);
   setTimeout(() => el.classList.add("fade"), 10);
-  setTimeout(() => el.remove(), 2500);
+  setTimeout(() => el.remove(), 4000);
 };
 
 function Avatar({ name, image }) {
@@ -94,37 +94,69 @@ function AdminManagement() {
   // ---- BAN / UNBAN ----
   const handleToggleBan = async (user) => {
     const willBan = !user.isBanned;
+
     try {
       await patchUser(user.id, { isBanned: willBan });
+
       setAllUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, isBanned: willBan ? 1 : 0 } : u))
+        prev.map((u) =>
+          u.id === user.id ? { ...u, isBanned: willBan ? 1 : 0 } : u,
+        ),
       );
-      showPopup(willBan ? `🚫 แบน ${user.username} แล้ว` : `✅ ปลดแบน ${user.username} แล้ว`, "success");
-    } catch {
-      showPopup("❌ ดำเนินการไม่สำเร็จ", "error");
+
+      // 🔥 ปิด modal ก่อน
+      closeModal();
+
+      // 🔥 แล้วค่อยโชว์ popup
+      setTimeout(() => {
+        showPopup(
+          willBan
+            ? `🚫 แบน ${user.username} สำเร็จ`
+            : `✅ ปลดแบน ${user.username} สำเร็จ`,
+          "success",
+        );
+      }, 100);
+    } catch (err) {
+      console.error(err);
+      closeModal();
+
+      setTimeout(() => {
+        showPopup("❌ ดำเนินการไม่สำเร็จ", "error");
+      }, 100);
     }
-    closeModal();
   };
 
   // ---- DELETE ----
-  const handleDelete = async (user) => {
-    if (user.id === MAIN_ADMIN_ID) {
-      showPopup("❌ Admin หลักลบไม่ได้", "error");
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/users/${user.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      if (!res.ok) throw new Error();
-      setAllUsers((prev) => prev.filter((u) => u.id !== user.id));
-      showPopup("🗑️ ลบผู้ใช้สำเร็จ", "success");
-    } catch {
-      showPopup("❌ ลบผู้ใช้ไม่สำเร็จ", "error");
-    }
-    closeModal();
-  };
+ const handleDelete = async (user) => {
+   console.log("DELETE SUCCESS:", user.id);
+
+   if (user.id === MAIN_ADMIN_ID) {
+     showPopup("❌ Admin หลักลบไม่ได้", "error");
+     return;
+   }
+
+   try {
+     const res = await fetch(`${API_BASE}/users/${user.id}`, {
+       method: "DELETE",
+       headers: { Authorization: `Bearer ${getToken()}` },
+     });
+
+     if (!res.ok) throw new Error();
+
+     setAllUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+     // 🔥 ปิด modal ก่อน
+     closeModal();
+
+     // 🔥 แล้วค่อยโชว์ popup
+     setTimeout(() => {
+       showPopup("🗑️ ลบผู้ใช้สำเร็จ", "success");
+     }, 100);
+   } catch {
+     closeModal(); // ❗ ย้ายมาอยู่ใน catch
+     showPopup("❌ ลบผู้ใช้ไม่สำเร็จ", "error");
+   }
+ };
 
   // ---- VIEW PROFILE ----
   const openProfile = async (user) => {
@@ -133,9 +165,9 @@ function AdminManagement() {
     setProfileData(null);
     setProfileLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/profiles?userId=${user.id}`);
+      const res = await fetch(`${API_BASE}/users/${user.id}/profile`);
       const data = await res.json();
-      setProfileData(Array.isArray(data) && data.length > 0 ? data[0] : null);
+      setProfileData(data || null);
     } catch {
       setProfileData(null);
     } finally {

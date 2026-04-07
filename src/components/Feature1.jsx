@@ -3,7 +3,7 @@
  * Production-grade Resume / Profile Editor
  * Notion / Stripe aesthetic — grid layout — zero transform scale — zero warnings
  */
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import "./Feature1.css";
 
 /* ═══════════════════════════════════════════
@@ -34,41 +34,17 @@ const COVERS = [
   "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1400&q=80",
 ];
 
+// โหลดจาก backend /api/profiles - ห้าม hardcode
 const DEFAULT_PROFILE = {
-  name:       "Alex Johnson",
-  title:      "Senior Software Engineer",
-  email:      "alex@email.com",
-  phone:      "+66 98 123 4567",
-  location:   "Bangkok, Thailand",
-  linkedin:   "linkedin.com/in/alexjohnson",
-  github:     "github.com/alexj",
-  summary:    "Passionate software engineer with 6+ years of experience building scalable web applications. Specialized in React, Node.js, and cloud architecture. Love turning complex problems into simple solutions.",
-  skills:     ["JavaScript", "React", "Node.js", "TypeScript", "AWS", "MongoDB", "Docker", "Git", "Python"],
-  experience: [
-    {
-      role: "Senior Software Engineer", company: "Tech Giants Inc.",
-      location: "Bangkok, Thailand", period: "2021 – Present",
-      bullets: [
-        "Led development of microservices architecture serving 1M+ users",
-        "Improved system performance by 40% through optimization",
-        "Mentored team of 5 junior developers",
-      ],
-    },
-    {
-      role: "Frontend Developer", company: "StartupXYZ",
-      location: "Remote", period: "2019 – 2021",
-      bullets: [
-        "Built responsive web app using React & TypeScript",
-        "Collaborated with design team to implement UI/UX",
-      ],
-    },
-  ],
-  education: [
-    {
-      degree: "B.S. Computer Science", school: "Chulalongkorn University",
-      detail: "GPA: 3.75 · Bangkok, Thailand", period: "2015 – 2019",
-    },
-  ],
+  name:       "",
+  title:      "",
+  email:      "",
+  phone:      "",
+  location:   "",
+  linkedin:   "",
+  github:     "",
+  summary:    "",
+  skills:     [],
 };
 
 const DEFAULT_STYLE = {
@@ -183,96 +159,6 @@ function Chip({ label, onRemove }) {
   );
 }
 
-/** Entry row in sidebar list (experience / education) */
-function EntryRow({ title, sub, period, onRemove }) {
-  return (
-    <div className="pe-entry-row">
-      <div className="pe-entry-row-body">
-        <span className="pe-entry-title">{title}</span>
-        {sub    && <span className="pe-entry-sub">{sub}</span>}
-        {period && <span className="pe-entry-period">{period}</span>}
-      </div>
-      <button
-        type="button"
-        className="pe-entry-remove"
-        aria-label="Remove"
-        onClick={onRemove}
-      >×</button>
-    </div>
-  );
-}
-
-/** Bullet list editor */
-function BulletEditor({ bullets, onChange }) {
-  const [draft, setDraft] = useState("");
-  const commit = useCallback(() => {
-    const t = draft.trim();
-    if (!t) return;
-    onChange([...bullets, t]);
-    setDraft("");
-  }, [draft, bullets, onChange]);
-
-  return (
-    <div className="pe-bullets">
-      <div className="pe-bullets-add">
-        <input
-          type="text"
-          className="pe-input"
-          placeholder="Add bullet point (Enter)"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); commit(); } }}
-        />
-        <button type="button" className="pe-btn pe-btn--sm" onClick={commit}>Add</button>
-      </div>
-      {bullets.map((b, i) => (
-        <div key={`bullet-${i}`} className="pe-bullet-row">
-          <span className="pe-bullet-dot">•</span>
-          <span className="pe-bullet-text">{b}</span>
-          <button
-            type="button"
-            className="pe-entry-remove"
-            aria-label="Remove bullet"
-            onClick={() => onChange(bullets.filter((_, j) => j !== i))}
-          >×</button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ───────────── RESUME CARD SUB-COMPONENTS ───────────── */
-
-/** Resume section divider */
-function ResumeHeading({ children }) {
-  return <div className="pr-heading">{children}</div>;
-}
-
-/** One work experience block */
-function WorkEntry({ item }) {
-  return (
-    <div className="pr-work-entry">
-      <div className="pr-work-left">
-        <span className="pr-work-period">{item.period}</span>
-      </div>
-      <div className="pr-work-right">
-        <div className="pr-work-role-line">
-          <span className="pr-work-dot" />
-          <span className="pr-work-role">{item.role}</span>
-        </div>
-        <p className="pr-work-company">
-          {item.company}{item.location ? ` · ${item.location}` : ""}
-        </p>
-        {item.bullets?.length > 0 && (
-          <ul className="pr-work-bullets">
-            {item.bullets.map((b, i) => <li key={`wb-${i}`}>{b}</li>)}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /** Toast */
 function Toast({ msg, visible }) {
   return (
@@ -296,11 +182,10 @@ export default function ProfileEditor() {
   const [tab,     setTab]     = useState("design");       // "design" | "content"
   const [toast,   setToast]   = useState({ msg: "", on: false });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   /* draft states for add-forms */
   const [skillInput, setSkillInput] = useState("");
-  const [expDraft,   setExpDraft]   = useState({ role: "", company: "", location: "", period: "", bullets: [] });
-  const [eduDraft,   setEduDraft]   = useState({ degree: "", school: "", detail: "", period: "" });
 
   /* refs */
   const avatarRef = useRef(null);
@@ -315,11 +200,112 @@ export default function ProfileEditor() {
     setTimeout(() => setToast(t => ({ ...t, on: false })), 2500);
   }, []);
 
+  /* ── โหลดโปรไฟล์จาก backend เมื่อเปิดหน้า ── */
+  useEffect(() => {
+    (async () => {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userID");
+
+      if (!token || !userId) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`, {
+          headers: { "Authorization": `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+
+          // แมปข้อมูลจาก backend → state
+          const mappedProfile = {
+            name: data.name || "",
+            title: data.title || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            location: data.location || "",
+            linkedin: data.linkedin || "",
+            github: data.github || "",
+            summary: data.summary || "",
+            skills: Array.isArray(data.skills) 
+              ? data.skills.map(s => typeof s === "string" ? s : s.name || s.skill || "")
+              : [],
+          };
+
+          const mappedStyle = { ...DEFAULT_STYLE, avatarSrc: data.profileImage || "" };
+
+          setProfile(mappedProfile);
+          setStyle(mappedStyle);
+        }
+      } catch (err) {
+        console.error("โหลด profile ไม่สำเร็จ:", err);
+        ping("โหลด profile ไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [ping]);
+
   /* ── save / reset ── */
-  const save = useCallback(() => {
-    saveJSON(LS_PROFILE, profile);
-    saveJSON(LS_STYLE, style);
-    ping("Saved ✓");
+  const save = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userID");
+
+    if (!token || !userId) {
+      ping("กรุณา login ก่อน");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/profiles/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          title: profile.title,
+          email: profile.email,
+          phone: profile.phone,
+          location: profile.location,
+          linkedin: profile.linkedin,
+          github: profile.github,
+          summary: profile.summary,
+          skills: profile.skills,
+          profileImage: style.avatarSrc,
+          privacy: JSON.stringify({
+            themeIdx: style.themeIdx,
+            accent: style.accent,
+            fontId: style.fontId,
+            cover: style.cover,
+            coverBlur: style.coverBlur,
+            showCover: style.showCover,
+            avatarSize: style.avatarSize,
+            fontSize: style.fontSize,
+            lineSpacing: style.lineSpacing,
+            cardRadius: style.cardRadius,
+            shadowPx: style.shadowPx,
+          }),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "บันทึกไม่สำเร็จ");
+      }
+
+      // บันทึก localStorage เพื่อ offline access
+      saveJSON(LS_PROFILE, profile);
+      saveJSON(LS_STYLE, style);
+      ping("บันทึก Profile เรียบร้อยแล้ว ✓");
+    } catch (err) {
+      console.error("บันทึก profile ไม่สำเร็จ:", err);
+      ping("บันทึกไม่สำเร็จ: " + err.message);
+    }
   }, [profile, style, ping]);
 
   const reset = useCallback(() => {
@@ -350,20 +336,6 @@ export default function ProfileEditor() {
     setP("skills", [...profile.skills, t]);
     setSkillInput("");
   }, [skillInput, profile.skills, setP]);
-
-  /* ── experience ── */
-  const addExp = useCallback(() => {
-    if (!expDraft.role && !expDraft.company) return;
-    setP("experience", [...profile.experience, { ...expDraft }]);
-    setExpDraft({ role: "", company: "", location: "", period: "", bullets: [] });
-  }, [expDraft, profile.experience, setP]);
-
-  /* ── education ── */
-  const addEdu = useCallback(() => {
-    if (!eduDraft.school && !eduDraft.degree) return;
-    setP("education", [...profile.education, { ...eduDraft }]);
-    setEduDraft({ degree: "", school: "", detail: "", period: "" });
-  }, [eduDraft, profile.education, setP]);
 
   /* ── derived ── */
   const font = FONTS.find(f => f.id === style.fontId) ?? FONTS[0];
@@ -636,63 +608,11 @@ export default function ProfileEditor() {
                   </div>
                 </section>
 
-                {/* Experience */}
+                {/* Note: Experience & Education are managed in ResumeEditor */}
                 <section className="pe-section">
-                  <SectionHead title="WORK EXPERIENCE" />
-                  <FieldRow>
-                    <Field label="Role"     value={expDraft.role}     onChange={v => setExpDraft(d => ({ ...d, role: v }))}     placeholder="Senior Engineer" />
-                    <Field label="Company"  value={expDraft.company}  onChange={v => setExpDraft(d => ({ ...d, company: v }))}  placeholder="Acme Inc." />
-                  </FieldRow>
-                  <FieldRow>
-                    <Field label="Period"   value={expDraft.period}   onChange={v => setExpDraft(d => ({ ...d, period: v }))}   placeholder="2021 – Present" />
-                    <Field label="Location" value={expDraft.location} onChange={v => setExpDraft(d => ({ ...d, location: v }))} placeholder="Bangkok / Remote" />
-                  </FieldRow>
-                  <p className="pe-field-label">Bullet Points</p>
-                  <BulletEditor
-                    bullets={expDraft.bullets}
-                    onChange={bullets => setExpDraft(d => ({ ...d, bullets }))}
-                  />
-                  <button type="button" className="pe-btn pe-btn--add" onClick={addExp}>
-                    + Add Experience
-                  </button>
-                  <div className="pe-entry-list">
-                    {profile.experience.map((ex, i) => (
-                      <EntryRow
-                        key={`exp-${i}`}
-                        title={ex.role}
-                        sub={ex.company}
-                        period={ex.period}
-                        onRemove={() => setP("experience", profile.experience.filter((_, j) => j !== i))}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                {/* Education */}
-                <section className="pe-section">
-                  <SectionHead title="EDUCATION" />
-                  <FieldRow>
-                    <Field label="Degree" value={eduDraft.degree} onChange={v => setEduDraft(d => ({ ...d, degree: v }))} placeholder="B.S. Computer Science" />
-                    <Field label="School" value={eduDraft.school} onChange={v => setEduDraft(d => ({ ...d, school: v }))} placeholder="MIT" />
-                  </FieldRow>
-                  <FieldRow>
-                    <Field label="Period" value={eduDraft.period} onChange={v => setEduDraft(d => ({ ...d, period: v }))} placeholder="2015 – 2019" />
-                    <Field label="Detail" value={eduDraft.detail} onChange={v => setEduDraft(d => ({ ...d, detail: v }))} placeholder="GPA 3.9, Honors" />
-                  </FieldRow>
-                  <button type="button" className="pe-btn pe-btn--add" onClick={addEdu}>
-                    + Add Education
-                  </button>
-                  <div className="pe-entry-list">
-                    {profile.education.map((ed, i) => (
-                      <EntryRow
-                        key={`edu-${i}`}
-                        title={ed.degree || ed.school}
-                        sub={ed.degree ? ed.school : ""}
-                        period={ed.period}
-                        onRemove={() => setP("education", profile.education.filter((_, j) => j !== i))}
-                      />
-                    ))}
-                  </div>
+                  <p className="pe-field-label" style={{ color: "#999", fontSize: "12px" }}>
+                    💡 Experience & Education management moved to ResumeEditor
+                  </p>
                 </section>
               </>
             )}
@@ -773,55 +693,24 @@ export default function ProfileEditor() {
             {/* ── Body ── */}
             <div className="pe-card-body">
 
-              {/* Work experience */}
-              {profile.experience.length > 0 && (
+              {/* Skills only - no experience/education */}
+              {profile.skills.length > 0 && (
                 <section className="pr-section">
-                  <ResumeHeading>
-                    <span className="pr-heading-icon">💼</span> WORK EXPERIENCE
-                  </ResumeHeading>
-                  {profile.experience.map((ex, i) => (
-                    <WorkEntry key={`wk-${i}`} item={ex} />
-                  ))}
+                  <h3 className="pr-heading">
+                    <span className="pr-heading-icon">⚡</span> SKILLS
+                  </h3>
+                  <div className="pr-skills">
+                    {profile.skills.map((s, i) => (
+                      <span
+                        key={`sk-${i}-${s}`}
+                        className="pr-skill-tag"
+                        style={{ borderColor: style.accent, color: style.accent }}
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </section>
-              )}
-
-              {/* Education + Skills two-col */}
-              {(profile.education.length > 0 || profile.skills.length > 0) && (
-                <div className="pr-two-col">
-                  {profile.education.length > 0 && (
-                    <section className="pr-section">
-                      <ResumeHeading>
-                        <span className="pr-heading-icon">🎓</span> EDUCATION
-                      </ResumeHeading>
-                      {profile.education.map((ed, i) => (
-                        <div key={`ed-${i}`} className="pr-edu-entry">
-                          <p className="pr-edu-period">{ed.period}</p>
-                          <p className="pr-edu-degree">{ed.degree}</p>
-                          <p className="pr-edu-school">{ed.school}</p>
-                          {ed.detail && <p className="pr-edu-school">{ed.detail}</p>}
-                        </div>
-                      ))}
-                    </section>
-                  )}
-                  {profile.skills.length > 0 && (
-                    <section className="pr-section">
-                      <ResumeHeading>
-                        <span className="pr-heading-icon">⚡</span> SKILLS
-                      </ResumeHeading>
-                      <div className="pr-skills">
-                        {profile.skills.map((s, i) => (
-                          <span
-                            key={`sk-${i}-${s}`}
-                            className="pr-skill-tag"
-                            style={{ borderColor: style.accent, color: style.accent }}
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </div>
               )}
 
             </div>{/* /card-body */}

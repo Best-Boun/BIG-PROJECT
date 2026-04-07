@@ -20,7 +20,7 @@ const SALARY_RANGES = [
 
 export default function JobBrowse({ mode = "apply" }) {
   const isViewOnly = mode === "view";
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userID");
 
   // ✅ State Variables
   const [jobs, setJobs] = useState([]);

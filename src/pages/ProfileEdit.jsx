@@ -149,7 +149,7 @@ function ProfileEdit({ onNavigate }) {
       });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      return `${import.meta.env.VITE_API_URL}${data.imageUrl}`;
+      return data.imageUrl;
     } finally {
       setUploading(false);
     }

@@ -52,7 +52,7 @@ export default function CompanyProfile() {
       const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
-      return `${API}${data.imageUrl}`;
+     return data.imageUrl;
     } finally {
       setUploading(false);
     }

@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 /* eslint-disable no-unused-vars */
 import { motion, AnimatePresence } from "framer-motion";
 import "./AdsManagement.css";
+import imageCompression from "browser-image-compression";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const API_URL = `${BASE_URL}/api/ads`;
 
-const IMAGE_BASE = `${BASE_URL}/upload/`;
+// const IMAGE_BASE = `${BASE_URL}/upload/`;
 
 // ---------------- TOAST ----------------
 const showToast = (msg, type = "success") => {
@@ -176,19 +177,37 @@ function AdsManagement() {
     
 
      // 🔥 มีไฟล์ใหม่
-     if (editData.file) {
-       formData.append("image", editData.file);
-     }
+    if (editData.file) {
+      // ❗ เพิ่มบรรทัดนี้
+      if (editData.file.size > 10 * 1024 * 1024) {
+        alert("ไฟล์ใหญ่เกิน 10MB");
+        return;
+      }
+      let fileToUpload = editData.file;
 
-     // 🔥 กดลบรูป
-     else if (editData.removeImage) {
-       formData.append("image", ""); // ⭐ อันนี้สำคัญสุด
-     }
+      // 🔥 ถ้าไม่ใช่ gif ให้บีบ
+      if (editData.file.type !== "image/gif") {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+        };
 
-     // 🔥 ไม่ได้แก้รูป
-     else if (editData.image) {
-       formData.append("image", editData.image);
-     }
+        fileToUpload = await imageCompression(editData.file, options);
+      }
+
+      formData.append("image", fileToUpload);
+    }
+
+    // 🔥 กดลบรูป
+    else if (editData.removeImage) {
+      formData.append("image", ""); // ⭐ อันนี้สำคัญสุด
+    }
+
+    // 🔥 ไม่ได้แก้รูป
+    else if (editData.image) {
+      formData.append("image", editData.image);
+    }
 
      // ✅ ยิง API
      const res = await fetch(isNew ? API_URL : `${API_URL}/${editingId}`, {
@@ -274,7 +293,7 @@ function AdsManagement() {
 
                   {ad.image && (
                     <img
-                      src={`${IMAGE_BASE}${ad.image}`}
+                      src={ad.image}
                       alt=""
                       style={{
                         width: 120,
@@ -366,11 +385,7 @@ function AdsManagement() {
               onClick={(e) => e.stopPropagation()}
             >
               {previewAd.image ? (
-                <img
-                  src={`${IMAGE_BASE}${previewAd.image}`}
-                  className="sp-preview-img"
-                  alt=""
-                />
+                <img src={previewAd.image} className="sp-preview-img" alt="" />
               ) : (
                 <div className="sp-no-image big">NO IMAGE</div>
               )}
@@ -469,7 +484,7 @@ function AdsManagement() {
               {editData.image && (
                 <div className="image-preview">
                   <img
-                    src={`${IMAGE_BASE}${editData.image}`}
+                    src={editData.image}
                     alt=""
                     style={{
                       width: 150,

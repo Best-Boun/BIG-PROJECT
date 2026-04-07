@@ -692,40 +692,38 @@ export default function ResumeEditor() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
-  /* ── โหลดข้อมูลเมื่อเปิดหน้า: พยายามดึง Profile ก่อน ถ้าไม่มีค่อยโหลด Draft ── */
+  /* ── โหลดข้อมูลเมื่อเปิดหน้า: ดึง Resume จาก backend ก่อน ถ้าไม่มีค่อยโหลด Draft ── */
   useEffect(() => {
     (async () => {
-      // try to fetch profile data first (if user is logged in)
-      const userId = localStorage.getItem("userID");
-      if (userId) {
+      const token = localStorage.getItem("token");
+      if (token) {
         try {
-          const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`);
+          const res = await fetch("http://localhost:3000/api/resume/me", {
+            headers: { "Authorization": `Bearer ${token}` },
+          });
           if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              const p = data[0];
+            const response = await res.json();
+            if (response.success && response.data) {
+              const data = response.data;
               const mapped = {
-                fullName:     p.name || "",
-                jobTitle:     p.title || "",
-                summary:      p.summary || "",
-                profileImage: p.profileImage || "",
-                skills:       Array.isArray(p.skills) ? p.skills.map((s) => (typeof s === "string" ? s : s.skill)) : [],
-                experience:   Array.isArray(p.experience) ? p.experience.map((e) => ({ _id: uid(), position: e.role || "", company: e.company || "", startDate: e.startDate || "", endDate: e.endDate || "", description: e.description || "" })) : [],
-                education:    Array.isArray(p.education)  ? p.education.map((e) => ({ _id: uid(), school: e.institution || "", degree: e.degree || "", startYear: e.startDate ? String(e.startDate).slice(0,4) : "", endYear: e.endDate ? String(e.endDate).slice(0,4) : "" })) : [],
-                languages:    Array.isArray(p.languages)  ? p.languages.map((l) => ({ _id: uid(), name: l.language || "", level: l.level || "" })) : [],
+                fullName:     data.fullName || "",
+                jobTitle:     data.jobTitle || "",
+                summary:      data.summary || "",
+                profileImage: data.profileImage || "",
+                skills:       Array.isArray(data.skills) ? data.skills : [],
+                experience:   Array.isArray(data.experience) ? data.experience.map((e) => ({ _id: e._id || uid(), position: e.position || "", company: e.company || "", startDate: e.startDate || "", endDate: e.endDate || "", description: e.description || "" })) : [],
+                education:    Array.isArray(data.education)  ? data.education.map((e) => ({ _id: e._id || uid(), school: e.school || "", degree: e.degree || "", startYear: e.startYear || "", endYear: e.endYear || "" })) : [],
+                languages:    Array.isArray(data.languages)  ? data.languages.map((l) => ({ _id: l._id || uid(), name: l.name || "", level: l.level || "" })) : [],
               };
 
-              // don't let stale draft override a freshly loaded profile
-              try { clearDraft(); } catch (e) { /* ignore */ }
-
               setResume(mapped);
-              setResumeId(null);
-              return; // profile found — done
+              setResumeId(data.id);
+              try { clearDraft(); } catch (e) { /* ignore */ }
+              return; // resume loaded from backend
             }
           }
         } catch (err) {
-          // ignore profile fetch errors — fallback to draft
-          // console.debug("profile fetch failed:", err);
+          console.debug("Resume fetch failed:", err);
         }
       }
 
@@ -753,46 +751,50 @@ export default function ResumeEditor() {
   /* ── สร้างจากโปรไฟล์ → เรียก POST /api/resume/generate ── */
   const handleGenerate = async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
+    const userId = localStorage.getItem("userID");
+    if (!token || !userId) {
       showToast("กรุณา login ก่อน", "error");
       return;
     }
 
     setGenerating(true);
     try {
-      const res  = await fetch(`${API_URL}/generate`, {
-        method:  "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prompt: "นักศึกษาคอม ทำ React Node อยากเป็น Full Stack Developer",
-        }),
+      // ดึงข้อมูล profile จาก backend
+      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`, {
+        headers: { "Authorization": `Bearer ${token}` },
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "generate ไม่สำเร็จ");
+      if (!res.ok) throw new Error("ดึง profile ไม่สำเร็จ");
+
+      const profileData = await res.json();
+      if (!profileData || typeof profileData !== "object") {
+        throw new Error("ข้อมูล profile ไม่ถูกต้อง");
+      }
+
+      // map profile → resume
+      const mapped = {
+        fullName:     profileData.name || "",
+        jobTitle:     profileData.title || "",
+        summary:      profileData.summary || "",
+        skills:       Array.isArray(profileData.skills) 
+          ? [...new Set(profileData.skills.map((s) => typeof s === "string" ? s : s.skill || s.name || "").filter(Boolean))]
+          : [],
+        education:    [],  // profile ไม่มี education → resume สามารถเพิ่มได้ทีหลัง
+        experience:   [],  // profile ไม่มี experience → resume สามารถเพิ่มได้ทีหลัง
+        languages:    [],  // profile ไม่มี languages → resume สามารถเพิ่มได้ทีหลัง
+        profileImage: profileData.profileImage || "",
+      };
 
       // clear any saved draft so it won't override freshly generated resume
       try { clearDraft(); } catch (e) { /* ignore */ }
 
-      setResume({
-        fullName:     json.fullName     || "",
-        jobTitle:     json.jobTitle     || "",
-        summary:      json.summary      || "",
-        skills:       json.skills       || [],
-        education:    withIds(json.education   || []),
-        experience:   withIds(json.experience  || []),
-        languages:    withIds(json.languages   || []),
-        profileImage: json.profileImage || "",
-      });
+      setResume(mapped);
       setResumeId(null);
-      showToast("สร้าง Resume สำเร็จ", "success");
+      showToast("สร้าง Resume จากโปรไฟล์สำเร็จ ✓", "success");
 
     } catch (err) {
       console.error("สร้าง resume ไม่สำเร็จ:", err);
-      showToast("ไม่สามารถสร้าง Resume ได้", "error");
+      showToast("ไม่สามารถสร้าง Resume จากโปรไฟล์ได้: " + err.message, "error");
     } finally {
       setGenerating(false);
     }

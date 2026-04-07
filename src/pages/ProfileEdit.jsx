@@ -172,7 +172,6 @@ function ProfileEdit({ onNavigate }) {
     language: false,
     certification: false,
     project: false,
-    publication: false,
   });
 
   // Form states (unchanged)
@@ -187,10 +186,9 @@ function ProfileEdit({ onNavigate }) {
     },
     education: { degree: "", school: "", year: "", grade: "" },
     skill: { skillId: null, name: "", category: "", yearsExp: 0 },
-    language: { name: "", level: "Intermediate" },
-    certification: { name: "", issuer: "", issueDate: "", expiryDate: "" },
+    language: { language: "", level: "Intermediate" },
+    certification: { name: "", issuer: "", issueDate: "" },
     project: { category: "", image: "", link: "" },
-    publication: { title: "", subtitle: "" },
   });
   const [editingId, setEditingId] = useState(null);
 
@@ -222,12 +220,14 @@ function ProfileEdit({ onNavigate }) {
         languages: (p.languages || []).map((l, i) => ({
           ...l,
           id: i + 1,
-          name: l.language || l.name || "",
+          language: l.language,
+          level: l.level,
         })),
         certifications: (p.certifications || []).map((c, i) => ({
           ...c,
           id: i + 1,
           issueDate: c.date || "",
+          expiryDate: c.expiryDate || "",
         })),
         projects: (p.projects || []).map((proj, i) => ({ ...proj, id: i + 1 })),
       };
@@ -282,50 +282,61 @@ function ProfileEdit({ onNavigate }) {
     return val !== undefined ? val : true;
   };
 
-  const openModal = (modalType, item = null) => {
-    if (item) {
-      if (modalType === "project") {
-        setForms({
-          ...forms,
-          project: {
-            category: item.category || item.techStack || "",
-            image: item.image || "",
-            link: item.link || item.url || "",
-          },
-        });
-      } else {
-        setForms({ ...forms, [modalType]: item });
-      }
-      setEditingId(item.id);
-    } else {
+const openModal = (modalType, item = null) => {
+  if (item) {
+    if (modalType === "project") {
       setForms({
         ...forms,
-        [modalType]:
-          modalType === "experience"
-            ? {
-                title: "",
-                company: "",
-                location: "",
-                startDate: "",
-                endDate: "",
-                description: "",
-              }
-            : modalType === "education"
-              ? { degree: "", school: "", year: "", grade: "" }
-              : modalType === "skill"
-                ? { skillId: null, name: "", category: "", yearsExp: 0 }
-                : modalType === "language"
-                  ? { name: "", level: "Intermediate" }
-                  : modalType === "certification"
-                    ? { name: "", issuer: "", issueDate: "", expiryDate: "" }
-                    : modalType === "publication"
-                      ? { title: "", subtitle: "" }
-                      : { category: "", image: "", link: "" },
+        project: {
+          category: item.category || item.techStack || "",
+          image: item.image || "",
+          link: item.link || item.url || "",
+        },
       });
-      setEditingId(null);
+    } else if (modalType === "certification") {
+      setForms({
+        ...forms,
+        certification: {
+          ...item,
+          issueDate: item.issueDate ? item.issueDate.split("T")[0] : "",
+          expiryDate: item.expiryDate ? item.expiryDate.split("T")[0] : "",
+        },
+      });
+    } else {
+      setForms({ ...forms, [modalType]: item });
     }
-    setModals({ ...modals, [modalType]: true });
-  };
+
+    setEditingId(item.id);
+  } else {
+    setForms({
+      ...forms,
+      [modalType]:
+        modalType === "experience"
+          ? {
+              title: "",
+              company: "",
+              location: "",
+              startDate: "",
+              endDate: "",
+              description: "",
+            }
+          : modalType === "education"
+            ? { degree: "", school: "", year: "", grade: "" }
+            : modalType === "skill"
+              ? { skillId: null, name: "", category: "", yearsExp: 0 }
+              : modalType === "language"
+                ? { name: "", level: "Intermediate" }
+                : modalType === "certification"
+                  ? { name: "", issuer: "", issueDate: "", expiryDate: "" }
+                    
+                    : { category: "", image: "", link: "" },
+    })
+
+    setEditingId(null);
+  }
+
+  setModals({ ...modals, [modalType]: true });
+};
 
   const closeModal = (modalType) => {
     setModals({ ...modals, [modalType]: false });
@@ -335,9 +346,10 @@ function ProfileEdit({ onNavigate }) {
   const handleSaveItem = (itemType) => {
     const isEmpty = () => {
       const item = forms[itemType];
-      if (itemType === "project") return !item.category;
+      if (itemType === "project") return false;
       if (itemType === "publication") return !item.title || !item.subtitle;
-      if (itemType === "skill" || itemType === "language") return !item.name;
+      if (itemType === "skill") return !item.name;
+      if (itemType === "language") return !item.language;
       if (itemType === "experience") return !item.title || !item.company;
       if (itemType === "education") return !item.degree || !item.school;
       if (itemType === "certification") return !item.name;
@@ -355,7 +367,7 @@ function ProfileEdit({ onNavigate }) {
       language: "languages",
       certification: "certifications",
       project: "projects",
-      publication: "publications",
+      
     };
     if (editingId) {
       updateArrayItem(arrayNames[itemType], editingId, forms[itemType]);
@@ -417,7 +429,6 @@ function ProfileEdit({ onNavigate }) {
     { id: "languages", label: "Languages" },
     { id: "projects", label: "Projects" },
     { id: "certifications", label: "Certifications" },
-    { id: "publications", label: "Publications" },
     { id: "contact", label: "Contact & Social" },
   ];
 
@@ -677,7 +688,10 @@ function ProfileEdit({ onNavigate }) {
                     />
                   )}
                 </div>
-                <div className="pe-form-group">
+
+                {/* Funtion WorkType เอาออก เพราะ ไม่ได้ใช้+ ไม่ได้อยู่ใน database */}
+
+                {/* <div className="pe-form-group">
                   <label className="pe-form-label">Work Type</label>
                   <select
                     name="workTypePreference"
@@ -691,7 +705,7 @@ function ProfileEdit({ onNavigate }) {
                     <option>Hybrid</option>
                     <option>Remote / Onsite</option>
                   </select>
-                </div>
+                </div> */}
               </div>
             </div>
           )}
@@ -924,7 +938,7 @@ function ProfileEdit({ onNavigate }) {
                   >
                     <div className="pe-item-info">
                       <p className="pe-item-title">
-                        {proj.category || proj.techStack || "(No category)"}
+                        {proj.category || "(No category)"}
                       </p>
                     </div>
                     <ItemEditButtons
@@ -971,9 +985,26 @@ function ProfileEdit({ onNavigate }) {
                       >
                         {cert.name}
                       </p>
+
                       <p className="pe-item-sub pe-item-overflow">
                         {cert.issuer}
                       </p>
+
+                      <small>
+                        Issue:{" "}
+                        {cert.issueDate
+                          ? new Date(cert.issueDate).toLocaleDateString("en-GB")
+                          : "-"}
+                      </small>
+                      <br />
+                      <small>
+                        Expiry:{" "}
+                        {cert.expiryDate
+                          ? new Date(cert.expiryDate).toLocaleDateString(
+                              "en-GB",
+                            )
+                          : "-"}
+                      </small>
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("certification", cert)}
@@ -985,41 +1016,6 @@ function ProfileEdit({ onNavigate }) {
                 ))
               ) : (
                 <p className="pe-empty-text">No certifications added yet.</p>
-              )}
-            </div>
-          )}
-
-          {/* 11. PUBLICATIONS */}
-          {activeTab === "publications" && (
-            <div className="pe-panel">
-              <div className="pe-section-header">
-                <div className="pe-section-title-row">
-                  <h3 className="pe-section-title">Publications</h3>
-                </div>
-                <button
-                  onClick={() => openModal("publication")}
-                  className="pe-add-btn"
-                >
-                  + Add
-                </button>
-              </div>
-              {profile.publications && profile.publications.length > 0 ? (
-                profile.publications.map((pub) => (
-                  <div key={pub.id} className="pe-item-card pe-item-card-flat">
-                    <div className="pe-item-info">
-                      <p className="pe-item-title" style={{ margin: 0 }}>
-                        {pub.title}
-                      </p>
-                      <small className="pe-item-meta">{pub.subtitle}</small>
-                    </div>
-                    <ItemEditButtons
-                      onEdit={() => openModal("publication", pub)}
-                      onDelete={() => handleDeleteItem("publication", pub.id)}
-                    />
-                  </div>
-                ))
-              ) : (
-                <p className="pe-empty-text">No publications added yet.</p>
               )}
             </div>
           )}
@@ -1434,9 +1430,9 @@ function ProfileEdit({ onNavigate }) {
           <div className="pe-form-group" style={{ marginBottom: "15px" }}>
             <label className="pe-form-label">Language Name</label>
             <select
-              value={forms.language.name}
+              value={forms.language.language}
               onChange={(e) =>
-                handleFormChange("language", "name", e.target.value)
+                handleFormChange("language", "language", e.target.value)
               }
               style={{
                 width: "100%",
@@ -1636,40 +1632,6 @@ function ProfileEdit({ onNavigate }) {
           <ModalFooter
             onSave={() => handleSaveItem("project")}
             onCancel={() => closeModal("project")}
-          />
-        </Modal>
-      )}
-
-      {/* Publication Modal */}
-      {modals.publication && (
-        <Modal>
-          <h3 className="pe-modal-title">
-            {editingId ? "Edit" : "Add"} Publication
-          </h3>
-          {[
-            ["title", "text", "Publication Title", "Article/Paper title"],
-            ["subtitle", "text", "Publication/Source", "Where published"],
-          ].map(([field, type, label, ph]) => (
-            <div
-              key={field}
-              className="pe-form-group"
-              style={{ marginBottom: "15px" }}
-            >
-              <label className="pe-form-label">{label}</label>
-              <input
-                type={type}
-                value={forms.publication[field]}
-                onChange={(e) =>
-                  handleFormChange("publication", field, e.target.value)
-                }
-                placeholder={ph}
-                className="pe-form-input"
-              />
-            </div>
-          ))}
-          <ModalFooter
-            onSave={() => handleSaveItem("publication")}
-            onCancel={() => closeModal("publication")}
           />
         </Modal>
       )}

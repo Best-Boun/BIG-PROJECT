@@ -119,29 +119,57 @@ function AppContent() {
 
   const navigate = useNavigate();
 
-  // โหลด token/role จาก localStorage ครั้งเดียวตอน mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedRole = localStorage.getItem("role");
 
-    if (savedToken && savedRole) {
-      setToken(savedToken);
+  useEffect(() => {
+    const savedRole = localStorage.getItem("role");
+    const savedToken = localStorage.getItem("token");
+
+    if (savedRole && savedToken) {
       setRole(savedRole);
+      setToken(savedToken);
     }
 
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+
+    const savedRole = localStorage.getItem("role");
+    const savedToken = localStorage.getItem("token");
+
+    if (!savedRole || !savedToken) {
+      setToken("");
+      setRole("");
+      return;
+    }
+
+    setRole(savedRole);
+    setToken(savedToken);
+
+    setTimeout(() => {
+      if (
+        window.location.pathname === "/" ||
+        window.location.pathname === "/register"
+      ) {
+        navigate("/feed", { replace: true });
+      }
+    }, 50);
+  }, [loading, navigate]);
+
   const handleLogout = () => {
     localStorage.clear();
     setToken("");
     setRole("");
-    navigate("/", { replace: true });
+
+    setTimeout(() => {
+      navigate("/", { replace: true });
+      window.location.reload();
+    }, 100);
   };
 
   if (loading) return <div className="loading-screen">Loading...</div>;
 
-  // ยังไม่ได้ login → แสดงแค่ public routes
   if (!token) {
     return (
       <Routes>
@@ -156,76 +184,86 @@ function AppContent() {
     );
   }
 
-  // login แล้ว → แสดง authenticated routes
   return (
     <div className="app user-layout">
-      <Header2 role={role} onLogout={handleLogout} />
+        <Header2 role={role} onLogout={handleLogout} />
 
-      <main className="app-main">
-        <Routes>
-          <Route path="/feed" element={<Feed onLogout={handleLogout} />} />
+        <main className="app-main">
+          <ErrorBoundary>
+          <Routes>
+            <Route
+              path="/feed"
+              element={<Feed onLogout={handleLogout} />}
+            />
 
-          <Route path="/profile" element={<ProfilepublicWrapper />} />
-          <Route path="/edit-profile" element={<ProfileEditWrapper />} />
+            <Route path="/profile" element={<ProfilepublicWrapper />} />
+            <Route path="/edit-profile" element={<ProfileEditWrapper />} />
 
-          <Route path="/jobs" element={<JobBrowse mode="apply" />} />
-          <Route path="/browse-jobs" element={<JobBrowse mode="view" />} />
+            <Route path="/jobs"        element={<JobBrowse mode="apply" />} />
+            <Route path="/browse-jobs" element={<JobBrowse mode="view"  />} />
 
-          <Route path="/jobs/manage" element={
-            <ProtectedRoute allowedRole="employer">
-              <JobManage />
-            </ProtectedRoute>
-          } />
-          <Route path="/jobs/:jobId/applicants" element={
-            <ProtectedRoute allowedRole="employer">
-              <ManageApplicants />
-            </ProtectedRoute>
-          } />
-          <Route path="/manage-jobs/:jobId/applicants" element={
-            <ProtectedRoute allowedRole="employer">
-              <ManageApplicants />
-            </ProtectedRoute>
-          } />
-          <Route path="/applicant/:userId" element={
-            <ProtectedRoute allowedRole="employer">
-              <ApplicantProfile />
-            </ProtectedRoute>
-          } />
+            <Route path="/jobs/manage" element={
+              <ProtectedRoute allowedRole="employer">
+                <JobManage />
+              </ProtectedRoute>
+            } />
+            <Route path="/jobs/:jobId/applicants" element={
+              <ProtectedRoute allowedRole="employer">
+                <ManageApplicants />
+              </ProtectedRoute>
+            } />
+            <Route path="/manage-jobs/:jobId/applicants" element={
+              <ProtectedRoute allowedRole="employer">
+                <ManageApplicants />
+              </ProtectedRoute>
+            } />
+            <Route path="/applicant/:userId" element={
+              <ProtectedRoute allowedRole="employer">
+                <ApplicantProfile />
+              </ProtectedRoute>
+            } />
 
-          <Route path="/jobs/:id" element={<JobDetail role={role} />} />
+            <Route path="/jobs/:id" element={<JobDetail role={role} />} />
 
-          <Route path="/applications" element={
-            <ProtectedRoute allowedRole="seeker">
-              <Applications />
-            </ProtectedRoute>
-          } />
+            <Route path="/applications" element={
+              <ProtectedRoute allowedRole="seeker">
+                <Applications />
+              </ProtectedRoute>
+            } />
 
-          <Route path="/company-profile" element={
-            <ProtectedRoute allowedRole="employer">
-              <CompanyProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/company/:userId" element={<CompanyPublic />} />
+            <Route path="/company-profile" element={
+              <ProtectedRoute allowedRole="employer">
+                <CompanyProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/seekers" element={
+              <ProtectedRoute allowedRole="employer">
+                <SeekerSearch />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/company/:userId" element={<CompanyPublic />} />
 
-          <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-          <Route path="/resume" element={<ResumeEditorWrapper />} />
+            <Route path="/resume" element={<ResumeEditorWrapper />} />
 
-          <Route path="/feature1" element={<Feature1 />} />
+            <Route path="/feature1" element={<Feature1 />} />
 
-          {role === "admin" && (
-            <>
-              <Route path="/chart" element={<ChartPage />} />
-              <Route path="/ads" element={<AdsManagement />} />
-              <Route path="/admin" element={<AdminManagement />} />
-            </>
-          )}
+            {role === "admin" && (
+              <>
+                <Route path="/chart" element={<ChartPage />} />
+                <Route path="/ads" element={<AdsManagement />} />
+                <Route path="/admin" element={<AdminManagement />} />
+              </>
+            )}
 
-          <Route path="/" element={<Navigate to="/feed" replace />} />
-          <Route path="*" element={<Navigate to="/feed" replace />} />
-        </Routes>
-      </main>
-    </div>
+            <Route path="/" element={<Navigate to="/feed" replace />} />
+            <Route path="*" element={<Navigate to="/feed" replace />} />
+          </Routes>
+          </ErrorBoundary>
+        </main>
+      </div>
   );
 }
 

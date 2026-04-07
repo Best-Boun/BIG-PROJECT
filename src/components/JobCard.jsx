@@ -47,139 +47,128 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
     };
 
     return (
-      <Card
-        className="job-card"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Card Header - Company Logo + Title + Favorite Button */}
-        <Card.Header className="job-card-header">
-          <div className="company-info">
-            <span className="company-logo">{renderLogo(job.logo)}</span>
-            <div className="company-details">
-              <h5 className="job-title">{job.title}</h5>
-              <a
-                href={`/company/${job.userId}`}
-                className="company-name"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.textDecoration = "underline")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.textDecoration = "none")
-                }
-              >
-                {job.company}
-              </a>
-            </div>
-          </div>
+        <Card 
+            className="job-card"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* Card Header - Company Logo + Title + Favorite Button */}
+            <Card.Header className="job-card-header">
+                <div className="company-info">
+                    <span className="company-logo">{renderLogo(job.logo)}</span>
+                    <div className="company-details">
+                        <h5 className="job-title">{job.title}</h5>
+                        <a
+                          href={`/company/${job.userId}`}
+                          className="company-name"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                          {job.company}
+                        </a>
+                    </div>
+                </div>
 
-          {/* Favorite Button */}
-          {onFavoriteToggle && (
-            <button
-              className="favorite-btn"
-              onClick={() => onFavoriteToggle(job.id)}
-              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              {isFavorite ? (
-                <FaHeart style={{ color: "#e74c3c" }} />
-              ) : (
-                <FaRegHeart />
-              )}
-            </button>
-          )}
-        </Card.Header>
-
-        {/* Card Body - Job Details */}
-        <Card.Body>
-          {/* Salary */}
-          <div className="job-salary">
-            <span className="salary-text">{job.salary}</span>
-          </div>
-
-          {/* Location + Posted Date */}
-          <div className="job-meta">
-            <span className="meta-item">
-              <FaMapMarkerAlt /> {job.location}
-            </span>
-            <span className="meta-item">
-              <FaClock /> {getDaysPosted(job.postedDate)}
-            </span>
-          </div>
-
-          {/* Job Type Badge */}
-          <div className="job-badges">
-            <span className="ds-badge ds-badge-accent">{job.type}</span>
-            <span className="ds-badge">{job.level}</span>
-          </div>
-
-          {/* Job Description - ตัดให้สั้น */}
-          <p className="job-description">
-            {job.description.length > 100
-              ? job.description.substring(0, 100) + "..."
-              : job.description}
-          </p>
-
-          {/* Requirements Preview */}
-          {job.requirements && job.requirements.length > 0 && (
-            <div className="job-requirements">
-              <span className="requirements-label">Requirements:</span>
-              <ul style={{ fontSize: "0.85rem", marginBottom: 0 }}>
-                {job.requirements.slice(0, 2).map((req, idx) => (
-                  <li key={idx}>{req}</li>
-                ))}
-                {job.requirements.length > 2 && (
-                  <li>+{job.requirements.length - 2} more</li>
+                {/* Favorite Button */}
+                {onFavoriteToggle && (
+                  <button
+                      className="favorite-btn"
+                      onClick={() => onFavoriteToggle(job.id)}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                      {isFavorite ? (
+                          <FaHeart style={{ color: '#e74c3c' }} />
+                      ) : (
+                          <FaRegHeart />
+                      )}
+                  </button>
                 )}
-              </ul>
-            </div>
-          )}
+            </Card.Header>
 
-          {/* Applicants Count */}
-          <p className="applicants-count">
-            <FaUsers /> {job.applicants} applicants
-          </p>
-          {matchScore !== null && (
-            <p
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                color:
-                  matchScore >= 70
-                    ? "#16a34a"
-                    : matchScore >= 40
-                      ? "#ca8a04"
-                      : "#dc2626",
-                margin: "4px 0 0",
-              }}
-            >
-              ⚡ {matchScore}% Match
-            </p>
-          )}
-        </Card.Body>
+            {/* Card Body - Job Details */}
+            <Card.Body>
+                {/* Salary */}
+                <div className="job-salary">
+                    <span className="salary-text">{job.salary}</span>
+                </div>
 
-        {/* Card Footer - Action Buttons */}
-        <Card.Footer className="job-card-footer">
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => onViewDetails(job.id)}
-            className="btn-view-details"
-          >
-            View Details
-          </Button>
-          {onApply && (
-            <button onClick={() => onApply(job.id)} disabled={isApplied}>
-              {isApplied ? "Applied" : "Apply Now"}
-            </button>
-          )}
-        </Card.Footer>
-      </Card>
+                {/* Location + Posted Date */}
+                <div className="job-meta">
+                    <span className="meta-item">
+                        <FaMapMarkerAlt /> {job.location}
+                    </span>
+                    <span className="meta-item">
+                        <FaClock /> {getDaysPosted(job.postedDate)}
+                    </span>
+                </div>
+
+                {/* Job Type Badge */}
+                <div className="job-badges">
+                    <span className="ds-badge ds-badge-accent">{job.type}</span>
+                    <span className="ds-badge">{job.level}</span>
+                </div>
+
+                {/* Job Description - ตัดให้สั้น */}
+                <p className="job-description">
+                    {job.description.length > 100 
+                        ? job.description.substring(0, 100) + '...' 
+                        : job.description}
+                </p>
+
+                {/* Requirements Preview */}
+                {job.requirements && job.requirements.length > 0 && (
+                  <div className="job-requirements">
+                    <span className="requirements-label">Requirements:</span>
+                    <ul style={{ fontSize: '0.85rem', marginBottom: 0 }}>
+                      {job.requirements.slice(0, 2).map((req, idx) => (
+                        <li key={idx}>{req}</li>
+                      ))}
+                      {job.requirements.length > 2 && (
+                        <li>+{job.requirements.length - 2} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Applicants Count */}
+                <p className="applicants-count">
+                    <FaUsers /> {job.applicants} applicants
+                </p>
+                {matchScore !== null && (
+                  <p style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: matchScore >= 70 ? '#16a34a' : matchScore >= 40 ? '#ca8a04' : '#dc2626',
+                    margin: '4px 0 0'
+                  }}>
+                    ⚡ {matchScore}% Match
+                  </p>
+                )}
+            </Card.Body>
+
+            {/* Card Footer - Action Buttons */}
+            <Card.Footer className="job-card-footer">
+                <Button 
+                    variant="outline-secondary" 
+                    size="sm"
+                    onClick={() => onViewDetails(job.id)}
+                    className="btn-view-details"
+                >
+                    View Details
+                </Button>
+                {onApply && (
+                  <button
+                      className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
+                      onClick={() => !isApplied && onApply(job.id)}
+                      disabled={isApplied}
+                  >
+                      {isApplied ? <><FaCheck /> Already Applied</> : 'Apply Now'}
+                  </button>
+                )}
+            </Card.Footer>
+        </Card>
     );
 }
 

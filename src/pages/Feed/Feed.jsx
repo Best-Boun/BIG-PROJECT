@@ -713,11 +713,7 @@ export default function Feed() {
                   <div className="widget-badge">Sponsored</div>
 
                   {hasImage ? (
-                    <img
-                      src={`http://localhost:3000/upload/${ad.image}`}
-                      className="ad-img"
-                      alt=""
-                    />
+                    <img src={ad.image} className="ad-img" alt="" />
                   ) : (
                     <div className="ad-placeholder">พื้นที่โฆษณา</div>
                   )}
@@ -791,11 +787,7 @@ export default function Feed() {
         <div className="ad-modal-backdrop" onClick={() => setSelectedAd(null)}>
           <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
             {selectedAd.image && selectedAd.image !== "NULL" && (
-              <img
-                src={`http://localhost:3000/upload/${selectedAd.image}`}
-                className="ad-modal-img"
-                alt=""
-              />
+              <img src={selectedAd.image} className="ad-modal-img" alt="" />
             )}
 
             <h3>{selectedAd.name}</h3>

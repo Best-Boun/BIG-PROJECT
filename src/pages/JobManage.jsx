@@ -256,8 +256,9 @@ export default function JobManage() {
         headers: getAuthHeaders(),
       });
       setJobs((j) => j.filter((job) => job.id !== id));
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('ไม่สามารถลบงานได้ กรุณาลองใหม่');
     } finally {
       setDeleteConfirm(null);
     }

@@ -988,34 +988,32 @@ export default function Feed() {
               </Col>
 
               {/* ADS */}
-              <Col xl={3} lg={4} className="d-none d-lg-block" style={{ padding: '0 15px' }}>
-                <div style={{ position: 'sticky', top: '80px' }}>
-                  {ads.map((ad) => {
-                    const hasImage = ad.image && ad.image !== "NULL";
+              <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
+                {ads.map((ad) => {
+                  const hasImage = ad.image && ad.image !== "NULL";
 
-                    return (
-                      <div key={ad.id} className="widget sponsored-widget mb-3">
-                        <div className="widget-badge">Sponsored</div>
+                  return (
+                    <div key={ad.id} className="widget sponsored-widget mb-3">
+                      <div className="widget-badge">Sponsored</div>
 
-                        {hasImage ? (
-                          <img src={ad.image} className="ad-img" alt="" />
-                        ) : (
-                          <div className="ad-placeholder">พื้นที่โฆษณา</div>
-                        )}
+                      {hasImage ? (
+                        <img src={ad.image} className="ad-img" alt="" />
+                      ) : (
+                        <div className="ad-placeholder">พื้นที่โฆษณา</div>
+                      )}
 
-                        <h5>{ad.name}</h5>
-                        <p>{ad.description}</p>
+                      <h5>{ad.name}</h5>
+                      <p>{ad.description}</p>
 
-                        <button
-                          className="btn btn-widget w-100 btn-warning"
-                          onClick={() => setSelectedAd(ad)}
-                        >
-                          ดูรายละเอียด
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                      <button
+                        className="btn btn-widget w-100 btn-warning"
+                        onClick={() => setSelectedAd(ad)}
+                      >
+                        ดูรายละเอียด
+                      </button>
+                    </div>
+                  );
+                })}
               </Col>
             </Row>
           </Container>

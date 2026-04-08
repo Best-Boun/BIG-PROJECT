@@ -1,768 +1,1478 @@
 /* ═══════════════════════════════════════════════════════════════
-   ResumeEditor.css
-   Stylesheet หลักของ Resume Editor
-   โครงสร้าง:
-     1.  Reset & Base
-     2.  CSS Variables (Light + Dark Mode)
-     3.  Page Layout (2-column split)
-     4.  Form Panel (ซ้าย)
-     5.  Preview Panel (ขวา)
-     6.  Buttons
-     7.  Form Inputs
-     8.  Cards
-     9.  List Items (Experience, Education)
-    10.  Skills & Autocomplete
-    11.  Languages
-    12.  Job Role Keywords
-    13.  Completion Panel
-    14.  Feedback Panel
-    15.  Avatar / Profile Image
-    16.  Banners
-    17.  Toast
-    18.  Dialog (Delete Confirm)
-    19.  Spinner
-    20.  Misc
-    21.  Resume Paper (Preview)
-    22.  Responsive
+   RESUME EDITOR — Production CSS
+   Design system: Refined editorial / SaaS tool aesthetic
+   Font: DM Sans (body) + DM Mono (code/labels)
 ═══════════════════════════════════════════════════════════════ */
 
-/* ════════════════════════════════════════
-   1. RESET & BASE
-   ล้าง margin/padding ของ browser
-   html/body/#root สูง 100% เพื่อให้ layout เต็มหน้าจอ
-   ถ้าขาด 3 บรรทัดนี้ .re-page จะไม่สูงเต็มหน้าจอ
-════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap");
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden; /* กัน scrollbar ซ้อนทับ — แต่ละ panel scroll เอง */
-}
-
-/* ════════════════════════════════════════
-   2. CSS VARIABLES
-   ตัวแปรสีและขนาดทั้งหมด
-   :root     = Light Mode (default)
-   .re-dark  = Dark Mode (toggle ด้วย class บน .re-page)
-
-   หลักการตั้งชื่อ:
-     --re-bg        = พื้นหลังหลัก (page background)
-     --re-surface   = พื้นผิว card/panel (สว่างกว่า bg)
-     --re-border    = เส้นขอบปกติ
-     --re-border-mid = เส้นขอบเข้มขึ้น (hover, focus)
-     --re-text-1/2/3 = ลำดับความสำคัญ (1=หลัก, 3=จาง)
-     --re-accent    = สีหลัก (navy)
-     --re-ok/warn/err = สีสถานะ
-     --re-ai        = สีม่วงสำหรับปุ่ม AI
-════════════════════════════════════════ */
+/* ── Tokens ── */
 :root {
-  /* พื้นหลังและพื้นผิว */
-  --re-bg:          #f4f5f7;   /* หลังหลัก — เทาอ่อน */
-  --re-surface:     #ffffff;   /* card, input, header */
-  --re-border:      #e2e5ea;   /* เส้นขอบทั่วไป */
-  --re-border-mid:  #c9cdd4;   /* เส้นขอบ hover/active */
+  --re-bg:          #f0f2f5;
+  --re-surface:     #ffffff;
+  --re-surface-2:   #f8f9fb;
+  --re-surface-3:   #eef0f4;
+  --re-border:      #e2e5ea;
+  --re-border-2:    #d4d8e0;
 
-  /* ข้อความ 3 ระดับ */
-  --re-text-1:      #111827;   /* หัวข้อ, label สำคัญ */
-  --re-text-2:      #4b5563;   /* ข้อความทั่วไป */
-  --re-text-3:      #9ca3af;   /* placeholder, hint, secondary */
+  --re-text-pri:    #111827;
+  --re-text-sec:    #4b5563;
+  --re-text-ter:    #9ca3af;
+  --re-text-inv:    #ffffff;
 
-  /* สีหลักของ app */
-  --re-accent:      #1e3a5f;   /* navy เข้ม — ปุ่ม primary */
-  --re-accent-mid:  #2b5183;   /* hover state ของ accent */
-  --re-accent-lite: #e8f0f9;   /* พื้นหลัง tag/chip */
+  --re-accent:      #1e3a5f;
+  --re-accent-lite: #e8eef5;
+  --re-accent-mid:  #2e5487;
 
-  /* สีสถานะ */
-  --re-ok:          #059669;
-  --re-ok-bg:       #ecfdf5;
+  --re-ok:          #16a34a;
+  --re-ok-bg:       #f0fdf4;
   --re-warn:        #d97706;
   --re-warn-bg:     #fffbeb;
   --re-err:         #dc2626;
   --re-err-bg:      #fef2f2;
 
-  /* สี AI — ปุ่ม "ปรับให้เป็นมืออาชีพ" */
-  --re-ai:          #7c3aed;
-  --re-ai-lite:     #f5f3ff;
+  --re-sidebar-w:   220px;
+  --re-form-w:      460px;
+  --re-radius:      10px;
+  --re-radius-sm:   6px;
+  --re-radius-lg:   14px;
 
-  /* ขนาด */
-  --re-radius-sm:   6px;       /* ปุ่ม, input, list item */
-  --re-radius:      10px;      /* card */
-  --re-radius-lg:   14px;      /* dialog */
+  --re-shadow-sm:   0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --re-shadow-md:   0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --re-shadow-lg:   0 12px 32px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
 
-  /* เงา */
-  --re-shadow:      0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --re-shadow-mid:  0 4px 12px rgba(0,0,0,.08); /* drag, autocomplete */
-
-  /* Animation */
-  --re-transition:  140ms ease;
-
-  /* Layout */
-  --re-panel-w:     460px;     /* ความกว้างแผงฟอร์มซ้าย */
-  --re-form-bg:     #f9fafb;   /* พื้นหลัง form body */
+  --re-transition:  150ms cubic-bezier(.4, 0, .2, 1);
+  --re-font:        "DM Sans", system-ui, sans-serif;
+  --re-mono:        "DM Mono", "Fira Code", monospace;
 }
 
-/* Dark Mode — override เฉพาะค่าที่เปลี่ยน */
+/* Dark mode tokens */
 .re-dark {
   --re-bg:          #0d1117;
   --re-surface:     #161b22;
-  --re-border:      #30363d;
-  --re-border-mid:  #484f58;
-  --re-text-1:      #e6edf3;
-  --re-text-2:      #8b949e;
-  --re-text-3:      #484f58;
-  --re-accent:      #4a7fb5;   /* สว่างขึ้นเพื่อ contrast บน dark bg */
-  --re-accent-mid:  #5a8fc5;
-  --re-accent-lite: #0c1e30;   /* เข้มลงเพราะ bg มืดแล้ว */
-  --re-ok-bg:       #0a1f14;
-  --re-warn-bg:     #1e1500;
-  --re-err-bg:      #1e0808;
-  --re-ai-lite:     #1a0e2e;
-  --re-form-bg:     #0d1117;
+  --re-surface-2:   #1c2230;
+  --re-surface-3:   #212836;
+  --re-border:      #2a3344;
+  --re-border-2:    #323d52;
+
+  --re-text-pri:    #e6edf3;
+  --re-text-sec:    #8b949e;
+  --re-text-ter:    #484f58;
+  --re-text-inv:    #0d1117;
+
+  --re-accent:      #4a7fb5;
+  --re-accent-lite: #1c2a3d;
+  --re-accent-mid:  #5a90c8;
+
+  --re-ok:          #3fb950;
+  --re-ok-bg:       #0d1f0f;
+  --re-warn:        #d29922;
+  --re-warn-bg:     #1f1b0d;
+  --re-err:         #f85149;
+  --re-err-bg:      #1f0d0d;
+
+  --re-shadow-sm:   0 1px 3px rgba(0,0,0,.3);
+  --re-shadow-md:   0 4px 12px rgba(0,0,0,.4);
+  --re-shadow-lg:   0 12px 32px rgba(0,0,0,.5);
 }
 
-/* ════════════════════════════════════════
-   3. PAGE LAYOUT
-   flex row: ซ้าย = form panel (กว้างคงที่)
-             ขวา  = preview panel (ยืดเต็ม)
-════════════════════════════════════════ */
+/* ── Base reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE LAYOUT — 3-column: sidebar | form | preview
+══════════════════════════════════════════════════════════════ */
 .re-page {
-  display: flex;
-  width: 100%;
-  height: 100%;           /* สูงเต็ม viewport */
-  min-height: 100vh;      /* fallback ถ้า parent ไม่มี height */
-  overflow: hidden;       /* ไม่ให้ page เอง scroll */
-  background: var(--re-bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
-  color: var(--re-text-1);
-}
-
-/* แสดงระหว่าง fetch ข้อมูลจาก server ครั้งแรก */
-.re-loading-screen {
+  display: grid;
+  grid-template-columns: var(--re-sidebar-w) var(--re-form-w) 1fr;
+  grid-template-rows: 100vh;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
+  overflow: hidden;
   background: var(--re-bg);
-  color: var(--re-text-2);
+  font-family: var(--re-font);
+  color: var(--re-text-pri);
   font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ════════════════════════════════════════
-   4. FORM PANEL (ซ้าย)
-   ความกว้างคงที่ = --re-panel-w (460px)
-   โครงสร้าง: header (flex-shrink:0) + body (flex:1 scroll)
-════════════════════════════════════════ */
-.re-form-panel {
-  width: var(--re-panel-w);
-  min-width: 340px;
-  flex-shrink: 0;          /* ไม่ถูก preview panel บีบ */
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════════ */
+.re-sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: var(--re-form-bg);
+  height: 100vh;
+  background: var(--re-surface);
   border-right: 1px solid var(--re-border);
   overflow: hidden;
 }
 
-/* Header — ชื่อ app + ปุ่ม action (ความสูงคงที่) */
-.re-form-header {
+.re-sidebar__brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  padding: 14px 18px;
-  background: var(--re-surface);
+  padding: 20px 16px 16px;
   border-bottom: 1px solid var(--re-border);
+}
+
+.re-sidebar__logo {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--re-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 8px;
   flex-shrink: 0;
+  letter-spacing: -.5px;
 }
-.re-form-header h1 {
-  font-size: 1rem;
+
+.re-sidebar__title {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--re-text-1);
-  line-height: 1.2;
-}
-.re-form-header__info    { display: flex; flex-direction: column; gap: 2px; }
-.re-form-header__sub     { font-size: 11px; color: var(--re-text-3); display: flex; align-items: center; gap: 4px; }
-.re-form-header__sub--saved { color: var(--re-ok); } /* เขียวเมื่อ auto-save */
-/* จุดสีเขียวข้าง "บันทึกอัตโนมัติแล้ว" */
-.re-autosave-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--re-ok); flex-shrink: 0;
-}
-.re-form-header__actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
-/* Body — พื้นที่ scroll หลักของฟอร์ม */
-.re-form-body {
-  flex: 1;              /* กินพื้นที่ที่เหลือหลัง header */
-  overflow-y: auto;     /* scroll ได้เฉพาะส่วนนี้ */
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;            /* ระยะห่างระหว่าง card */
-  scroll-behavior: smooth;
-}
-.re-form-body::-webkit-scrollbar { width: 4px; }
-.re-form-body::-webkit-scrollbar-thumb { background: var(--re-border-mid); border-radius: 2px; }
-
-/* ════════════════════════════════════════
-   5. PREVIEW PANEL (ขวา)
-   ยืดเต็มพื้นที่ที่เหลือ
-   โครงสร้าง: topbar (flex-shrink:0) + scroll area (flex:1)
-════════════════════════════════════════ */
-.re-preview-panel {
-  flex: 1;
-  min-width: 0;          /* กัน flex overflow */
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--re-bg);
-  overflow: hidden;
+  line-height: 1.3;
+  color: var(--re-text-sec);
+  letter-spacing: .02em;
+  text-transform: uppercase;
 }
 
-/* Topbar — template switcher + export button */
-.re-preview-topbar {
+/* ── Completion mini ── */
+.re-completion-mini {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--re-border);
+}
+
+.re-completion-mini__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
-  background: var(--re-surface);
-  border-bottom: 1px solid var(--re-border);
-  flex-shrink: 0;
-  gap: 12px;
+  margin-bottom: 6px;
 }
-.re-topbar-left  { display: flex; align-items: center; gap: 10px; }
-.re-topbar-right { display: flex; align-items: center; gap: 10px; }
 
-/* จุดสี 3 ดวงสไตล์ macOS (decoration) */
-.re-traffic-lights { display: flex; gap: 5px; }
-.re-dot { width: 11px; height: 11px; border-radius: 50%; }
-.re-dot--red   { background: #ff5f57; }
-.re-dot--amber { background: #ffbe2e; }
-.re-dot--green { background: #28c840; }
+.re-completion-mini__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--re-text-ter);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
 
-.re-preview-filename { font-size: 12px; color: var(--re-text-3); font-family: monospace; }
+.re-completion-next {
+  font-size: 11px;
+  color: var(--re-text-ter);
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* พื้นที่ scroll — resume paper อยู่ตรงกลาง */
-.re-preview-scroll {
+.re-completion-done {
+  font-size: 11px;
+  color: var(--re-ok);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* ── Section nav ── */
+.re-section-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 28px 24px;
-  display: flex;
-  justify-content: center;
+  padding: 8px 0;
 }
-.re-preview-scroll::-webkit-scrollbar { width: 4px; }
-.re-preview-scroll::-webkit-scrollbar-thumb { background: var(--re-border); border-radius: 2px; }
 
-/* Template Switcher — Modern / Minimal / Bold */
-.re-tmpl-switcher {
+.re-section-nav__item {
   display: flex;
-  border: 1px solid var(--re-border);
-  border-radius: var(--re-radius-sm);
-  overflow: hidden;
-}
-.re-tmpl-btn {
-  padding: 5px 12px;
-  font-size: 12px; font-weight: 500;
-  background: var(--re-surface); color: var(--re-text-2);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 16px;
   border: none;
-  border-right: 1px solid var(--re-border);
+  background: none;
   cursor: pointer;
+  font-family: var(--re-font);
+  font-size: 13px;
+  color: var(--re-text-sec);
+  text-align: left;
   transition: background var(--re-transition), color var(--re-transition);
+  border-radius: 0;
+  position: relative;
 }
-.re-tmpl-btn:last-child { border-right: none; }
-.re-tmpl-btn:hover { background: var(--re-bg); }
-.re-tmpl-btn--active { background: var(--re-accent); color: #fff; }
 
-/* ════════════════════════════════════════
-   6. BUTTONS
-   .re-btn = base (ทุกปุ่มใช้)
-   modifier: -primary -ghost -danger -ai -export -sm
-════════════════════════════════════════ */
-.re-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--re-radius-sm);
-  font-size: 13px; font-weight: 500;
-  cursor: pointer; border: 1px solid transparent;
-  transition: background var(--re-transition), opacity var(--re-transition), transform 80ms;
-  white-space: nowrap; line-height: 1;
+.re-section-nav__item:hover {
+  background: var(--re-surface-2);
+  color: var(--re-text-pri);
 }
-.re-btn:active:not(:disabled) { transform: scale(.97); } /* กดแล้วยุบเล็กน้อย */
-.re-btn:disabled { opacity: .55; cursor: not-allowed; }
 
-/* Navy — action หลัก (บันทึก) */
-.re-btn-primary  { background: var(--re-accent);  color: #fff; border-color: var(--re-accent); }
-.re-btn-primary:hover:not(:disabled)  { background: var(--re-accent-mid); }
-
-/* Outline — secondary action */
-.re-btn-ghost    { background: transparent; color: var(--re-text-2); border-color: var(--re-border-mid); }
-.re-btn-ghost:hover:not(:disabled)    { background: var(--re-border); color: var(--re-text-1); }
-
-/* แดง — destructive (ลบ) */
-.re-btn-danger   { background: transparent; color: var(--re-err); border-color: #fca5a5; }
-.re-btn-danger:hover:not(:disabled)   { background: var(--re-err-bg); }
-
-/* ม่วง — AI action */
-.re-btn-ai       { background: var(--re-ai-lite); color: var(--re-ai); border-color: #c4b5fd; }
-.re-btn-ai:hover:not(:disabled)       { background: #ede9fe; }
-
-/* Navy — export PDF */
-.re-btn-export   { background: var(--re-accent); color: #fff; border-color: var(--re-accent); font-size: 13px; }
-.re-btn-export:hover:not(:disabled)   { background: var(--re-accent-mid); }
-
-/* ขนาดเล็ก — "+ เพิ่ม", "ยกเลิก" */
-.re-btn-sm { padding: 5px 10px; font-size: 12px; }
-
-/* ════════════════════════════════════════
-   7. FORM INPUTS
-   .re-input   = base: input, select, textarea
-   .re-textarea = resize + min-height
-   .re-select  = custom arrow (ซ่อน native arrow)
-   .re-field-label = label เหนือ input
-   .re-input-grid  = grid 2 คอลัมน์
-   .re-input-full  = span ทั้ง 2 คอลัมน์
-════════════════════════════════════════ */
-.re-input {
-  width: 100%; padding: 8px 10px;
-  border: 1px solid var(--re-border);
-  border-radius: var(--re-radius-sm);
-  background: var(--re-surface); color: var(--re-text-1);
-  font-size: 13px; outline: none;
-  transition: border-color var(--re-transition), box-shadow var(--re-transition);
+.re-section-nav__item--active {
+  background: var(--re-accent-lite);
+  color: var(--re-accent);
+  font-weight: 500;
 }
-.re-input:hover { border-color: var(--re-border-mid); }
-/* focus: เส้น accent + glow */
-.re-input:focus { border-color: var(--re-accent); box-shadow: 0 0 0 3px var(--re-accent-lite); }
-.re-input::placeholder { color: var(--re-text-3); }
 
-.re-textarea { resize: vertical; line-height: 1.55; min-height: 72px; }
-/* ซ่อน native arrow + ใช้ SVG แทน */
-.re-select   { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239ca3af'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
-
-/* Label uppercase เล็กสีจาง */
-.re-field-label {
-  display: block; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .04em;
-  color: var(--re-text-3); margin-bottom: 4px;
+.re-section-nav__item--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: var(--re-accent);
+  border-radius: 0 2px 2px 0;
 }
-/* นับตัวอักษรใต้ textarea summary */
-.re-char-count { font-size: 11px; color: var(--re-text-3); text-align: right; margin-top: 4px; }
 
-/* grid 2 คอลัมน์ เช่น บริษัท/ตำแหน่ง */
-.re-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-/* span เต็ม 2 คอลัมน์ เช่น รายละเอียด */
-.re-input-full { grid-column: 1 / -1; }
+.re-section-nav__icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
-/* ════════════════════════════════════════
-   8. CARDS
-   container หลักของแต่ละส่วน
-   .re-card__header = label ซ้าย + action button ขวา
-   .re-section-label = หัวข้อ uppercase
-════════════════════════════════════════ */
+.re-section-nav__label {
+  flex: 1;
+}
+
+.re-section-nav__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--re-border-2);
+  flex-shrink: 0;
+  transition: background var(--re-transition);
+}
+
+.re-section-nav__dot--done {
+  background: var(--re-ok);
+}
+
+.re-sidebar__footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--re-border);
+}
+
+.re-sidebar__dark-toggle {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--re-text-ter);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM PANEL
+══════════════════════════════════════════════════════════════ */
+.re-form-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--re-bg);
+  border-right: 1px solid var(--re-border);
+}
+
+/* ── Toolbar ── */
+.re-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--re-surface);
+  border-bottom: 1px solid var(--re-border);
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.re-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.re-toolbar__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--re-text-pri);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.re-toolbar__save-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--re-ok);
+  white-space: nowrap;
+}
+
+.re-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Feedback strip ── */
+.re-form-strip {
+  padding: 8px 20px;
+  background: var(--re-surface);
+  border-bottom: 1px solid var(--re-border);
+  flex-shrink: 0;
+}
+
+/* ── Form body ── */
+.re-form-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
+}
+
+.re-form-body::-webkit-scrollbar { width: 5px; }
+.re-form-body::-webkit-scrollbar-track { background: transparent; }
+.re-form-body::-webkit-scrollbar-thumb { background: var(--re-border-2); border-radius: 3px; }
+
+/* ── Form sections ── */
+.re-form-section {
+  margin-bottom: 8px;
+}
+
+.re-form-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--re-text-ter);
+  padding: 20px 0 8px;
+}
+
+.re-form-section__icon {
+  font-size: 13px;
+  color: var(--re-accent);
+}
+
+/* ── Cards ── */
 .re-card {
   background: var(--re-surface);
   border: 1px solid var(--re-border);
   border-radius: var(--re-radius);
-  padding: 14px;
-  box-shadow: var(--re-shadow);
-}
-.re-card__header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px;
-}
-.re-section-label {
-  font-size: 12px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .05em;
-  color: var(--re-text-3);
+  padding: 16px;
+  margin-bottom: 8px;
+  box-shadow: var(--re-shadow-sm);
 }
 
-/* ════════════════════════════════════════
-   9. LIST ITEMS (Experience, Education)
-   .re-list-item = กล่องแต่ละรายการ
-   --dragging = กำลังลาก (จาง + เงา)
-   --dragover = ตำแหน่งที่จะวาง (เส้น accent)
-   .re-add-form = ฟอร์มเพิ่มรายการใหม่ (dashed)
-════════════════════════════════════════ */
-.re-list-item {
-  background: var(--re-form-bg);
+.re-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* ── Section label ── */
+.re-section-label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.re-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--re-text-pri);
+  letter-spacing: .01em;
+}
+
+.re-section-label-sub {
+  font-size: 11px;
+  color: var(--re-text-ter);
+}
+
+/* ── Inputs ── */
+.re-input {
+  width: 100%;
+  padding: 8px 11px;
+  background: var(--re-surface-2);
   border: 1px solid var(--re-border);
   border-radius: var(--re-radius-sm);
-  padding: 10px; margin-bottom: 8px;
-  transition: border-color var(--re-transition), box-shadow var(--re-transition);
+  font-family: var(--re-font);
+  font-size: 13.5px;
+  color: var(--re-text-pri);
+  outline: none;
+  transition: border-color var(--re-transition), box-shadow var(--re-transition), background var(--re-transition);
+  line-height: 1.4;
 }
-.re-list-item:last-child { margin-bottom: 0; }
-.re-list-item--dragging  { opacity: .4; box-shadow: var(--re-shadow-mid); }
-.re-list-item--dragover  { border-color: var(--re-accent); box-shadow: 0 0 0 2px var(--re-accent-lite); }
 
-.re-list-item__head {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; gap: 8px; margin-bottom: 8px;
+.re-input:focus {
+  border-color: var(--re-accent);
+  background: var(--re-surface);
+  box-shadow: 0 0 0 3px var(--re-accent-lite);
 }
-.re-list-item__title { font-size: 13px; font-weight: 600; color: var(--re-text-1); }
-.re-list-item__sub   { font-size: 12px; color: var(--re-text-3); margin-top: 2px; }
-.re-list-item__meta  { display: flex; align-items: center; gap: 6px; }
-/* ไอคอน drag (⠿) */
-.re-drag-handle { color: var(--re-text-3); cursor: grab; font-size: 14px; padding: 2px; }
-.re-drag-handle:active { cursor: grabbing; }
 
-/* ฟอร์มเพิ่มรายการใหม่ */
-.re-add-form {
-  background: var(--re-form-bg);
-  border: 1px dashed var(--re-border-mid);
+.re-input::placeholder { color: var(--re-text-ter); }
+
+.re-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+.re-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--re-font);
+}
+
+.re-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.re-input-full { grid-column: 1 / -1; }
+
+.re-field-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--re-text-sec);
+  margin-bottom: 4px;
+  letter-spacing: .01em;
+}
+
+/* ── Char count ── */
+.re-char-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--re-text-ter);
+  margin-top: 6px;
+  font-family: var(--re-mono);
+}
+
+.re-char-count--warn { color: var(--re-warn); }
+.re-char-count__hint { color: var(--re-warn); }
+
+/* ── Buttons ── */
+.re-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
   border-radius: var(--re-radius-sm);
-  padding: 12px; margin-top: 8px;
+  border: 1px solid transparent;
+  font-family: var(--re-font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--re-transition);
+  line-height: 1;
+  white-space: nowrap;
 }
-/* แถว input + ปุ่มเพิ่ม (skills) */
-.re-add-row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
 
-/* ════════════════════════════════════════
-   10. SKILLS & AUTOCOMPLETE
-   .re-tags-wrap = พื้นที่ skill tags
-   .re-tag = chip แต่ละ skill
-   .re-tag__x = ปุ่มลบ skill
-   .re-autocomplete = dropdown (absolute)
-   .re-autocomplete__item = แต่ละ suggestion
-════════════════════════════════════════ */
+.re-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.re-btn-primary {
+  background: var(--re-accent);
+  color: #fff;
+  border-color: var(--re-accent);
+}
+.re-btn-primary:not(:disabled):hover {
+  background: var(--re-accent-mid);
+  border-color: var(--re-accent-mid);
+  box-shadow: 0 2px 8px rgba(30,58,95,.25);
+}
+
+.re-btn-ghost {
+  background: transparent;
+  color: var(--re-text-sec);
+  border-color: var(--re-border);
+}
+.re-btn-ghost:not(:disabled):hover {
+  background: var(--re-surface-2);
+  color: var(--re-text-pri);
+  border-color: var(--re-border-2);
+}
+
+.re-btn-danger {
+  background: transparent;
+  color: var(--re-err);
+  border-color: transparent;
+  font-size: 12px;
+  padding: 5px 8px;
+}
+.re-btn-danger:not(:disabled):hover {
+  background: var(--re-err-bg);
+  border-color: var(--re-err);
+}
+
+.re-btn-icon {
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.re-btn-ai {
+  background: linear-gradient(135deg, #1e3a5f, #4a2d6b);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  padding: 6px 11px;
+}
+.re-btn-ai:not(:disabled):hover {
+  background: linear-gradient(135deg, #2e5487, #5a3d85);
+  box-shadow: 0 2px 8px rgba(74,45,107,.3);
+}
+
+.re-btn-sm { padding: 5px 10px; font-size: 12px; }
+
+.re-btn-export {
+  background: var(--re-accent);
+  color: #fff;
+  border-color: var(--re-accent);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+.re-btn-export:not(:disabled):hover {
+  background: var(--re-accent-mid);
+  border-color: var(--re-accent-mid);
+  box-shadow: 0 2px 8px rgba(30,58,95,.25);
+}
+
+/* ── Tags ── */
 .re-tags-wrap {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  min-height: 28px; margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-height: 28px;
 }
-/* pill shape สี accent */
+
 .re-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px;
-  background: var(--re-accent-lite); color: var(--re-accent);
-  border: 1px solid var(--re-accent-lite); border-radius: 999px;
-  font-size: 12px; font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px 4px 10px;
+  background: var(--re-accent-lite);
+  color: var(--re-accent);
+  border: 1px solid color-mix(in srgb, var(--re-accent) 20%, transparent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
 }
+
 .re-tag__x {
-  background: none; border: none; color: inherit;
-  cursor: pointer; opacity: .6; font-size: 14px; padding: 0 1px; line-height: 1;
+  background: none;
+  border: none;
+  color: var(--re-accent);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: .6;
+  transition: opacity var(--re-transition);
+  padding: 0;
 }
 .re-tag__x:hover { opacity: 1; }
-.re-skills-count { font-size: 11px; color: var(--re-text-3); }
 
-/* dropdown suggestion ใต้ input (absolute) */
+.re-skills-count {
+  font-size: 11px;
+  color: var(--re-text-ter);
+  font-family: var(--re-mono);
+  padding-top: 2px;
+}
+
+/* ── Autocomplete ── */
+.re-add-row {
+  position: relative;
+}
+
+.re-add-row__inner {
+  display: flex;
+  gap: 8px;
+}
+
+.re-add-row__inner .re-input { flex: 1; }
+
 .re-autocomplete {
-  position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: var(--re-surface);
-  border: 1px solid var(--re-border-mid);
+  border: 1px solid var(--re-border);
   border-radius: var(--re-radius-sm);
-  box-shadow: var(--re-shadow-mid);
-  z-index: 50; overflow: hidden;
+  box-shadow: var(--re-shadow-md);
+  z-index: 100;
+  overflow: hidden;
 }
+
 .re-autocomplete__item {
-  padding: 8px 12px; font-size: 13px; cursor: pointer;
-  color: var(--re-text-1); transition: background var(--re-transition);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--re-text-sec);
+  cursor: pointer;
+  transition: background var(--re-transition);
 }
-/* hover ทั้งเมาส์และ keyboard (hoverId state ใน JSX) */
-.re-autocomplete__item--hover,
-.re-autocomplete__item:hover { background: var(--re-bg); }
 
-/* ════════════════════════════════════════
-   11. LANGUAGES
-   .re-lang-row = แถว: ชื่อภาษา + select ระดับ + ปุ่มลบ
-   .re-lang-select = select กว้างคงที่
-════════════════════════════════════════ */
-.re-lang-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-.re-lang-select { width: 130px; flex-shrink: 0; }
+.re-autocomplete__item:hover,
+.re-autocomplete__item--hover {
+  background: var(--re-accent-lite);
+  color: var(--re-accent);
+}
 
-/* ════════════════════════════════════════
-   12. JOB ROLE KEYWORDS
-   .re-keyword-chip = chip แต่ละ keyword
-     default  = ยังไม่เพิ่ม (outline)
-     --added  = เพิ่มแล้ว (เขียว)
-     :disabled = skill เต็ม (จาง)
-════════════════════════════════════════ */
-.re-keywords-label { margin-bottom: 8px; }
-.re-keywords-wrap  { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
-.re-keywords-hint  { font-size: 12px; color: var(--re-text-3); font-style: italic; }
-.re-keywords-ok    { display: flex; gap: 5px; font-size: 12px; color: var(--re-ok); margin-top: 4px; }
+/* ── List items (experience/education) ── */
+.re-list-item {
+  border: 1px solid var(--re-border);
+  border-radius: var(--re-radius-sm);
+  margin-bottom: 8px;
+  background: var(--re-surface-2);
+  transition: border-color var(--re-transition), box-shadow var(--re-transition);
+  overflow: hidden;
+}
+
+.re-list-item:hover { border-color: var(--re-border-2); }
+
+.re-list-item--dragging {
+  opacity: .5;
+  box-shadow: var(--re-shadow-lg);
+}
+
+.re-list-item--dragover {
+  border-color: var(--re-accent);
+  box-shadow: 0 0 0 2px var(--re-accent-lite);
+}
+
+.re-list-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.re-list-item__head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.re-list-item__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--re-text-pri);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.re-list-item__sub {
+  font-size: 12px;
+  color: var(--re-text-sec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.re-list-item__date {
+  color: var(--re-text-ter);
+}
+
+.re-list-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.re-list-item__chevron {
+  font-size: 10px;
+  color: var(--re-text-ter);
+  width: 20px;
+  text-align: center;
+}
+
+.re-list-item__body {
+  padding: 12px;
+  border-top: 1px solid var(--re-border);
+  background: var(--re-surface);
+}
+
+.re-drag-handle {
+  color: var(--re-text-ter);
+  cursor: grab;
+  font-size: 14px;
+  user-select: none;
+  flex-shrink: 0;
+}
+.re-drag-handle:active { cursor: grabbing; }
+
+/* ── Add form ── */
+.re-add-form {
+  border: 1px solid var(--re-accent);
+  border-radius: var(--re-radius-sm);
+  padding: 14px;
+  background: var(--re-accent-lite);
+  margin-bottom: 8px;
+}
+
+.re-add-form--top { margin-bottom: 12px; }
+
+.re-add-form__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--re-accent);
+  margin-bottom: 12px;
+  letter-spacing: .01em;
+}
+
+.re-add-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ── Language row ── */
+.re-lang-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.re-lang-select { flex-shrink: 0; width: 130px; }
+
+/* ── Empty states ── */
+.re-empty-hint {
+  font-size: 12px;
+  color: var(--re-text-ter);
+  font-style: italic;
+}
+
+.re-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--re-text-ter);
+}
+
+.re-empty-state__icon {
+  font-size: 24px;
+  opacity: .4;
+}
+
+.re-empty-state p {
+  font-size: 13px;
+  color: var(--re-text-ter);
+}
+
+/* ── Keywords ── */
+.re-keywords-block {
+  margin-top: 10px;
+}
+
+.re-keywords-label { margin-bottom: 8px !important; }
+
+.re-keywords-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
 .re-keyword-chip {
-  padding: 3px 8px; font-size: 12px;
-  border: 1px solid var(--re-border-mid); border-radius: 999px;
-  background: var(--re-surface); color: var(--re-text-2);
+  padding: 4px 10px;
+  border: 1px solid var(--re-border-2);
+  border-radius: 999px;
+  background: var(--re-surface);
+  font-size: 12px;
+  color: var(--re-text-sec);
   cursor: pointer;
-  transition: background var(--re-transition), color var(--re-transition), border-color var(--re-transition);
+  transition: all var(--re-transition);
+  font-family: var(--re-font);
 }
-.re-keyword-chip:hover:not(:disabled) { background: var(--re-accent-lite); color: var(--re-accent); border-color: var(--re-accent); }
-/* เพิ่มแล้ว → เขียว */
-.re-keyword-chip--added { background: var(--re-ok-bg); color: var(--re-ok); border-color: #a7f3d0; }
-.re-keyword-chip:disabled { opacity: .4; cursor: not-allowed; }
 
-/* ════════════════════════════════════════
-   13. COMPLETION PANEL
-   .re-completion-pct = ตัวเลข % (สีเปลี่ยนตาม threshold)
-   .re-progress-wrap  = track
-   .re-progress-bar   = bar (transition width 400ms)
-   modifier --high/--mid/--low กำหนดสีทั้ง bar และตัวเลข
-════════════════════════════════════════ */
-.re-completion-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.re-completion-pct { font-size: 15px; font-weight: 700; }
-.re-completion-pct--high { color: var(--re-ok); }    /* ≥80% */
-.re-completion-pct--mid  { color: var(--re-warn); }  /* 50-79% */
-.re-completion-pct--low  { color: var(--re-err); }   /* <50% */
-
-.re-progress-wrap {
-  height: 6px; background: var(--re-border);
-  border-radius: 999px; overflow: hidden; margin-bottom: 10px;
+.re-keyword-chip:not(:disabled):hover {
+  background: var(--re-accent-lite);
+  color: var(--re-accent);
+  border-color: color-mix(in srgb, var(--re-accent) 30%, transparent);
 }
-.re-progress-bar { height: 100%; border-radius: 999px; transition: width 400ms ease; }
-.re-progress-bar--high { background: var(--re-ok); }
-.re-progress-bar--mid  { background: var(--re-warn); }
-.re-progress-bar--low  { background: var(--re-err); }
 
-.re-completion-hints { display: flex; flex-direction: column; gap: 4px; }
-.re-completion-hint { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--re-text-3); }
-.re-completion-hint--ok { color: var(--re-ok); }
+.re-keyword-chip--added {
+  background: var(--re-ok-bg);
+  color: var(--re-ok);
+  border-color: color-mix(in srgb, var(--re-ok) 30%, transparent);
+  cursor: default;
+}
 
-/* ════════════════════════════════════════
-   14. FEEDBACK PANEL
-   .re-feedback-badge = pill จำนวน error/warn
-   .re-feedback-item  = รายการคำแนะนำ
-     --error = แดง | --warn = เหลือง | --ok = เขียว
-════════════════════════════════════════ */
-.re-feedback-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.re-feedback-badges { display: flex; gap: 5px; }
-.re-feedback-badge { padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.re-keywords-ok {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--re-ok);
+  margin-top: 8px;
+}
+
+.re-keywords-hint {
+  font-size: 12px;
+  color: var(--re-text-ter);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* ── Feedback ── */
+.re-feedback-wrap {
+  border: 1px solid var(--re-border);
+  border-radius: var(--re-radius-sm);
+  overflow: hidden;
+  background: var(--re-surface);
+}
+
+.re-feedback-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--re-font);
+  gap: 8px;
+}
+
+.re-feedback-trigger:hover { background: var(--re-surface-2); }
+
+.re-feedback-trigger__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.re-feedback-trigger__text {
+  font-size: 12px;
+  color: var(--re-text-sec);
+}
+
+.re-feedback-trigger__chevron {
+  font-size: 10px;
+  color: var(--re-text-ter);
+}
+
+.re-feedback-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--re-radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.re-feedback-chip--ok {
+  background: var(--re-ok-bg);
+  color: var(--re-ok);
+  border: 1px solid color-mix(in srgb, var(--re-ok) 20%, transparent);
+}
+
+.re-feedback-list {
+  padding: 4px 0;
+  border-top: 1px solid var(--re-border);
+}
+
+.re-feedback-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.re-feedback-item--error { color: var(--re-err); background: var(--re-err-bg); }
+.re-feedback-item--warn  { color: var(--re-warn); }
+.re-feedback-item--ok    { color: var(--re-ok); background: var(--re-ok-bg); }
+
+.re-feedback-icon { flex-shrink: 0; font-size: 11px; width: 14px; text-align: center; }
+
+.re-feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .re-feedback-badge--error { background: var(--re-err-bg); color: var(--re-err); }
 .re-feedback-badge--warn  { background: var(--re-warn-bg); color: var(--re-warn); }
 
-.re-feedback-list { display: flex; flex-direction: column; gap: 5px; }
-.re-feedback-item {
-  display: flex; align-items: flex-start; gap: 7px;
-  font-size: 12.5px; padding: 5px 8px; border-radius: var(--re-radius-sm);
+/* ── Avatar ── */
+.re-avatar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
-.re-feedback-item--error { background: var(--re-err-bg);  color: #991b1b; }
-.re-feedback-item--warn  { background: var(--re-warn-bg); color: #92400e; }
-.re-feedback-item--ok    { background: var(--re-ok-bg);   color: #065f46; }
-.re-feedback-icon { font-size: 12px; margin-top: 1px; flex-shrink: 0; }
 
-/* ════════════════════════════════════════
-   15. AVATAR / PROFILE IMAGE
-   .re-avatar = วงกลม (dashed = ไม่มีรูป)
-   .re-avatar-meta = ชื่อ + ขนาดไฟล์ + ปุ่ม
-════════════════════════════════════════ */
-.re-avatar-wrap { display: flex; align-items: center; gap: 14px; }
 .re-avatar {
-  width: 68px; height: 68px; border-radius: 50%;
-  background: var(--re-form-bg);
-  border: 2px dashed var(--re-border-mid); /* dashed = ยังไม่มีรูป */
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; overflow: hidden; flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--re-surface-3);
+  border: 2px dashed var(--re-border-2);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition: border-color var(--re-transition);
 }
-.re-avatar:hover { border-color: var(--re-accent); }
-.re-avatar img   { width: 100%; height: 100%; object-fit: cover; }
-.re-avatar-meta  { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--re-text-2); }
-.re-avatar-meta p { font-size: 13px; font-weight: 500; color: var(--re-text-1); }
-.re-avatar-meta span { color: var(--re-text-3); }
-.re-avatar-actions { display: flex; gap: 5px; margin-top: 4px; }
 
-/* ════════════════════════════════════════
-   16. BANNERS
-   .re-draft-banner = แจ้ง "พบ draft ใน localStorage"
-   sticky top=0 เห็นเสมอแม้จะ scroll
-════════════════════════════════════════ */
-.re-draft-banner {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 8px 16px;
-  background: #fefce8; border-bottom: 1px solid #fde68a;
-  font-size: 12px; color: #92400e;
-  flex-shrink: 0; width: 100%;
-  position: sticky; top: 0; z-index: 30;
-}
-.re-dark .re-draft-banner { background: #1c1400; border-color: #44300a; color: #fbbf24; }
-.re-draft-banner__actions { display: flex; gap: 5px; }
+.re-avatar:hover { border-color: var(--re-accent); border-style: solid; }
 
-/* ════════════════════════════════════════
-   17. TOAST
-   Popup มุมล่างขวา — แสดง 3.2 วินาที (JS setTimeout)
-   animation: เลื่อนขึ้น + fade in
-════════════════════════════════════════ */
-.re-toast {
-  position: fixed; bottom: 24px; right: 24px;
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 16px;
-  border-radius: var(--re-radius);
-  font-size: 13px; font-weight: 500;
-  box-shadow: 0 4px 16px rgba(0,0,0,.15);
-  z-index: 9999; /* ลอยเหนือทุกอย่าง */
-  animation: re-toast-in 200ms ease;
-}
-@keyframes re-toast-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.re-toast--success { background: #065f46; color: #fff; }
-.re-toast--error   { background: var(--re-err); color: #fff; }
-.re-toast--info    { background: var(--re-accent); color: #fff; }
+.re-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ════════════════════════════════════════
-   18. DIALOG (Delete Confirm)
-   .re-dialog-overlay = backdrop มืดทั้งหน้า
-   .re-dialog = กล่อง dialog ตรงกลาง
-   animation: scale in
-════════════════════════════════════════ */
-.re-dialog-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 9000; /* ต่ำกว่า toast */
-  display: flex; align-items: center; justify-content: center;
+.re-avatar__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
 }
-.re-dialog {
-  background: var(--re-surface);
-  border: 1px solid var(--re-border);
-  border-radius: var(--re-radius-lg);
-  padding: 24px 28px;
-  max-width: 360px; width: 90%;
-  box-shadow: 0 20px 40px rgba(0,0,0,.2);
-  animation: re-dialog-in 180ms ease;
-}
-@keyframes re-dialog-in {
-  from { opacity: 0; transform: scale(.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.re-dialog__title   { font-size: 15px; font-weight: 600; color: var(--re-text-1); margin-bottom: 6px; }
-.re-dialog__desc    { font-size: 13px; color: var(--re-text-2); line-height: 1.55; margin-bottom: 18px; }
-.re-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-/* ════════════════════════════════════════
-   19. SPINNER
-   วงกลมหมุน — border-top trick
-   .re-spinner      = ขาว (บนปุ่มสี)
-   .re-spinner-dark = เข้ม (บนพื้นขาว)
-════════════════════════════════════════ */
-.re-spinner {
-  display: inline-block; width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,.35); /* วงกลมจาง */
-  border-top-color: #fff;                  /* ส่วนที่มองเห็น */
+.re-avatar__placeholder span:first-child { font-size: 1.8rem; opacity: .25; }
+.re-avatar__hint { font-size: 9px; color: var(--re-text-ter); text-align: center; }
+
+.re-avatar-meta__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--re-text-pri);
+  margin-bottom: 2px;
+}
+
+.re-avatar-meta__hint {
+  font-size: 11px;
+  color: var(--re-text-ter);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.re-avatar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Progress bar ── */
+.re-progress-wrap {
+  height: 4px;
+  background: var(--re-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.re-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .5s cubic-bezier(.4, 0, .2, 1);
+}
+
+.re-progress-bar--low  { background: var(--re-err); }
+.re-progress-bar--mid  { background: var(--re-warn); }
+.re-progress-bar--high { background: var(--re-ok); }
+
+.re-completion-pct {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--re-mono);
+}
+
+.re-completion-pct--low  { color: var(--re-err); }
+.re-completion-pct--mid  { color: var(--re-warn); }
+.re-completion-pct--high { color: var(--re-ok); }
+
+/* ── Autosave dot ── */
+.re-autosave-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  animation: re-spin 600ms linear infinite;
-  flex-shrink: 0;
+  background: var(--re-ok);
+  animation: re-pulse 2s ease-in-out infinite;
 }
-.re-spinner-dark { border-color: rgba(0,0,0,.15); border-top-color: var(--re-text-2); }
+
+@keyframes re-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* ── Spinner ── */
+.re-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: re-spin .6s linear infinite;
+}
+
+.re-spinner-dark {
+  border-color: rgba(0,0,0,.15);
+  border-top-color: var(--re-accent);
+}
+
 @keyframes re-spin { to { transform: rotate(360deg); } }
 
-/* ════════════════════════════════════════
-   20. MISC
-════════════════════════════════════════ */
-/* ข้อความ "ยังไม่มีข้อมูล" เมื่อ list ว่าง */
-.re-empty-hint { font-size: 12px; color: var(--re-text-3); font-style: italic; padding: 4px 0; }
+/* ── Toast ── */
+.re-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--re-radius);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: var(--re-shadow-lg);
+  animation: re-toast-in .25s cubic-bezier(.34, 1.56, .64, 1);
+  max-width: 360px;
+  backdrop-filter: blur(8px);
+}
 
-/* ════════════════════════════════════════
-   21. RESUME PAPER (Preview)
-   กล่องกระดาษสีขาว แสดง resume ด้านขวา
-   id="resume-preview-root" ← html2pdf capture ตรงนี้ตอน Export
+.re-toast--success { background: #0d1117; color: #3fb950; border: 1px solid #3fb950; }
+.re-toast--error   { background: #0d1117; color: #f85149; border: 1px solid #f85149; }
+.re-toast--info    { background: #0d1117; color: #79c0ff; border: 1px solid #79c0ff; }
 
-   โครงสร้างภายใน:
-     header (ชื่อ + รูป) — style เปลี่ยนตาม template ผ่าน inline style
-     .re-paper-rule — เส้นคั่น (ซ่อนสำหรับ minimal)
-     .re-paper-content — เนื้อหา
-       .re-sec — แต่ละหัวข้อ
-════════════════════════════════════════ */
-.re-paper {
-  width: 100%; max-width: 680px; /* กว้างสูงสุดเท่า A4 */
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.06);
+.re-toast__icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.re-toast--success .re-toast__icon { background: #3fb950; color: #000; }
+.re-toast--error .re-toast__icon   { background: #f85149; color: #fff; }
+.re-toast--info .re-toast__icon    { background: #79c0ff; color: #000; }
+
+@keyframes re-toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Draft banner ── */
+.re-draft-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  background: var(--re-warn-bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--re-warn) 30%, transparent);
+  z-index: 200;
+  font-size: 13px;
+  color: var(--re-warn);
+}
+
+.re-draft-banner__text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.re-draft-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--re-warn);
+}
+
+.re-draft-banner__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREVIEW PANEL
+══════════════════════════════════════════════════════════════ */
+.re-preview-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--re-surface-2);
   overflow: hidden;
-  min-height: 500px;
 }
-.re-dark .re-paper { background: #0e1621; box-shadow: 0 2px 8px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.06); }
 
-/* Empty state — ยังไม่มีข้อมูล */
+/* ── Preview topbar ── */
+.re-preview-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--re-surface);
+  border-bottom: 1px solid var(--re-border);
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.re-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.re-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Traffic lights */
+.re-traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.re-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.re-dot--red   { background: #ff5f57; }
+.re-dot--amber { background: #febc2e; }
+.re-dot--green { background: #28c840; }
+
+.re-preview-filename {
+  font-size: 12px;
+  color: var(--re-text-ter);
+  font-family: var(--re-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* Zoom controls */
+.re-zoom-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--re-surface-2);
+  border: 1px solid var(--re-border);
+  border-radius: var(--re-radius-sm);
+  overflow: hidden;
+}
+
+.re-zoom-btn {
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--re-text-sec);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--re-font);
+  transition: background var(--re-transition);
+}
+
+.re-zoom-btn:hover { background: var(--re-surface-3); }
+
+.re-zoom-label {
+  font-size: 11px;
+  color: var(--re-text-ter);
+  font-family: var(--re-mono);
+  padding: 0 4px;
+  min-width: 36px;
+  text-align: center;
+}
+
+/* Template switcher */
+.re-tmpl-switcher {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--re-border);
+  border-radius: var(--re-radius-sm);
+  overflow: hidden;
+}
+
+.re-tmpl-btn {
+  padding: 5px 10px;
+  background: var(--re-surface);
+  border: none;
+  border-right: 1px solid var(--re-border);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--re-text-ter);
+  cursor: pointer;
+  font-family: var(--re-font);
+  transition: all var(--re-transition);
+}
+
+.re-tmpl-btn:last-child { border-right: none; }
+
+.re-tmpl-btn:hover { background: var(--re-surface-2); color: var(--re-text-pri); }
+
+.re-tmpl-btn--active {
+  background: var(--re-accent-lite);
+  color: var(--re-accent);
+  font-weight: 600;
+}
+
+/* Preview scroll */
+.re-preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.re-preview-scroll::-webkit-scrollbar { width: 5px; }
+.re-preview-scroll::-webkit-scrollbar-track { background: transparent; }
+.re-preview-scroll::-webkit-scrollbar-thumb { background: var(--re-border-2); border-radius: 3px; }
+
+.re-preview-zoom-wrap {
+  width: 100%;
+  max-width: 720px;
+  transition: transform .2s ease;
+  transform-origin: top center;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESUME PAPER
+══════════════════════════════════════════════════════════════ */
+.re-paper {
+  width: 100%;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.06),
+    0 8px 24px rgba(0,0,0,.08),
+    0 24px 48px rgba(0,0,0,.04);
+  overflow: hidden;
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  position: relative;
+}
+
+.re-dark .re-paper {
+  background: #1c2230;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+
+/* Template variations */
+.re-paper--bold .re-paper-stripe { height: 8px; }
+.re-paper--minimal .re-paper-stripe { height: 2px; }
+.re-paper--forest .re-paper-stripe { height: 5px; }
+
 .re-paper-empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 14px; padding: 80px 32px; text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px;
+  gap: 12px;
+  min-height: 400px;
 }
-.re-paper-empty__icon { font-size: 2.5rem; }
-.re-paper-empty__text { font-size: 14px; color: #9ca3af; line-height: 1.7; }
 
-/* Hero: รูป + ชื่อ + ตำแหน่ง */
-.re-paper-hero { display: flex; align-items: center; gap: 18px; padding: 28px 32px 20px; }
+.re-paper-empty__icon { font-size: 40px; opacity: .2; }
+
+.re-paper-empty__text {
+  text-align: center;
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+.re-paper-stripe {
+  height: 5px;
+  width: 100%;
+}
+
+.re-paper-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 32px 24px;
+}
+
 .re-paper-avatar {
-  width: 70px; height: 70px; border-radius: 50%;
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
+
 .re-paper-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.re-paper-meta  { flex: 1; min-width: 0; }
-.re-paper-name  { font-size: 1.35rem; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
-.re-paper-title { font-size: .9rem; font-weight: 500; }
 
-.re-paper-rule { height: 1px; margin: 0 32px; }
-.re-paper-content { padding: 20px 32px 28px; display: flex; flex-direction: column; gap: 20px; }
-.re-paper-summary { font-size: .875rem; line-height: 1.7; }
+.re-paper-meta { flex: 1; min-width: 0; }
 
-/* แต่ละหัวข้อ: label + เส้นขวาง + content */
-.re-sec { display: flex; flex-direction: column; gap: 10px; }
-.re-sec__head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
-.re-sec__label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
-/* เส้นขวางยืดเต็ม — สีตาม accent ของ template */
-.re-sec__rule  { flex: 1; height: 1px; background: currentColor; opacity: .18; }
-
-/* ── Experience ── */
-.re-exp-item  { padding-bottom: 12px; margin-bottom: 12px; }
-.re-exp-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.re-exp-pos   { font-size: .875rem; font-weight: 600; }
-.re-exp-co    { font-size: .8rem; font-weight: 600; margin-top: 1px; } /* สี accent */
-.re-exp-date  { font-size: .75rem; margin-top: 2px; }
-.re-exp-desc  { font-size: .8rem; line-height: 1.6; margin-top: 5px; }
-
-/* ── Education ── */
-.re-edu-item   { margin-bottom: 10px; }
-.re-edu-item:last-child { margin-bottom: 0; }
-.re-edu-school { font-size: .875rem; font-weight: 600; }
-.re-edu-degree { font-size: .8rem; margin-top: 2px; }
-.re-edu-years  { font-size: .75rem; margin-top: 1px; }
-
-/* ── Skills ── chip style ถูก override ด้วย inline style ตาม template */
-.re-paper-skills { display: flex; flex-wrap: wrap; gap: 6px; }
-.re-paper-skill  { padding: 4px 10px; font-size: .78rem; font-weight: 500; }
-
-/* ── Languages ── progress bar ความกว้างจาก LANG_LEVEL_PCT ใน JSX */
-.re-lang-grid { display: flex; flex-direction: column; gap: 8px; }
-.re-lang-item { display: flex; flex-direction: column; gap: 4px; }
-.re-lang-row-p { display: flex; justify-content: space-between; align-items: baseline; }
-.re-lang-name { font-size: .83rem; font-weight: 600; }
-.re-lang-lvl  { font-size: .75rem; }
-.re-lang-track { height: 5px; border-radius: 999px; overflow: hidden; }
-.re-lang-fill  { height: 100%; border-radius: 999px; transition: width 500ms ease; }
-
-/* ════════════════════════════════════════
-   22. RESPONSIVE
-   <900px: stack เป็น 1 คอลัมน์ (form บน, preview ล่าง)
-   <540px: ลด padding, input 1 คอลัมน์, ซ่อน template switcher
-════════════════════════════════════════ */
-@media (max-width: 900px) {
-  /* คืน scroll ให้ html/body เพราะ layout เปลี่ยนเป็น column */
-  html, body, #root { overflow: auto; }
-  .re-page {
-    flex-direction: column; /* stack บนล่าง */
-    height: auto; min-height: 100vh; overflow: auto;
-  }
-  .re-form-panel {
-    width: 100%; min-width: 0; height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--re-border);
-    max-height: 55vh; /* กัน preview หาย */
-  }
-  .re-preview-panel { min-height: 50vh; height: auto; }
-  .re-form-header__actions { flex-wrap: wrap; }
+.re-paper-name {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+  line-height: 1.2;
+  margin-bottom: 4px;
 }
 
-@media (max-width: 540px) {
-  .re-form-body      { padding: 10px; }
-  .re-paper-hero     { padding: 20px 18px 14px; }
-  .re-paper-content  { padding: 14px 18px 20px; }
-  .re-preview-scroll { padding: 16px 10px; }
-  /* input 1 คอลัมน์บนมือถือ */
-  .re-input-grid { grid-template-columns: 1fr; }
-  .re-input-full { grid-column: auto; }
-  .re-tmpl-switcher { display: none; } /* ซ่อนบนจอเล็ก */
+.re-paper-title {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .01em;
+}
+
+.re-paper-rule {
+  height: 1px;
+  margin: 0 32px;
+}
+
+.re-paper-content {
+  padding: 20px 32px 32px;
+}
+
+/* Paper sections */
+.re-sec {
+  margin-bottom: 20px;
+}
+
+.re-sec__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.re-sec__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.re-sec__rule {
+  flex: 1;
+  height: 1px;
+}
+
+/* Summary */
+.re-paper-summary {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* Experience */
+.re-exp-item {
+  padding: 10px 0;
+}
+
+.re-exp-item:last-child { border-bottom: none !important; }
+
+.re-exp-pos { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.re-exp-co  { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+.re-exp-date { font-size: 11px; margin-bottom: 4px; font-family: var(--re-mono); }
+.re-exp-desc { font-size: 12px; line-height: 1.6; }
+
+/* Education */
+.re-edu-item { padding: 8px 0; }
+.re-edu-school { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.re-edu-degree { font-size: 12px; margin-bottom: 2px; }
+.re-edu-years  { font-size: 11px; font-family: var(--re-mono); }
+
+/* Skills */
+.re-paper-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.re-paper-skill {
+  display: inline-flex;
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+/* Languages */
+.re-lang-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+}
+
+.re-lang-item { }
+
+.re-lang-row-p {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.re-lang-name { font-size: 12px; font-weight: 500; }
+.re-lang-lvl  { font-size: 10px; }
+
+.re-lang-track {
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.re-lang-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .4s ease;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — hide preview on small screens
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .re-page {
+    grid-template-columns: var(--re-sidebar-w) 1fr;
+  }
+  .re-preview-panel { display: none; }
+}
+
+@media (max-width: 720px) {
+  .re-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .re-sidebar { display: none; }
+  .re-form-panel { height: 100vh; }
 }

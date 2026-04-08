@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { usePagination } from '../hooks/usePagination';
 import PaginationBar from '../components/PaginationBar';
-import { FaArrowLeft, FaUser, FaStar} from 'react-icons/fa';
+import { FaArrowLeft, FaUser, FaStar, FaBolt } from 'react-icons/fa';
 import { RiChatSmile3Line } from "react-icons/ri";
 import { FiChevronDown } from 'react-icons/fi';
 import './ManageApplicants.css';
@@ -214,16 +214,26 @@ export default function ManageApplicants() {
                         : '—'}
                     </p>
                     {app.matchScore !== undefined && (
-                      <p style={{
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '3px 9px',
+                        borderRadius: '20px',
                         fontSize: '11px',
-                        fontWeight: 600,
-                        color: app.matchScore >= 70 ? '#16a34a'
-                             : app.matchScore >= 40 ? '#ca8a04'
-                             : '#dc2626',
-                        marginTop: '4px'
+                        fontWeight: 500,
+                        marginTop: '4px',
+                        ...(app.matchScore >= 70
+                          ? { background: '#dcfce7', color: '#166534', border: '0.5px solid #bbf7d0' }
+                          : app.matchScore >= 40
+                          ? { background: '#dbeafe', color: '#1e40af', border: '0.5px solid #bfdbfe' }
+                          : { background: '#fef3c7', color: '#92400e', border: '0.5px solid #fde68a' })
                       }}>
-                        ⚡ {app.matchScore}% Match
-                      </p>
+                        <FaBolt style={{ fontSize: '10px',
+                          color: app.matchScore >= 70 ? '#16a34a' : app.matchScore >= 40 ? '#2563eb' : '#d97706'
+                        }} />
+                        {app.matchScore}% Match
+                      </span>
                     )}
                     {app.skills && app.skills.length > 0 && (
                       <div style={{ marginTop: '6px' }}>

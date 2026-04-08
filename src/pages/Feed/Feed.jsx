@@ -640,7 +640,7 @@ export default function Feed() {
                               
                       {/* <i class="bi bi-card-image"></i> */}
 
-                      <i class="bi bi-camera-fill"></i>
+                      <i className="bi bi-camera-fill"></i>
 
                     </label>
                   </div>
@@ -941,7 +941,7 @@ export default function Feed() {
                               loadComments(post.id);
                             }}
                           >
-                            <i class="bi bi-chat"></i>{" "}
+                            <i className="bi bi-chat"></i>{" "}
                             {(comments[post.id] || []).length}
                           </span>
                         </div>

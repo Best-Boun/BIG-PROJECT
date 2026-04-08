@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Spinner } from "react-bootstrap";
-import { FaSearch, FaFilter, FaTimes, FaHeart } from "react-icons/fa";
+import { FaSearch, FaFilter, FaTimes, FaHeart, FaBolt } from "react-icons/fa";
 import JobCard from "../components/JobCard";
 import { calcMatchScore } from "../utils/skillMatch";
 import { usePagination } from "../hooks/usePagination";
@@ -513,7 +513,7 @@ export default function JobBrowse({ mode = "apply" }) {
                         transition: "all 0.2s",
                       }}
                     >
-                      ⚡ Recommended
+                      <FaBolt style={{color: "var(--color-accent)"}} /> Recommended
                     </button>
                   </div>
                 )}

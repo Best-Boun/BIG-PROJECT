@@ -98,12 +98,34 @@ const ModalFooter = ({ onSave, onCancel }) => (
   </div>
 );
 
+/* ── JWT Token Decoder Utility ─────────────────────────────────── */
+const decodeJWT = (token) => {
+  try {
+    if (!token || typeof token !== "string") {
+      console.warn("⚠️  Token is missing or invalid type");
+      return null;
+    }
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      console.warn("⚠️  Token format is invalid (expected 3 parts)");
+      return null;
+    }
+    const decoded = JSON.parse(atob(parts[1]));
+    return decoded;
+  } catch (err) {
+    console.error("❌ JWT decode failed:", err.message);
+    return null;
+  }
+};
+
 /* ══════════════════════════════════════════════════════════════
    ProfileEdit Component
    ══════════════════════════════════════════════════════════════ */
 function ProfileEdit({ onNavigate }) {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
+  // Fix: Try both "userID" and "userId" keys for cross-machine compatibility
+  const userId = localStorage.getItem("userID") || localStorage.getItem("userId");
+  console.log("ProfileEdit: userId retrieved from localStorage:", userId);
   const queryClient = useQueryClient();
   const getAuthHeaders = () => ({
     "Content-Type": "application/json",
@@ -393,29 +415,112 @@ const openModal = (modalType, item = null) => {
   };
 
   const handleSave = async () => {
-    console.log("handleSave called, userId:", userId);
-    console.log("profile:", profile);
+    console.log("════════════════════════════════════════════════════════════");
+    console.log("🔐 handleSave: Starting authentication check");
+    console.log("════════════════════════════════════════════════════════════");
+    
+    // 1. Validate userId
+    console.log("1️⃣  Checking userId...");
     if (!userId) {
-      console.log("userId is null, returning early");
+      console.error("❌ userId is null or undefined - cannot save profile");
+      alert("Error: User ID not found. Please login again.");
       return;
     }
+    console.log("✅ userId found:", userId, `(type: ${typeof userId})`);
+    
+    // 2. Retrieve token
+    console.log("\n2️⃣  Retrieving token from localStorage...");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("❌ Token is null or undefined - cannot authenticate request");
+      alert("Session expired. Please login again.");
+      return;
+    }
+    console.log("✅ Token retrieved (length: " + token.length + " chars)");
+    
+    // 3. Decode JWT and extract user ID
+    console.log("\n3️⃣  Decoding JWT token...");
+    const decoded = decodeJWT(token);
+    if (!decoded) {
+      console.error("❌ Failed to decode JWT token");
+      alert("Invalid session token. Please login again.");
+      return;
+    }
+    console.log("✅ JWT decoded successfully");
+    console.log("   Token payload:", decoded);
+    
+    // 4. Extract user ID from token
+    const tokenUserId = decoded.id || decoded.userId || decoded.sub;
+    console.log("\n4️⃣  Extracting userId from token payload...");
+    console.log("   Token userId field:", tokenUserId);
+    
+    // 5. Compare token userId with request userId
+    console.log("\n5️⃣  Validating userId match...");
+    const requestUserIdNum = parseInt(userId, 10);
+    const tokenUserIdNum = parseInt(tokenUserId, 10);
+    
+    console.log("   Request userId:", requestUserIdNum, `(type: ${typeof requestUserIdNum})`);
+    console.log("   Token userId:  ", tokenUserIdNum, `(type: ${typeof tokenUserIdNum})`);
+    
+    if (requestUserIdNum !== tokenUserIdNum) {
+      console.error("❌ MISMATCH: Token userId does not match requested userId");
+      console.error("   Request:", requestUserIdNum, "vs Token:", tokenUserIdNum);
+      alert("Authentication mismatch. Your session may be invalid.\n\nPlease login again.");
+      return;
+    }
+    console.log("✅ userId match confirmed");
+    
+    // 6. Validate token expiration
+    console.log("\n6️⃣  Checking token expiration...");
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = decoded.exp;
+    if (expiresAt) {
+      const secondsUntilExpiry = expiresAt - now;
+      console.log("   Token expires at:", new Date(expiresAt * 1000).toLocaleString());
+      console.log("   Current time:    ", new Date(now * 1000).toLocaleString());
+      console.log("   Seconds until expiry:", secondsUntilExpiry);
+      
+      if (secondsUntilExpiry < 0) {
+        console.error("❌ Token has expired");
+        alert("Session expired. Please login again.");
+        return;
+      }
+      if (secondsUntilExpiry < 300) {
+        console.warn("⚠️  Token expiring soon (less than 5 minutes)");
+      } else {
+        console.log("✅ Token is still valid");
+      }
+    }
+    
+    console.log("\n════════════════════════════════════════════════════════════");
+    console.log("✅ All authentication checks passed");
+    console.log("🚀 Sending PUT request to /api/profiles/" + userId);
+    console.log("════════════════════════════════════════════════════════════\n");
+    
     try {
       const res = await fetch(`http://localhost:3000/api/profiles/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(profile),
       });
-      if (!res.ok) throw new Error("Save failed");
-
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        const errMsg = error.error || `HTTP ${res.status}: ${res.statusText}`;
+        console.error("❌ Server returned error:", res.status, errMsg);
+        throw new Error(errMsg);
+      }
+      
+      console.log("✅ Save successful (HTTP 200)");
       await queryClient.refetchQueries({ queryKey: ["profile", userId] });
       setShowSuccessAlert(true);
       setTimeout(() => setShowSuccessAlert(false), 3000);
     } catch (err) {
-      console.error("Save failed:", err);
-      alert("Failed to save profile");
+      console.error("❌ Save failed:", err.message);
+      alert("Failed to save profile: " + err.message);
     }
   };
 

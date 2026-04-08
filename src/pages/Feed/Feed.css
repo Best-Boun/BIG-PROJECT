@@ -470,14 +470,3 @@ body.layout-compact .feed-container {
 
   overscroll-behavior: contain;
 }
-.upload-btn {
-  background: #f0f2f5;
-  padding: 8px 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.upload-btn:hover {
-  background: #e4e6eb;
-}

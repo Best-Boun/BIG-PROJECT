@@ -637,7 +637,11 @@ export default function Feed() {
 
                     {/* 🔥 ปุ่ม */}
                     <label htmlFor="upload-image" className="upload-btn ms-2">
-                      📷
+                              
+                      {/* <i class="bi bi-card-image"></i> */}
+
+                      <i class="bi bi-camera-fill"></i>
+
                     </label>
                   </div>
 
@@ -937,7 +941,8 @@ export default function Feed() {
                               loadComments(post.id);
                             }}
                           >
-                            💬 {(comments[post.id] || []).length}
+                            <i class="bi bi-chat"></i>{" "}
+                            {(comments[post.id] || []).length}
                           </span>
                         </div>
                       </div>

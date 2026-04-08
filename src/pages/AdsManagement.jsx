@@ -252,20 +252,25 @@ function AdsManagement() {
   return (
     <motion.div className="sp-page-container">
       <div className="sp-header">
-        <h2>📢 SmartPersona — Ads Manager</h2>
+        <h2>
+          <i class="bi bi-megaphone"></i> SmartPersona — Ads Manager
+        </h2>
 
         <button className="sp-btn sp-btn-add" onClick={addAd}>
           + Create Ad
         </button>
       </div>
 
-      <input
-        className="sp-search"
-        placeholder="🔎 ค้นหาโฆษณา..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="sp-search-wrapper">
+        <i className="bi bi-search sp-search-icon"></i>
 
+        <input
+          className="sp-search"
+          placeholder="ค้นหาโฆษณา..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
       {loading ? (
         <div style={{ padding: 20 }}>Loading...</div>
       ) : (
@@ -318,9 +323,9 @@ function AdsManagement() {
                     }`}
                     onClick={() => toggleActive(ad.id)}
                   >
-                    {status === "showing" && "Active ✔"}
-                    {status === "hidden" && "⚠ Active but hidden"}
-                    {status === "inactive" && "Inactive ✖"}
+                    {status === "showing" && "Active"}
+                    {status === "hidden" && "Hidden"}
+                    {status === "inactive" && "Inactive"}
                   </button>
 
                   <div className="sp-row">

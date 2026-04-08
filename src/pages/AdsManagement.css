@@ -3,13 +3,13 @@
 ========================================================= */
 .sp-page-container {
   width: 92%;
-  max-width: 1250px;
+  max-width: 1100px;
   margin: 40px auto;
-  background: #e9e5e5;
-  padding: 30px;
-  border-radius: 22px;
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
   font-family: "Poppins", sans-serif;
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.06);
 }
 
 /* =========================================================
@@ -23,11 +23,9 @@
 }
 
 .sp-header h2 {
-  font-size: 1.7rem;
-  background: linear-gradient(90deg, #4d5eff, #b44dff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  font-size: 1.6rem;
+  color: #111827;
+  font-weight: 600;
 }
 
 /* =========================================================
@@ -35,10 +33,15 @@
 ========================================================= */
 .sp-search {
   width: 100%;
-  padding: 13px 16px;
-  border-radius: 14px;
-  border: 1px solid #2c2b2b;
-  margin-bottom: 25px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+.sp-search:focus {
+  border-color: #9ca3af;
 }
 
 /* =========================================================
@@ -46,55 +49,36 @@
 ========================================================= */
 .sp-ad-card {
   display: flex;
-  gap: 22px;
-  padding: 22px;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  background: #f3f1f1;
-  border: 1px solid #eeeefa;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.04);
+  gap: 18px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition: 0.15s;
 }
 
+.sp-ad-card:hover {
+  background: #fafafa;
+}
 /* LEFT: IMAGE */
 .sp-left {
   width: 130px;
 }
 
-.sp-img {
-  width: 130px;
-  height: 130px;
-  border-radius: 12px;
-  object-fit: cover;
-}
+
 
 /* POSITION-SPECIFIC */
-.sp-img.feed {
-  width: 130px;
-  height: 130px;
-}
-
-.sp-img.banner {
-  width: 100%;
-  height: 150px;
-  border-radius: 12px;
+.sp-img {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
   object-fit: cover;
 }
 
-/* SIZE PRESETS */
-.sp-img.small {
-  width: 90px;
-  height: 90px;
-}
 
-.sp-img.medium {
-  width: 130px;
-  height: 130px;
-}
 
-.sp-img.large {
-  width: 200px;
-  height: 200px;
-}
+
 
 /* Placeholder - card */
 .sp-no-image {
@@ -135,25 +119,25 @@
 }
 
 .sp-desc {
-  color: #666;
-  margin-top: 5px;
+  color: #6b7280;
+  margin-top: 4px;
 }
 
 .sp-date {
-  color: #999;
-  font-size: 0.82rem;
-  margin-top: 3px;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 2px;
 }
 
 /* =========================================================
    RIGHT SIDE BUTTONS
 ========================================================= */
 .sp-right {
-  min-width: 170px;
+  min-width: 150px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 8px;
 }
 
 .sp-row {
@@ -163,47 +147,57 @@
 
 /* STATUS TAGS */
 .sp-status {
-  padding: 8px 18px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .sp-status.active {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: rgb(240, 238, 238);
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sp-status.warning {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .sp-status.inactive {
-  background: linear-gradient(135deg, #f6d365, #fca677);
-  color: #522f18;
+  background: #f8c360;
+  color: #0c2352;
 }
 
 /* =========================================================
    BUTTONS — FIXED, CLEANED, NO OVERRIDE
 ========================================================= */
 .sp-btn {
-  padding: 10px 16px;
-  border-radius: 12px;
-  font-weight: 600;
-  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #111827;
   cursor: pointer;
-  transition: 0.2s ease;
 }
 
 /* Main Buttons */
-.sp-btn-add { background: #5666ff; color: white !important; }
-.sp-btn-save { background: #2ecc71 !important; color: white !important; }
-
-/* Tools */
-.sp-btn-view {
-  background: linear-gradient(135deg, #dce8ff, #bcd3ff);
-  color: #2f4adf !important;
-  border: 1px solid #c9d8ff;
+.sp-btn-add {
+  background: #111827;
+  color: white;
+  border: none;
 }
-.sp-btn-edit { background: #ffd966; color: #5b450b !important; }
-.sp-btn-delete { background: #ff5a5a; color: white !important; }
+
+.sp-btn-view,
+.sp-btn-edit {
+  background: white;
+}
+
+.sp-btn-delete {
+  color: #ef4444;
+  border: none;
+}
 
 /* Small buttons */
 .sp-btn-save-small {
@@ -283,14 +277,12 @@
 /* =========================================================
    MODAL FIX — Small, Centered, Clean
 ========================================================= */
-.sp-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.sp-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 480px;
 }
 
 .sp-modal-card {
@@ -424,15 +416,23 @@ body.dark .sp-btn:hover {
 }
 
 /* ปุ่มดู / Edit / Delete รายการ */
-body.dark .sp-btn-view {
-  background: #334155 !important;
-  border-color: #475569 !important;
-  color: #93c5fd !important;
+.sp-btn-view {
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+.sp-btn-edit {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
 }
 
-body.dark .sp-btn-edit {
-  background: #fbbf24 !important;
-  color: #1f2937 !important;
+.sp-btn-delete {
+  color: #ef4444;
+  background: transparent;
+}
+
+.sp-btn-delete:hover {
+  background: #fee2e2;
 }
 
 body.dark .sp-btn-delete {
@@ -513,15 +513,7 @@ body.dark .preview-img {
    FEED STYLE PREVIEW
 ========================================================= */
 
-.sp-preview-bg{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.55);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-}
+
 
 .sp-preview-card{
   width:420px;
@@ -553,15 +545,9 @@ body.dark .preview-img {
   margin-bottom:16px;
 }
 
-.sp-preview-action{
-  background:linear-gradient(135deg,#ff4da6,#ff6b8a);
-  color:white;
-  border:none;
-  padding:11px 24px;
-  border-radius:10px;
-  font-weight:600;
-  cursor:pointer;
-  margin-bottom:12px;
+.sp-preview-action {
+  background: #111827;
+  color: white;
 }
 
 .sp-preview-close{
@@ -629,13 +615,13 @@ body.dark .preview-img {
   box-shadow:0 10px 18px rgba(0,0,0,0.25);
 }
 
-.sp-btn-cancel{
-  background:#9ca3af !important;
-  color:white !important;
+.sp-btn-cancel {
+  background:#f75353;
+  color:#ffffff;
 }
 
-.sp-btn-cancel:hover{
-  background:#6b7280 !important;
+.sp-btn-cancel:hover {
+  background:#e5e7eb;
 }
 
 .sp-status.warning{
@@ -649,4 +635,33 @@ body.dark .preview-img {
 .sp-btn {
   transition: all 0.15s ease;
   cursor: pointer;
+}
+.sp-btn-save {
+  background: #2563eb;
+  color: white;
+  border: none;
+}
+
+.sp-btn-save:hover {
+  background: #1d4ed8;
+}
+.sp-search-wrapper {
+  position: relative;
+}
+.sp-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 21px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 16px;
+  pointer-events: none;
+}
+.sp-search {
+  height: 42px;          /* 🔥 ใส่อันนี้ */
+  padding-left: 36px;
+  line-height: 42px;     /* 🔥 ตัวนี้ช่วย align */
+}
+.sp-search:focus + .sp-search-icon {
+  color: #2563eb;
 }

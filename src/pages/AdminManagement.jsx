@@ -203,7 +203,9 @@ function AdminManagement() {
     <div className="page-container admin-page">
       {/* ===== HEADER ===== */}
       <div className="am-header">
-        <h2>👥 User Management</h2>
+        <h2>
+          <i class="bi bi-people"></i> User Management
+        </h2>
         <div className="am-controls">
           <div className="am-controls-inner">
             <div className="dark-toggle-wrapper" onClick={toggleDarkMode}>
@@ -215,7 +217,9 @@ function AdminManagement() {
 
             <div className="am-filter-row">
               <div className="am-search-wrapper">
-                <span className="search-icon">🔍</span>
+                <span className="search-icon">
+                  <i class="bi bi-search"></i>
+                </span>
                 <input
                   className="am-search-input"
                   placeholder="Search username or email..."
@@ -223,7 +227,11 @@ function AdminManagement() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="am-select">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="am-select"
+              >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
                 <option value="banned">Banned</option>
@@ -268,7 +276,10 @@ function AdminManagement() {
               <div className="am-card-top">
                 <div className="am-avatar-wrap">
                   <Avatar name={u.username} image={u.profileImage} />
-                  <div className="am-avatar-fallback" style={{ display: "none" }}>
+                  <div
+                    className="am-avatar-fallback"
+                    style={{ display: "none" }}
+                  >
                     {(u.username || "?").charAt(0).toUpperCase()}
                   </div>
                 </div>
@@ -277,7 +288,9 @@ function AdminManagement() {
                     <span className={`role-label ${u.role}`}>
                       {u.role === "admin" ? "👑 ADMIN" : "👤 USER"}
                     </span>
-                    <span className={`user-status ${u.isBanned ? "banned" : "active"}`}>
+                    <span
+                      className={`user-status ${u.isBanned ? "banned" : "active"}`}
+                    >
                       {u.isBanned ? "🚫 Banned" : "✅ Active"}
                     </span>
                   </div>
@@ -298,7 +311,10 @@ function AdminManagement() {
                 {u.isBanned ? (
                   <button
                     className="btn action-btn unban"
-                    onClick={() => { setModalUser(u); setModalType("unban"); }}
+                    onClick={() => {
+                      setModalUser(u);
+                      setModalType("unban");
+                    }}
                   >
                     ✅ ปลดแบน
                   </button>
@@ -306,7 +322,10 @@ function AdminManagement() {
                   <button
                     className="btn action-btn ban"
                     disabled={u.id === MAIN_ADMIN_ID}
-                    onClick={() => { setModalUser(u); setModalType("ban"); }}
+                    onClick={() => {
+                      setModalUser(u);
+                      setModalType("ban");
+                    }}
                   >
                     🚫 แบน
                   </button>
@@ -315,7 +334,10 @@ function AdminManagement() {
                 {u.role !== "admin" && (
                   <button
                     className="btn action-btn delete"
-                    onClick={() => { setModalUser(u); setModalType("delete"); }}
+                    onClick={() => {
+                      setModalUser(u);
+                      setModalType("delete");
+                    }}
                   >
                     🗑 ลบ
                   </button>
@@ -329,18 +351,25 @@ function AdminManagement() {
       {/* ===== MODALS ===== */}
       {modalType && modalUser && (
         <div className="am-modal-backdrop" onClick={closeModal}>
-          <div className={`am-modal-card ${modalType === "profile" ? "am-wide" : ""}`} onClick={(e) => e.stopPropagation()}>
-
+          <div
+            className={`am-modal-card ${modalType === "profile" ? "am-wide" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* ---- PROFILE MODAL ---- */}
             {modalType === "profile" && (
               <div style={{ width: "100%" }}>
                 <div className="am-modal-header">
                   <h3>🪪 โปรไฟล์ของ {modalUser.username}</h3>
-                  <button className="am-modal-close" onClick={closeModal}>✕</button>
+                  <button className="am-modal-close" onClick={closeModal}>
+                    ✕
+                  </button>
                 </div>
                 <div className="am-modal-body am-profile-body">
                   {profileLoading ? (
-                    <div className="am-loading"><div className="am-spinner" /><p>กำลังโหลดโปรไฟล์...</p></div>
+                    <div className="am-loading">
+                      <div className="am-spinner" />
+                      <p>กำลังโหลดโปรไฟล์...</p>
+                    </div>
                   ) : !profileData ? (
                     <div className="am-profile-empty">
                       <span className="am-profile-empty-icon">📭</span>
@@ -351,7 +380,11 @@ function AdminManagement() {
                       {profileData.profileImage && (
                         <div className="am-profile-avatar-wrap">
                           <img
-                            src={profileData.profileImage.startsWith("http") ? profileData.profileImage : `http://localhost:3000/${profileData.profileImage}`}
+                            src={
+                              profileData.profileImage.startsWith("http")
+                                ? profileData.profileImage
+                                : `http://localhost:3000/${profileData.profileImage}`
+                            }
                             alt="avatar"
                             className="am-profile-avatar"
                           />
@@ -360,16 +393,43 @@ function AdminManagement() {
                       <div className="am-profile-grid">
                         <ProfileRow label="ชื่อ" value={profileData.name} />
                         <ProfileRow label="ตำแหน่ง" value={profileData.title} />
-                        <ProfileRow label="อีเมล" value={profileData.email || modalUser.email} />
-                        <ProfileRow label="เบอร์โทร" value={profileData.phone} />
-                        <ProfileRow label="ที่อยู่" value={profileData.location} />
-                        <ProfileRow label="เว็บไซต์" value={profileData.website} />
+                        <ProfileRow
+                          label="อีเมล"
+                          value={profileData.email || modalUser.email}
+                        />
+                        <ProfileRow
+                          label="เบอร์โทร"
+                          value={profileData.phone}
+                        />
+                        <ProfileRow
+                          label="ที่อยู่"
+                          value={profileData.location}
+                        />
+                        <ProfileRow
+                          label="เว็บไซต์"
+                          value={profileData.website}
+                        />
                         <ProfileRow label="เพศ" value={profileData.gender} />
-                        <ProfileRow label="สัญชาติ" value={profileData.nationality} />
-                        <ProfileRow label="วันเกิด" value={profileData.dateOfBirth} />
-                        <ProfileRow label="เงินเดือน" value={profileData.salaryRange} />
-                        <ProfileRow label="พร้อมทำงาน" value={profileData.openToWork ? "✅ ใช่" : "❌ ไม่"} />
-                        <ProfileRow label="สถานะ" value={profileData.availability} />
+                        <ProfileRow
+                          label="สัญชาติ"
+                          value={profileData.nationality}
+                        />
+                        <ProfileRow
+                          label="วันเกิด"
+                          value={profileData.dateOfBirth}
+                        />
+                        <ProfileRow
+                          label="เงินเดือน"
+                          value={profileData.salaryRange}
+                        />
+                        <ProfileRow
+                          label="พร้อมทำงาน"
+                          value={profileData.openToWork ? "✅ ใช่" : "❌ ไม่"}
+                        />
+                        <ProfileRow
+                          label="สถานะ"
+                          value={profileData.availability}
+                        />
                       </div>
 
                       {profileData.bio && (
@@ -384,7 +444,9 @@ function AdminManagement() {
                           <h4>🛠 Skills</h4>
                           <div className="am-skill-tags">
                             {profileData.skills.map((s, i) => (
-                              <span key={i} className="am-skill-tag">{typeof s === 'object' ? (s.name || s.skill) : s}</span>
+                              <span key={i} className="am-skill-tag">
+                                {typeof s === "object" ? s.name || s.skill : s}
+                              </span>
                             ))}
                           </div>
                         </div>
@@ -396,7 +458,9 @@ function AdminManagement() {
                           {profileData.experience.map((e, i) => (
                             <div key={i} className="am-profile-item">
                               <b>{e.role}</b> @ {e.company}
-                              <span className="am-item-date">{e.startDate} – {e.endDate || "ปัจจุบัน"}</span>
+                              <span className="am-item-date">
+                                {e.startDate} – {e.endDate || "ปัจจุบัน"}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -408,7 +472,9 @@ function AdminManagement() {
                           {profileData.education.map((e, i) => (
                             <div key={i} className="am-profile-item">
                               <b>{e.degree}</b> – {e.institution}
-                              <span className="am-item-date">{e.startDate} – {e.endDate || "ปัจจุบัน"}</span>
+                              <span className="am-item-date">
+                                {e.startDate} – {e.endDate || "ปัจจุบัน"}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -431,7 +497,17 @@ function AdminManagement() {
                           {profileData.projects.map((p, i) => (
                             <div key={i} className="am-profile-item">
                               {p.description}
-                              {p.url && <a href={p.url} target="_blank" rel="noreferrer" className="am-project-link"> 🔗 ดูโปรเจค</a>}
+                              {p.url && (
+                                <a
+                                  href={p.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="am-project-link"
+                                >
+                                  {" "}
+                                  🔗 ดูโปรเจค
+                                </a>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -440,7 +516,9 @@ function AdminManagement() {
                   )}
                 </div>
                 <div className="am-modal-actions">
-                  <button className="am-btn-cancel" onClick={closeModal}>ปิด</button>
+                  <button className="am-btn-cancel" onClick={closeModal}>
+                    ปิด
+                  </button>
                 </div>
               </div>
             )}
@@ -450,7 +528,9 @@ function AdminManagement() {
               <>
                 <div className="am-modal-header">
                   <h3>🚫 แบนผู้ใช้</h3>
-                  <button className="am-modal-close" onClick={closeModal}>✕</button>
+                  <button className="am-modal-close" onClick={closeModal}>
+                    ✕
+                  </button>
                 </div>
                 <div className="am-modal-body">
                   <p className="am-confirm-text">
@@ -459,8 +539,13 @@ function AdminManagement() {
                   </p>
                 </div>
                 <div className="am-modal-actions">
-                  <button className="am-btn-cancel" onClick={closeModal}>ยกเลิก</button>
-                  <button className="am-btn-confirm am-btn-ban" onClick={() => handleToggleBan(modalUser)}>
+                  <button className="am-btn-cancel" onClick={closeModal}>
+                    ยกเลิก
+                  </button>
+                  <button
+                    className="am-btn-confirm am-btn-ban"
+                    onClick={() => handleToggleBan(modalUser)}
+                  >
                     🚫 แบน
                   </button>
                 </div>
@@ -472,7 +557,9 @@ function AdminManagement() {
               <>
                 <div className="am-modal-header">
                   <h3>✅ ปลดแบนผู้ใช้</h3>
-                  <button className="am-modal-close" onClick={closeModal}>✕</button>
+                  <button className="am-modal-close" onClick={closeModal}>
+                    ✕
+                  </button>
                 </div>
                 <div className="am-modal-body">
                   <p className="am-confirm-text">
@@ -480,8 +567,13 @@ function AdminManagement() {
                   </p>
                 </div>
                 <div className="am-modal-actions">
-                  <button className="am-btn-cancel" onClick={closeModal}>ยกเลิก</button>
-                  <button className="am-btn-confirm" onClick={() => handleToggleBan(modalUser)}>
+                  <button className="am-btn-cancel" onClick={closeModal}>
+                    ยกเลิก
+                  </button>
+                  <button
+                    className="am-btn-confirm"
+                    onClick={() => handleToggleBan(modalUser)}
+                  >
                     ✅ ปลดแบน
                   </button>
                 </div>
@@ -493,23 +585,32 @@ function AdminManagement() {
               <>
                 <div className="am-modal-header">
                   <h3>🗑 ลบผู้ใช้</h3>
-                  <button className="am-modal-close" onClick={closeModal}>✕</button>
+                  <button className="am-modal-close" onClick={closeModal}>
+                    ✕
+                  </button>
                 </div>
                 <div className="am-modal-body">
                   <p className="am-confirm-text">
-                    ต้องการลบบัญชี <b>{modalUser.username}</b> อย่างถาวรใช่ไหม?<br />
-                    <small style={{ color: "#e23232" }}>ไม่สามารถกู้คืนได้</small>
+                    ต้องการลบบัญชี <b>{modalUser.username}</b> อย่างถาวรใช่ไหม?
+                    <br />
+                    <small style={{ color: "#e23232" }}>
+                      ไม่สามารถกู้คืนได้
+                    </small>
                   </p>
                 </div>
                 <div className="am-modal-actions">
-                  <button className="am-btn-cancel" onClick={closeModal}>ยกเลิก</button>
-                  <button className="am-btn-confirm delete" onClick={() => handleDelete(modalUser)}>
+                  <button className="am-btn-cancel" onClick={closeModal}>
+                    ยกเลิก
+                  </button>
+                  <button
+                    className="am-btn-confirm delete"
+                    onClick={() => handleDelete(modalUser)}
+                  >
                     🗑 ลบ
                   </button>
                 </div>
               </>
             )}
-
           </div>
         </div>
       )}

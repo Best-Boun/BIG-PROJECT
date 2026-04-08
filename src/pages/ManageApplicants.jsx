@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { usePagination } from '../hooks/usePagination';
 import PaginationBar from '../components/PaginationBar';
-import { FaArrowLeft, FaUser, FaStar } from 'react-icons/fa';
+import { FaArrowLeft, FaUser, FaStar} from 'react-icons/fa';
+import { RiChatSmile3Line } from "react-icons/ri";
 import { FiChevronDown } from 'react-icons/fi';
 import './ManageApplicants.css';
 
@@ -44,7 +45,8 @@ export default function ManageApplicants() {
         const apps = Array.isArray(data.applicants)
           ? data.applicants
           : Array.isArray(data) ? data : [];
-        setApplicants(apps);
+        const sorted = [...apps].sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+        setApplicants(sorted);
         if (data.jobTitle) setJobTitle(data.jobTitle);
       })
       .catch(() => setApplicants([]))
@@ -230,27 +232,28 @@ export default function ManageApplicants() {
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                           {(() => {
-                            const levelOrder = { Advanced: 1, Intermediate: 2, Beginner: 3 };
-                            // sort: required ก่อน → Advanced → Intermediate → Beginner
-                            const sorted = [...app.skills].sort((a, b) => {
-                              if (a.required !== b.required) return a.required ? -1 : 1;
-                              return (levelOrder[a.level] || 3) - (levelOrder[b.level] || 3);
-                            });
-                            const visible = sorted.slice(0, 3);
-                            const remaining = sorted.length - 3;
+                            const getLevel = (y) => y >= 3
+                              ? { label: 'Advanced',     bg: '#dbeafe', color: '#1d4ed8' }
+                              : y >= 1
+                              ? { label: 'Intermediate', bg: '#d1fae5', color: '#065f46' }
+                              : { label: 'Beginner',     bg: '#fef3c7', color: '#92400e' };
+
+                            const visible = [...app.skills].sort((a, b) => b.yearsExp - a.yearsExp).slice(0, 3);
+                            const remaining = app.skills.length - 3;
+
                             return (
                               <>
-                                {visible.map((s, i) => (
-                                  <span key={s.skillId || i} style={{
-                                    fontSize: '10px', padding: '1px 6px',
-                                    borderRadius: '20px',
-                                    background: s.level === 'Advanced' ? '#dbeafe' : s.level === 'Intermediate' ? '#d1fae5' : '#fef3c7',
-                                    color: s.level === 'Advanced' ? '#1d4ed8' : s.level === 'Intermediate' ? '#065f46' : '#92400e',
-                                    fontWeight: 500,
-                                  }}>
-                                    {s.skillName} · {s.level}
-                                  </span>
-                                ))}
+                                {visible.map((s) => {
+                                  const lv = getLevel(s.yearsExp);
+                                  return (
+                                    <span key={s.skillId} style={{
+                                      fontSize: '10px', padding: '1px 6px', borderRadius: '20px',
+                                      background: lv.bg, color: lv.color, fontWeight: 500,
+                                    }}>
+                                      {s.skillName} · {lv.label}
+                                    </span>
+                                  );
+                                })}
                                 {remaining > 0 && (
                                   <span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 500 }}>
                                     +{remaining} more
@@ -278,7 +281,7 @@ export default function ManageApplicants() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="ma-card-actions">
+                  <div className="ma-card-actions" style={{ marginTop: 'auto' }}>
                     <button
                       className="ma-action-btn"
                       title="View Profile"
@@ -287,6 +290,27 @@ export default function ManageApplicants() {
                       }
                     >
                       <FaUser size={14} />
+                    </button>
+
+                    {/* Message */}
+                    <button
+                      className="ma-action-btn"
+                      title="Send Message"
+                      style={{ background: '#111827', color: 'white' }}
+                      onClick={async () => {
+                        const res = await fetch(`${API}/api/chat/conversations`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('token')}`,
+                          },
+                          body: JSON.stringify({ seekerId: app.userId }),
+                        });
+                        const conv = await res.json();
+                        navigate(`/chat?convId=${conv.id}`);
+                      }}
+                    >
+                      <RiChatSmile3Line size={18} />
                     </button>
 
                     {/* Status dropdown */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from 'react-bootstrap';
-import { FaSearch, FaMapMarkerAlt, FaBriefcase } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaBriefcase, FaUser } from 'react-icons/fa';
+import { RiChatSmile3Line } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
 
 const API = 'http://localhost:3000';
@@ -111,60 +112,141 @@ export default function SeekerSearch() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {results.map(seeker => (
-            <div
-              key={seeker.userId}
-              onClick={() => navigate(`/applicant/${seeker.userId}`)}
-              style={{ background: 'white', borderRadius: 16, padding: 20, border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'box-shadow 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {getImageUrl(seeker.profileImage)
-                    ? <img src={getImageUrl(seeker.profileImage)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontSize: 20, fontWeight: 700, color: '#4f46e5' }}>{seeker.name?.[0]?.toUpperCase()}</span>
-                  }
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{seeker.name || 'Unknown'}</p>
-                  <p style={{ fontSize: 13, color: '#6b7280', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{seeker.title || '—'}</p>
-                </div>
-              </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+          {results.map(seeker => {
+            const skills = seeker.skillNames
+              ? seeker.skillNames.split(', ').filter(Boolean)
+              : [];
 
-              {seeker.location && (
-                <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FaMapMarkerAlt size={10} /> {seeker.location}
-                </p>
-              )}
+            const getInitials = (name) =>
+              (name || '?').split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('');
 
-              {seeker.skillNames && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {seeker.skillNames.split(', ').slice(0, 4).map(s => (
-                    <span key={s} style={{ fontSize: 11, padding: '2px 8px', background: '#eff6ff', color: '#1d4ed8', borderRadius: 99, fontWeight: 500 }}>{s}</span>
-                  ))}
-                  {seeker.skillNames.split(', ').length > 4 && (
-                    <span style={{ fontSize: 11, color: '#9ca3af' }}>+{seeker.skillNames.split(', ').length - 4}</span>
+            return (
+              <div
+                key={seeker.userId}
+                style={{
+                  background: 'white', borderRadius: 20,
+                  padding: '20px 20px 16px',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  position: 'relative',
+                  transition: 'box-shadow 0.2s ease, transform 0.15s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'none'; }}
+              >
+                {/* Status dot */}
+                <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: seeker.openToWork ? '#22c55e' : '#9ca3af',
+                    display: 'inline-block',
+                  }} />
+                </div>
+
+                {/* Avatar */}
+                <div style={{ margin: '4px 0 14px' }}>
+                  <div style={{
+                    width: 80, height: 80, borderRadius: '50%',
+                    overflow: 'hidden', background: '#e0e7ff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '4px solid #f3f4f6',
+                  }}>
+                    {getImageUrl(seeker.profileImage) ? (
+                      <img
+                        src={getImageUrl(seeker.profileImage)}
+                        alt={seeker.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: 26, fontWeight: 700, color: '#4f46e5' }}>
+                        {getInitials(seeker.name)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div style={{ textAlign: 'center', width: '100%', marginBottom: 12 }}>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {seeker.name || 'Unknown'}
+                  </p>
+                  <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {seeker.title || '—'}
+                  </p>
+                  {seeker.location && (
+                    <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      <FaMapMarkerAlt size={10} /> {seeker.location}
+                    </p>
+                  )}
+                  {!!seeker.openToWork && (
+                    <p style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, margin: '4px 0 0' }}>
+                      ✓ Open to work
+                    </p>
                   )}
                 </div>
-              )}
 
-              {seeker.openToWork ? (
-                <p style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, margin: '8px 0 0' }}>Open to work</p>
-              ) : null}
-              <button
-                onClick={(e) => { e.stopPropagation(); handleMessage(seeker.userId); }}
-                style={{
-                  marginTop: 10, width: '100%', padding: '6px 0',
-                  background: '#111827', color: 'white', border: 'none',
-                  borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                Message
-              </button>
-            </div>
-          ))}
+                {/* Skills */}
+                {skills.length > 0 && (
+                  <div style={{ width: '100%', marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4, textAlign: 'center' }}>
+                      Skills
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, justifyContent: 'flex-start' }}>
+                      {skills.slice(0, 3).map(s => (
+                        <span key={s} style={{
+                          fontSize: 10, padding: '1px 6px', borderRadius: 20,
+                          background: '#eff6ff', color: '#1d4ed8', fontWeight: 500,
+                        }}>
+                          {s}
+                        </span>
+                      ))}
+                      {skills.length > 3 && (
+                        <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500 }}>
+                          +{skills.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div style={{
+                  display: 'flex', gap: 10, width: '100%',
+                  borderTop: '1px solid #f3f4f6', paddingTop: 14, justifyContent: 'center',
+                  marginTop: 'auto'
+                }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); navigate(`/applicant/${seeker.userId}`); }}
+                    title="View Profile"
+                    style={{
+                      flex: 1, height: 36, borderRadius: 10, border: 'none',
+                      background: '#f3f4f6', color: '#6b7280', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#e0e7ff'; e.currentTarget.style.color = '#4f46e5'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#6b7280'; }}
+                  >
+                    <FaUser size={14} />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); handleMessage(seeker.userId); }}
+                    title="Send Message"
+                    style={{
+                      flex: 1, height: 36, borderRadius: 10, border: 'none',
+                      background: '#111827', color: 'white', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                  >
+                    <RiChatSmile3Line size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Container>
     </div>

@@ -452,12 +452,12 @@ const openModal = (modalType, item = null) => {
       {/* Main Layout */}
       <div className="pe-layout">
         {/* Sidebar */}
-        <aside className="pe-sidebar">
+        <aside className="proedit-sidebar">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pe-tab-btn ${activeTab === tab.id ? "active" : ""}`}
+              className={`proedit-nav-btn ${activeTab === tab.id ? "proedit-nav-btn--active" : ""}`}
             >
               {tab.label}
             </button>
@@ -760,11 +760,11 @@ const openModal = (modalType, item = null) => {
                     className="pe-item-card pe-item-card-purple"
                   >
                     <div className="pe-item-info">
-                      <h4 className="pe-item-title">{exp.title}</h4>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Position</small>
+                      <h4 className="pe-item-title">{exp.title || exp.role}</h4>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Company</small>
                       <p className="pe-item-sub">{exp.company}</p>
-                      <small className="pe-item-meta">
-                        {exp.startDate} - {exp.endDate}
-                      </small>
+                      <small className="pe-item-meta">{exp.startDate} - {exp.endDate}</small>
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("experience", exp)}
@@ -801,9 +801,11 @@ const openModal = (modalType, item = null) => {
                 profile.education.map((edu) => (
                   <div key={edu.id} className="pe-item-card pe-item-card-green">
                     <div className="pe-item-info">
-                      <h4 className="pe-item-title">{edu.degree}</h4>
-                      <p className="pe-item-sub">{edu.school}</p>
-                      <small className="pe-item-meta">{edu.year}</small>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>Degree</small>
+                      <h4 className="pe-item-title" style={{ margin: '2px 0 8px' }}>{edu.degree}</h4>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>Institution</small>
+                      <p className="pe-item-sub" style={{ margin: '2px 0 6px' }}>{edu.school || edu.institution}</p>
+                      <small className="pe-item-meta">Year: {edu.year || '—'} {edu.grade ? `· GPA: ${edu.grade}` : ''}</small>
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("education", edu)}
@@ -894,10 +896,10 @@ const openModal = (modalType, item = null) => {
                 profile.languages.map((lang) => (
                   <div key={lang.id} className="pe-item-card pe-item-card-flat">
                     <div className="pe-item-info">
-                      <p className="pe-item-title" style={{ margin: 0 }}>
-                        {lang.name || lang.language}
-                      </p>
-                      <small className="pe-item-meta">{lang.level}</small>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>Language</small>
+                      <p className="pe-item-title" style={{ margin: '2px 0 8px' }}>{lang.name || lang.language}</p>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>Proficiency</small>
+                      <small className="pe-item-meta" style={{ display: 'block', marginTop: '2px' }}>{lang.level}</small>
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("language", lang)}
@@ -937,9 +939,17 @@ const openModal = (modalType, item = null) => {
                     className="pe-item-card pe-item-card-yellow"
                   >
                     <div className="pe-item-info">
-                      <p className="pe-item-title">
-                        {proj.category || "(No category)"}
-                      </p>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Project Name</small>
+                      <h4 className="pe-item-title">{proj.name || proj.title}</h4>
+                      {proj.techStack && (
+                        <>
+                          <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tech Stack</small>
+                          <p className="pe-item-sub">{proj.techStack || proj.category}</p>
+                        </>
+                      )}
+                      {proj.link && (
+                        <small className="pe-item-meta">{proj.link || proj.url}</small>
+                      )}
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("project", proj)}
@@ -979,32 +989,13 @@ const openModal = (modalType, item = null) => {
                     className="pe-item-card pe-item-card-violet pe-item-overflow"
                   >
                     <div className="pe-item-info pe-item-overflow">
-                      <p
-                        className="pe-item-title pe-item-overflow"
-                        style={{ margin: 0 }}
-                      >
-                        {cert.name}
-                      </p>
-
-                      <p className="pe-item-sub pe-item-overflow">
-                        {cert.issuer}
-                      </p>
-
-                      <small>
-                        Issue:{" "}
-                        {cert.issueDate
-                          ? new Date(cert.issueDate).toLocaleDateString("en-GB")
-                          : "-"}
-                      </small>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Certificate Name</small>
+                      <p className="pe-item-title pe-item-overflow" style={{ margin: 0 }}>{cert.name}</p>
+                      <small style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Issuer</small>
+                      <p className="pe-item-sub pe-item-overflow">{cert.issuer}</p>
+                      <small>Issue: {cert.issueDate ? new Date(cert.issueDate).toLocaleDateString('en-GB') : '-'}</small>
                       <br />
-                      <small>
-                        Expiry:{" "}
-                        {cert.expiryDate
-                          ? new Date(cert.expiryDate).toLocaleDateString(
-                              "en-GB",
-                            )
-                          : "-"}
-                      </small>
+                      <small>Expiry: {cert.expiryDate ? new Date(cert.expiryDate).toLocaleDateString('en-GB') : '-'}</small>
                     </div>
                     <ItemEditButtons
                       onEdit={() => openModal("certification", cert)}

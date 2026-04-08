@@ -231,7 +231,7 @@ export default function ProfileEditor() {
     })();
   }, []);
 
-  /* ── Save ONLY style to backend ── */
+  /* ── Save style with full profile preservation ── */
   const save = useCallback(async () => {
     const token  = localStorage.getItem("token");
     const userId = localStorage.getItem("userID") || localStorage.getItem("userId");
@@ -277,15 +277,35 @@ export default function ProfileEditor() {
 
     setSaving(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/profiles/${userId}`, {
+      // 1. Fetch current profile to preserve existing data
+      const fetchRes = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!fetchRes.ok) {
+        throw new Error("Could not fetch current profile");
+      }
+      const currentProfile = await fetchRes.json();
+      
+      // 2. Extract existing profile fields (preserve everything)
+      const existingData = currentProfile ? { ...currentProfile } : {};
+      
+      // 3. Merge validated style into existing profile
+      const updatePayload = {
+        ...existingData,
+        style: validatedStyle,
+      };
+
+      // 4. Send complete updated profile to backend
+      const saveRes = await fetch(`${BASE_URL}/api/profiles/${userId}`, {
         method:  "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body:    JSON.stringify({ style: validatedStyle }),
+        body:    JSON.stringify(updatePayload),
       });
-      if (!res.ok) {
-        const err = await res.json();
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
         throw new Error(err.error || "บันทึกไม่สำเร็จ");
       }
+      
       saveJSON(LS_STYLE, validatedStyle);
       // Update local state with validated values to ensure consistency
       setStyle(s => ({ ...s, ...validatedStyle }));

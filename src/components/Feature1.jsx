@@ -14,14 +14,14 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const LS_STYLE = "pe_v3_style";
 
 const THEMES = [
-  { name: "Indigo",   accent: "#4f46e5" },
-  { name: "Ocean",    accent: "#0284c7" },
-  { name: "Slate",    accent: "#475569" },
-  { name: "Emerald",  accent: "#059669" },
-  { name: "Rose",     accent: "#e11d48" },
-  { name: "Amber",    accent: "#d97706" },
-  { name: "Violet",   accent: "#7c3aed" },
-  { name: "Teal",     accent: "#0d9488" },
+  { name: "คราม",    accent: "#4f46e5" },
+  { name: "มหาสมุทร", accent: "#0284c7" },
+  { name: "หินชนวน",  accent: "#475569" },
+  { name: "มรกต",    accent: "#059669" },
+  { name: "กุหลาบ",  accent: "#e11d48" },
+  { name: "อำพัน",   accent: "#d97706" },
+  { name: "ม่วง",    accent: "#7c3aed" },
+  { name: "เทอร์คอยซ์", accent: "#0d9488" },
 ];
 
 const FONTS = [
@@ -42,34 +42,34 @@ const COVERS = [
 ];
 
 const LAYOUTS = [
-  { id: "sidebar",  label: "Sidebar",  icon: "⊟", desc: "Left info · Right content" },
-  { id: "minimal",  label: "Minimal",  icon: "▭",  desc: "Clean single column" },
-  { id: "grid",     label: "Grid",     icon: "⊞",  desc: "Card-based grid" },
-  { id: "split",    label: "Split",    icon: "⊠",  desc: "Two equal columns" },
-  { id: "card",     label: "Card",     icon: "◫",  desc: "Sections as cards" },
+  { id: "sidebar",  label: "แถบข้าง",   icon: "⊟", desc: "ข้อมูลซ้าย · เนื้อหาขวา" },
+  { id: "minimal",  label: "เรียบง่าย", icon: "▭",  desc: "คอลัมน์เดียวสะอาดตา" },
+  { id: "grid",     label: "กริด",      icon: "⊞",  desc: "แสดงเป็นการ์ด" },
+  { id: "split",    label: "สองฝั่ง",   icon: "⊠",  desc: "สองคอลัมน์เท่ากัน" },
+  { id: "card",     label: "การ์ด",     icon: "◫",  desc: "แต่ละส่วนเป็นการ์ด" },
 ];
 
 const SECTION_KEYS = [
-  { id: "summary",       label: "Summary",        icon: "≡" },
-  { id: "experience",    label: "Experience",      icon: "◉" },
-  { id: "projects",      label: "Projects",        icon: "◈" },
-  { id: "skills",        label: "Skills",          icon: "◇" },
-  { id: "education",     label: "Education",       icon: "▣" },
-  { id: "languages",     label: "Languages",       icon: "◎" },
-  { id: "certifications",label: "Certifications",  icon: "✦" },
+  { id: "summary",        label: "สรุปตัวเอง",      icon: "≡" },
+  { id: "experience",     label: "ประสบการณ์",      icon: "◉" },
+  { id: "projects",       label: "ผลงาน",           icon: "◈" },
+  { id: "skills",         label: "ทักษะ",           icon: "◇" },
+  { id: "education",      label: "การศึกษา",        icon: "▣" },
+  { id: "languages",      label: "ภาษา",            icon: "◎" },
+  { id: "certifications", label: "ใบรับรอง",        icon: "✦" },
 ];
 
 const ANIMATIONS = [
-  { id: "none",  label: "None" },
-  { id: "fade",  label: "Fade" },
-  { id: "slide", label: "Slide up" },
+  { id: "none",  label: "ไม่มี" },
+  { id: "fade",  label: "ค่อยๆ ปรากฏ" },
+  { id: "slide", label: "เลื่อนขึ้น" },
 ];
 
 const CONTAINER_WIDTHS = [
-  { id: "sm",   label: "Narrow",  px: "680px" },
-  { id: "md",   label: "Medium",  px: "860px" },
-  { id: "lg",   label: "Wide",    px: "1060px" },
-  { id: "full", label: "Full",    px: "100%" },
+  { id: "sm",   label: "แคบ",      px: "680px" },
+  { id: "md",   label: "กลาง",     px: "860px" },
+  { id: "lg",   label: "กว้าง",    px: "1060px" },
+  { id: "full", label: "เต็มจอ",   px: "100%" },
 ];
 
 const DEFAULT_STYLE = {
@@ -175,7 +175,7 @@ function SectionRow({ sec, visible, onToggle, onDragStart, onDragOver, onDrop, i
         type="button"
         className={`pe-section-row__toggle${visible ? " pe-section-row__toggle--on" : ""}`}
         onClick={onToggle}
-        title={visible ? "Hide section" : "Show section"}
+        title={visible ? "ซ่อนส่วนนี้" : "แสดงส่วนนี้"}
       >
         {visible ? "●" : "○"}
       </button>
@@ -218,7 +218,6 @@ export default function ProfileEditor() {
         if (!res.ok) return;
         const data = await res.json();
         if (data?.style && typeof data.style === "object") {
-          // Merge loaded style with defaults to ensure no missing fields
           setStyle(s => ({
             ...DEFAULT_STYLE,
             ...s,
@@ -237,19 +236,17 @@ export default function ProfileEditor() {
     const userId = localStorage.getItem("userID") || localStorage.getItem("userId");
     if (!token || !userId) { ping("กรุณา login ก่อน"); return; }
 
-    // Validate style before sending
     const validLayout = ["sidebar","minimal","grid","split","card"].includes(style.layout) ? style.layout : "sidebar";
-    const validSectionOrder = (style.sectionOrder || []).filter(key => 
+    const validSectionOrder = (style.sectionOrder || []).filter(key =>
       ["summary","experience","projects","skills","education","languages","certifications"].includes(key)
     );
     if (validSectionOrder.length === 0) {
       validSectionOrder.push(...["summary","experience","projects","skills","education","languages","certifications"]);
     }
-    
+
     const validVisibleSections = typeof style.visibleSections === "object" ? style.visibleSections : {};
     const validFontId = FONTS.some(f => f.id === style.fontId) ? style.fontId : "geist";
-    
-    // Build validated style payload
+
     const validatedStyle = {
       themeIdx: Number.isInteger(style.themeIdx) ? style.themeIdx : 0,
       accent: typeof style.accent === "string" ? style.accent : "#4f46e5",
@@ -277,25 +274,19 @@ export default function ProfileEditor() {
 
     setSaving(true);
     try {
-      // 1. Fetch current profile to preserve existing data
       const fetchRes = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       if (!fetchRes.ok) {
-        throw new Error("Could not fetch current profile");
+        throw new Error("ไม่สามารถดึงข้อมูลโปรไฟล์ได้");
       }
       const currentProfile = await fetchRes.json();
-      
-      // 2. Extract existing profile fields (preserve everything)
       const existingData = currentProfile ? { ...currentProfile } : {};
-      
-      // 3. Merge validated style into existing profile
       const updatePayload = {
         ...existingData,
         style: validatedStyle,
       };
 
-      // 4. Send complete updated profile to backend
       const saveRes = await fetch(`${BASE_URL}/api/profiles/${userId}`, {
         method:  "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -305,9 +296,8 @@ export default function ProfileEditor() {
         const err = await saveRes.json();
         throw new Error(err.error || "บันทึกไม่สำเร็จ");
       }
-      
+
       saveJSON(LS_STYLE, validatedStyle);
-      // Update local state with validated values to ensure consistency
       setStyle(s => ({ ...s, ...validatedStyle }));
       ping("บันทึก Design เรียบร้อยแล้ว ✓");
     } catch (err) {
@@ -452,18 +442,18 @@ export default function ProfileEditor() {
       {/* ── Topbar ── */}
       <header className="pe-topbar">
         <button type="button" className="pe-topbar-back" onClick={() => window.history.back()}>
-          ← Back
+          ← ย้อนกลับ
         </button>
         <h1 className="pe-topbar-title">
-          <span className="pe-topbar-pill">Design</span> Profile Builder
+          <span className="pe-topbar-pill">ออกแบบ</span> ตัวสร้างโปรไฟล์
         </h1>
         <div className="pe-topbar-actions">
           <button type="button" className="pe-btn pe-btn--ghost pe-btn--mobile-icon"
-            onClick={() => setMobileOpen(v => !v)} title="Toggle panel">
+            onClick={() => setMobileOpen(v => !v)} title="เปิด/ปิดแผงควบคุม">
             {mobileOpen ? "✕" : "☰"}
           </button>
           <button type="button" className="pe-btn pe-btn--solid" onClick={save} disabled={saving}>
-            {saving ? "Saving…" : "Save Design"}
+            {saving ? "กำลังบันทึก…" : "บันทึก Design"}
           </button>
         </div>
       </header>
@@ -476,9 +466,9 @@ export default function ProfileEditor() {
 
           <nav className="pe-tabs" role="tablist">
             {[
-              { id: "layout",  label: "Layout" },
-              { id: "design",  label: "Design" },
-              { id: "content", label: "Sections" },
+              { id: "layout",  label: "เลย์เอาต์" },
+              { id: "design",  label: "ดีไซน์" },
+              { id: "content", label: "ส่วนต่างๆ" },
             ].map(t => (
               <button key={t.id} type="button" role="tab"
                 aria-selected={tab === t.id ? "true" : "false"}
@@ -496,7 +486,7 @@ export default function ProfileEditor() {
               <>
                 {/* Layout picker */}
                 <section className="pe-section">
-                  <SectionHead title="PROFILE LAYOUT" />
+                  <SectionHead title="รูปแบบโปรไฟล์" />
                   <div className="pe-layout-grid">
                     {LAYOUTS.map(l => (
                       <button key={l.id} type="button"
@@ -513,7 +503,7 @@ export default function ProfileEditor() {
 
                 {/* Container width */}
                 <section className="pe-section">
-                  <SectionHead title="CONTAINER WIDTH" />
+                  <SectionHead title="ความกว้างของเนื้อหา" />
                   <div className="pe-width-btns">
                     {CONTAINER_WIDTHS.map(w => (
                       <button key={w.id} type="button"
@@ -527,13 +517,13 @@ export default function ProfileEditor() {
 
                 {/* Alignment */}
                 <section className="pe-section">
-                  <SectionHead title="HEADER ALIGNMENT" />
+                  <SectionHead title="การจัดวางส่วนหัว" />
                   <div className="pe-align-btns">
                     {["left","center"].map(a => (
                       <button key={a} type="button"
                         className={`pe-align-btn${style.alignment === a ? " pe-align-btn--on" : ""}`}
                         onClick={() => setSt("alignment", a)}>
-                        {a === "left" ? "⬛ Left" : "⬜ Center"}
+                        {a === "left" ? "⬛ ชิดซ้าย" : "⬜ กึ่งกลาง"}
                       </button>
                     ))}
                   </div>
@@ -541,12 +531,12 @@ export default function ProfileEditor() {
 
                 {/* Header style */}
                 <section className="pe-section">
-                  <SectionHead title="HEADER STYLE" />
+                  <SectionHead title="รูปแบบส่วนหัว" />
                   <div className="pe-radio-group">
                     {[
-                      { id: "classic", label: "Classic",  sub: "Avatar + name stacked" },
-                      { id: "banner",  label: "Banner",   sub: "Cover photo + overlap avatar" },
-                      { id: "compact", label: "Compact",  sub: "Inline name + minimal" },
+                      { id: "classic", label: "คลาสสิก",   sub: "รูปโปรไฟล์ + ชื่อแนวตั้ง" },
+                      { id: "banner",  label: "แบนเนอร์",  sub: "รูปพื้นหลัง + รูปโปรไฟล์ซ้อน" },
+                      { id: "compact", label: "กระทัดรัด", sub: "ชื่อแนวนอน + เรียบง่าย" },
                     ].map(h => (
                       <label key={h.id} className={`pe-radio-row${style.headerStyle === h.id ? " pe-radio-row--on" : ""}`}>
                         <input type="radio" name="headerStyle" value={h.id}
@@ -563,7 +553,7 @@ export default function ProfileEditor() {
 
                 {/* Animation */}
                 <section className="pe-section">
-                  <SectionHead title="PAGE ANIMATION" />
+                  <SectionHead title="แอนิเมชันหน้าเพจ" />
                   <div className="pe-width-btns">
                     {ANIMATIONS.map(a => (
                       <button key={a.id} type="button"
@@ -577,8 +567,8 @@ export default function ProfileEditor() {
 
                 {/* Dark mode */}
                 <section className="pe-section">
-                  <SectionHead title="THEME MODE" />
-                  <Toggle label="Dark Mode" sub="Dark background, light text"
+                  <SectionHead title="โหมดสี" />
+                  <Toggle label="โหมดมืด" sub="พื้นหลังมืด ตัวหนังสือสว่าง"
                     on={style.darkMode} onChange={v => setSt("darkMode", v)} />
                 </section>
               </>
@@ -589,8 +579,8 @@ export default function ProfileEditor() {
               <>
                 {/* Cover */}
                 <section className="pe-section">
-                  <SectionHead title="COVER PHOTO" />
-                  <Toggle label="Show cover" on={style.showCover} onChange={v => setSt("showCover", v)} />
+                  <SectionHead title="รูปหน้าปก" />
+                  <Toggle label="แสดงรูปปก" on={style.showCover} onChange={v => setSt("showCover", v)} />
                   {style.showCover && (
                     <>
                       {style.cover && (
@@ -599,20 +589,20 @@ export default function ProfileEditor() {
                       <div className="pe-btn-group">
                         <button type="button" className="pe-btn pe-btn--outline"
                           onClick={() => setSt("cover", COVERS[Math.floor(Math.random() * COVERS.length)])}>
-                          Random
+                          สุ่มรูป
                         </button>
                         <button type="button" className="pe-btn pe-btn--outline"
                           onClick={() => coverRef.current?.click()}>
-                          Upload
+                          อัปโหลด
                         </button>
                         {style.cover && (
                           <button type="button" className="pe-btn pe-btn--ghost"
                             onClick={() => setSt("cover", "")}>
-                            Remove
+                            ลบออก
                           </button>
                         )}
                       </div>
-                      <Slider label="Blur" value={style.coverBlur} min={0} max={16} unit="px"
+                      <Slider label="ความเบลอ" value={style.coverBlur} min={0} max={16} unit="px"
                         onChange={v => setSt("coverBlur", v)} />
                     </>
                   )}
@@ -621,7 +611,7 @@ export default function ProfileEditor() {
 
                 {/* Avatar */}
                 <section className="pe-section">
-                  <SectionHead title="PROFILE PHOTO" />
+                  <SectionHead title="รูปโปรไฟล์" />
                   <div className="pe-avatar-row">
                     <div className="pe-avatar-thumb">
                       {style.avatarSrc
@@ -631,24 +621,24 @@ export default function ProfileEditor() {
                     <div className="pe-btn-group pe-btn-group--col">
                       <button type="button" className="pe-btn pe-btn--outline"
                         onClick={() => avatarRef.current?.click()}>
-                        Upload Photo
+                        อัปโหลดรูป
                       </button>
                       {style.avatarSrc && (
                         <button type="button" className="pe-btn pe-btn--ghost"
                           onClick={() => setSt("avatarSrc", "")}>
-                          Remove
+                          ลบออก
                         </button>
                       )}
                     </div>
                   </div>
-                  <Slider label="Avatar size" value={style.avatarSize} min={56} max={120} unit="px"
+                  <Slider label="ขนาดรูปโปรไฟล์" value={style.avatarSize} min={56} max={120} unit="px"
                     onChange={v => setSt("avatarSize", v)} />
                   <input ref={avatarRef} type="file" accept="image/*" className="pe-hidden" onChange={onAvatar} />
                 </section>
 
                 {/* Accent color */}
                 <section className="pe-section">
-                  <SectionHead title="ACCENT COLOR" />
+                  <SectionHead title="สีหลัก" />
                   <div className="pe-theme-dots">
                     {THEMES.map((t, i) => (
                       <button key={t.name} type="button" aria-label={t.name} title={t.name}
@@ -659,7 +649,7 @@ export default function ProfileEditor() {
                       </button>
                     ))}
                     <div className="pe-theme-custom">
-                      <label className="pe-field-label" htmlFor="custom-accent">Custom</label>
+                      <label className="pe-field-label" htmlFor="custom-accent">กำหนดเอง</label>
                       <input id="custom-accent" type="color" className="pe-color-picker"
                         value={style.accent}
                         onChange={e => setStyle(s => ({ ...s, themeIdx: -1, accent: e.target.value }))} />
@@ -669,7 +659,7 @@ export default function ProfileEditor() {
 
                 {/* Typography */}
                 <section className="pe-section">
-                  <SectionHead title="TYPOGRAPHY" />
+                  <SectionHead title="รูปแบบตัวอักษร" />
                   <div className="pe-font-btns">
                     {FONTS.map(f => (
                       <button key={f.id} type="button"
@@ -679,25 +669,25 @@ export default function ProfileEditor() {
                       </button>
                     ))}
                   </div>
-                  <Slider label="Font size"     value={style.fontSize}     min={12} max={20} unit="px" onChange={v => setSt("fontSize",     v)} />
-                  <Slider label="Line spacing"  value={style.lineSpacing}  min={16} max={48} unit="px" onChange={v => setSt("lineSpacing",  v)} />
+                  <Slider label="ขนาดตัวอักษร"  value={style.fontSize}    min={12} max={20} unit="px" onChange={v => setSt("fontSize",    v)} />
+                  <Slider label="ระยะห่างบรรทัด" value={style.lineSpacing} min={16} max={48} unit="px" onChange={v => setSt("lineSpacing", v)} />
                 </section>
 
                 {/* Cards */}
                 <section className="pe-section">
-                  <SectionHead title="CARD STYLE" />
-                  <Slider label="Corner radius" value={style.cardRadius} min={0} max={24} unit="px" onChange={v => setSt("cardRadius", v)} />
-                  <Slider label="Shadow depth"  value={style.shadowPx}   min={0} max={48} unit="px" onChange={v => setSt("shadowPx",   v)} />
+                  <SectionHead title="รูปแบบการ์ด" />
+                  <Slider label="ความโค้งมุม" value={style.cardRadius} min={0} max={24} unit="px" onChange={v => setSt("cardRadius", v)} />
+                  <Slider label="ความเข้มเงา"  value={style.shadowPx}  min={0} max={48} unit="px" onChange={v => setSt("shadowPx",  v)} />
                 </section>
 
                 {/* Component styles */}
                 <section className="pe-section">
-                  <SectionHead title="SKILL STYLE" />
+                  <SectionHead title="รูปแบบทักษะ" />
                   <div className="pe-width-btns">
                     {[
-                      { id: "pill",  label: "Pills" },
-                      { id: "badge", label: "Badges" },
-                      { id: "dot",   label: "Dots" },
+                      { id: "pill",  label: "แท็กกลม" },
+                      { id: "badge", label: "ป้ายสี่เหลี่ยม" },
+                      { id: "dot",   label: "จุด" },
                     ].map(s => (
                       <button key={s.id} type="button"
                         className={`pe-width-btn${style.skillStyle === s.id ? " pe-width-btn--on" : ""}`}
@@ -709,12 +699,12 @@ export default function ProfileEditor() {
                 </section>
 
                 <section className="pe-section">
-                  <SectionHead title="TIMELINE STYLE" />
+                  <SectionHead title="รูปแบบไทม์ไลน์" />
                   <div className="pe-radio-group">
                     {[
-                      { id: "line",    label: "Timeline line",  sub: "Classic vertical line" },
-                      { id: "compact", label: "Compact",        sub: "No line, tight spacing" },
-                      { id: "card",    label: "Card blocks",    sub: "Each entry in a card" },
+                      { id: "line",    label: "เส้นไทม์ไลน์", sub: "เส้นแนวตั้งแบบคลาสสิก" },
+                      { id: "compact", label: "กระทัดรัด",     sub: "ไม่มีเส้น ระยะห่างแน่น" },
+                      { id: "card",    label: "การ์ดบล็อก",    sub: "แต่ละรายการอยู่ในการ์ด" },
                     ].map(t => (
                       <label key={t.id} className={`pe-radio-row${style.timelineStyle === t.id ? " pe-radio-row--on" : ""}`}>
                         <input type="radio" name="timelineStyle" value={t.id}
@@ -731,7 +721,7 @@ export default function ProfileEditor() {
 
                 <section className="pe-section">
                   <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} disabled={saving}>
-                    {saving ? "Saving…" : "Save Design"}
+                    {saving ? "กำลังบันทึก…" : "บันทึก Design"}
                   </button>
                 </section>
               </>
@@ -741,8 +731,8 @@ export default function ProfileEditor() {
             {tab === "content" && (
               <>
                 <section className="pe-section">
-                  <SectionHead title="SECTION ORDER & VISIBILITY" />
-                  <p className="pe-hint">Drag to reorder · Click ● to toggle visibility</p>
+                  <SectionHead title="ลำดับและการแสดงผลส่วนต่างๆ" />
+                  <p className="pe-hint">ลากเพื่อเรียงลำดับ · กด ● เพื่อเปิด/ปิดการแสดงผล</p>
                   <div className="pe-section-list">
                     {style.sectionOrder.map((key, idx) => {
                       const sec = SECTION_KEYS.find(s => s.id === key);
@@ -765,7 +755,7 @@ export default function ProfileEditor() {
                 </section>
 
                 <section className="pe-section">
-                  <SectionHead title="QUICK TOGGLES" />
+                  <SectionHead title="สลับเปิด/ปิดด่วน" />
                   {SECTION_KEYS.map(sec => (
                     <Toggle key={sec.id}
                       label={`${sec.icon} ${sec.label}`}
@@ -776,7 +766,7 @@ export default function ProfileEditor() {
 
                 <section className="pe-section">
                   <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} disabled={saving}>
-                    {saving ? "Saving…" : "Save Layout"}
+                    {saving ? "กำลังบันทึก…" : "บันทึกเลย์เอาต์"}
                   </button>
                 </section>
               </>
@@ -788,8 +778,8 @@ export default function ProfileEditor() {
         {/* ══ Preview ══ */}
         <main className="pe-preview">
           <div className="pe-preview-meta">
-            <span className="pe-preview-label">LIVE PREVIEW</span>
-            <span className="pe-preview-badge">{style.layout} · {style.darkMode ? "dark" : "light"}</span>
+            <span className="pe-preview-label">ตัวอย่างสด</span>
+            <span className="pe-preview-badge">{style.layout} · {style.darkMode ? "โหมดมืด" : "โหมดสว่าง"}</span>
           </div>
 
           <div className="pe-preview-canvas">
@@ -799,29 +789,29 @@ export default function ProfileEditor() {
           <div className="pe-preview-info">
             <div className="pe-preview-info__grid">
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Layout</span>
-                <span className="pe-preview-stat__value">{style.layout}</span>
+                <span className="pe-preview-stat__label">เลย์เอาต์</span>
+                <span className="pe-preview-stat__value">{LAYOUTS.find(l => l.id === style.layout)?.label ?? style.layout}</span>
               </div>
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Theme</span>
-                <span className="pe-preview-stat__value" style={{ color: style.accent }}>●  {style.darkMode ? "Dark" : "Light"}</span>
+                <span className="pe-preview-stat__label">ธีม</span>
+                <span className="pe-preview-stat__value" style={{ color: style.accent }}>● {style.darkMode ? "มืด" : "สว่าง"}</span>
               </div>
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Sections</span>
+                <span className="pe-preview-stat__label">ส่วนที่แสดง</span>
                 <span className="pe-preview-stat__value">
-                  {Object.values(style.visibleSections).filter(Boolean).length}/{SECTION_KEYS.length} visible
+                  {Object.values(style.visibleSections).filter(Boolean).length}/{SECTION_KEYS.length} ส่วน
                 </span>
               </div>
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Animation</span>
-                <span className="pe-preview-stat__value">{style.animation}</span>
+                <span className="pe-preview-stat__label">แอนิเมชัน</span>
+                <span className="pe-preview-stat__value">{ANIMATIONS.find(a => a.id === style.animation)?.label ?? style.animation}</span>
               </div>
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Font</span>
+                <span className="pe-preview-stat__label">ฟอนต์</span>
                 <span className="pe-preview-stat__value">{FONTS.find(f => f.id === style.fontId)?.label}</span>
               </div>
               <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">Width</span>
+                <span className="pe-preview-stat__label">ความกว้าง</span>
                 <span className="pe-preview-stat__value">{CONTAINER_WIDTHS.find(w => w.id === style.containerWidth)?.label}</span>
               </div>
             </div>
@@ -829,7 +819,7 @@ export default function ProfileEditor() {
 
           <div className="pe-preview-note">
             <span>💡</span>
-            <span>Changes reflect immediately on your public profile after saving.</span>
+            <span>การเปลี่ยนแปลงจะแสดงบนโปรไฟล์สาธารณะของคุณทันทีหลังบันทึก</span>
           </div>
         </main>
 

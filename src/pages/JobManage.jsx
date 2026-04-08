@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheck, FiUsers, FiBriefcase } from "react-icons/fi";
 import "./JobManage.css";
@@ -376,12 +377,12 @@ export default function JobManage() {
                         >
                           <FiTrash2 size={15} />
                         </button>
-                        <a
-                          href={`/manage-jobs/${job.id}/applicants`}
+                        <Link
+                          to={`/jobs/${job.id}/applicants`}
                           className="btn btn-outline-primary btn-sm"
                         >
                           View Applicants
-                        </a>
+                        </Link>
                       </div>
                     </td>
                   </tr>

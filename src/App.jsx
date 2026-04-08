@@ -13,7 +13,7 @@ import ProfileEdit from "./pages/ProfileEdit";
 import Feed from "./pages/Feed/Feed";
 import "./App.css";
 import Login from "./pages/Login";
-import Register from "./Pages/Register";
+import Register from "./pages/Register";
 import ChartPage from "./pages/ChartPage";
 import AdsManagement from "./pages/AdsManagement";
 import AdminManagement from "./pages/AdminManagement";

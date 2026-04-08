@@ -107,6 +107,8 @@
   color: #111827;
   letter-spacing: -0.025em;
   margin: 0 0 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .ap-job-title {
@@ -133,6 +135,8 @@
   margin: 0;
   padding-top: 16px;
   border-top: 1px solid #f3f4f6;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ── Section Title ───────────────────────────────────────────── */

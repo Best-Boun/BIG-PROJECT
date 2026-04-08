@@ -69,11 +69,11 @@ export default function Feed() {
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const currentUser = {
     id: Number(localStorage.getItem("userId")),
-    name: profileData?.name || storedUser?.name || "User",
+    username: profileData?.name || storedUser?.name || "User",
     profileImage:
       profileData?.profileImage ||
       storedUser?.profileImage ||
-      posts?.find((p) => p.userId === Number(userId))?.profileImage  ||
+      posts?.find((p) => p.userId === Number(userId))?.profileImage ||
       null,
     role: storedUser?.role || null,
   };
@@ -637,11 +637,7 @@ export default function Feed() {
 
                     {/* 🔥 ปุ่ม */}
                     <label htmlFor="upload-image" className="upload-btn ms-2">
-                              
-                      {/* <i class="bi bi-card-image"></i> */}
-
-                      <i className="bi bi-camera-fill"></i>
-
+                      📷
                     </label>
                   </div>
 
@@ -713,7 +709,7 @@ export default function Feed() {
                             </div>
 
                             <div className="ms-3">
-                              <h6 className="mb-0">{post.name}</h6>
+                              <h6 className="mb-0">{post.username}</h6>
                               <small className="text-muted">
                                 {timeAgo(post.createdAt)}
                               </small>
@@ -941,8 +937,7 @@ export default function Feed() {
                               loadComments(post.id);
                             }}
                           >
-                            <i className="bi bi-chat"></i>{" "}
-                            {(comments[post.id] || []).length}
+                            💬 {(comments[post.id] || []).length}
                           </span>
                         </div>
                       </div>
@@ -1107,7 +1102,7 @@ export default function Feed() {
                             }}
                           >
                             <div style={{ fontWeight: "600", fontSize: 13 }}>
-                              {c.name}
+                              {c.username}
                             </div>
 
                             <div style={{ fontSize: 14 }}>{c.text}</div>

@@ -1,7 +1,4 @@
-// src/pages/Register.jsx
 import React, { useState, useEffect } from "react";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
 import "./Login.css";
 
 function Register() {
@@ -10,17 +7,14 @@ function Register() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("seeker");
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     document.body.classList.add("login-page");
     return () => document.body.classList.remove("login-page");
   }, []);
 
-  // ตรวจสอบ Gmail เท่านั้น
-  const isValidGmail = (email) => {
-    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-    return gmailRegex.test(email);
-  };
+  const isValidGmail = (email) => /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,9 +23,8 @@ function Register() {
       setMessage("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
-
     if (!isValidGmail(email)) {
-      setMessage("⚠️ กรุณากรอกอีเมลให้ถูกต้อง และต้องเป็น @gmail.com เท่านั้น");
+      setMessage("⚠️ ต้องเป็น @gmail.com เท่านั้น");
       return;
     }
 
@@ -56,106 +49,125 @@ function Register() {
   };
 
   return (
-    <div className="login-bg-animated">
-      <div className="login-card glow-frame">
-        <h2 className="login-logo">
-          <span>Smart</span>Persona
-        </h2>
+    <div className="auth-bg">
+      {/* Toggle */}
+      <div className="auth-toggle-wrap">
+        <span
+          className="auth-toggle-label"
+          style={{ cursor: "pointer" }}
+          onClick={() => (window.location.href = "/")}
+        >
+          LOG IN
+        </span>
+        <div
+          className="auth-toggle-track"
+          onClick={() => (window.location.href = "/")}
+        >
+          <div className="auth-toggle-thumb register">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </div>
+        </div>
+        <span className="auth-toggle-label active">SIGN UP</span>
+      </div>
 
-        <Form onSubmit={handleSubmit} className="login-form">
-          <Form.Group className="mb-3">
-            <Form.Label>ชื่อผู้ใช้</Form.Label>
-            <Form.Control
-              className="animated-input"
+      {/* Card */}
+      <div className="auth-card">
+        <h2 className="auth-card-title">Sign Up</h2>
+
+        <form onSubmit={handleSubmit}>
+          {/* Name */}
+          <div className="auth-input-group">
+            <i className="bi bi-person auth-icon" />
+            <input
               type="text"
+              placeholder="Your Full Name"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
               autoFocus
             />
-          </Form.Group>
+          </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label>อีเมล</Form.Label>
-            <Form.Control
-              className="animated-input"
+          {/* Email */}
+          <div className="auth-input-group">
+            <i className="bi bi-at auth-icon" />
+            <input
               type="email"
+              placeholder="Your Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
             />
-          </Form.Group>
+          </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label>รหัสผ่าน</Form.Label>
-            <Form.Control
-              className="animated-input"
-              type="password"
+          {/* Password */}
+          <div className="auth-input-group">
+            <i className="bi bi-lock auth-icon" />
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Your Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
             />
-          </Form.Group>
-
-          {/* Role Selector */}
-          <Form.Group className="mb-3">
-            <Form.Label style={{ color: "#e3d0ff" }}>ฉันต้องการ</Form.Label>
-            <div style={{ display: "flex", gap: "10px" }}>
-              {[
-                { value: "seeker",   icon: "🔍", label: "Job Seeker",  sub: "ฉันกำลังหางาน" },
-                { value: "employer", icon: "🏢", label: "Employer",    sub: "ฉันต้องการรับสมัครงาน" },
-              ].map((opt) => (
-                <div
-                  key={opt.value}
-                  onClick={() => setRole(opt.value)}
-                  style={{
-                    flex: 1,
-                    padding: "12px 8px",
-                    borderRadius: "12px",
-                    border: role === opt.value
-                      ? "2px solid #ff4dff"
-                      : "2px solid rgba(255,255,255,0.2)",
-                    background: role === opt.value
-                      ? "rgba(255,77,255,0.18)"
-                      : "rgba(255,255,255,0.08)",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    transition: "0.2s ease",
-                    color: "#fff",
-                  }}
-                >
-                  <div style={{ fontSize: "22px", marginBottom: "4px" }}>{opt.icon}</div>
-                  <div style={{ fontWeight: 600, fontSize: "13px" }}>{opt.label}</div>
-                  <div style={{ fontSize: "11px", opacity: 0.75, marginTop: "2px" }}>{opt.sub}</div>
-                </div>
-              ))}
-            </div>
-          </Form.Group>
-
-          {message && (
-            <p
-              style={{
-                color: message.includes("✅") ? "#4ef037" : "#ff7070",
-                marginTop: "10px",
-                fontWeight: "500",
-              }}
+            <button
+              type="button"
+              className="auth-eye-btn"
+              onClick={() => setShowPassword((s) => !s)}
             >
+              <i className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"}`} />
+            </button>
+          </div>
+
+          {/* Role */}
+          <div className="auth-section-label" style={{ marginTop: 4 }}>ฉันต้องการ</div>
+          <div className="auth-role-wrap">
+            {[
+              {
+                value: "seeker",
+                svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6M8 11h6"/></svg>,
+                label: "Job Seeker",
+                sub: "ฉันกำลังหางาน"
+              },
+              {
+                value: "employer",
+                svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>,
+                label: "Employer",
+                sub: "รับสมัครงาน"
+              },
+            ].map((opt) => (
+              <div
+                key={opt.value}
+                className={`auth-role-btn ${role === opt.value ? "active" : ""}`}
+                onClick={() => setRole(opt.value)}
+              >
+                <div style={{ display: "flex", justifyContent: "center"}}>
+                  {React.cloneElement(opt.svg, {
+                    stroke: role === opt.value ? "#0066ff" : "#888"
+                  })}
+                </div>
+                <span className="role-label">{opt.label}</span>
+                <span className="role-sub">{opt.sub}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Message */}
+          {message && (
+            <div className={message.includes("✅") ? "auth-success-msg" : "auth-error"}>
               {message}
-            </p>
+            </div>
           )}
 
-          <Button className="login-btn glow" type="submit">
-            สมัครสมาชิก
-          </Button>
+          <button type="submit" className="auth-submit-btn">
+            SUBMIT
+          </button>
+        </form>
 
-          <Button
-            className="login-btn secondary"
-            type="button"
-            onClick={() => (window.location.href = "/")}
-          >
-            🔙 กลับเข้าสู่ระบบ
-          </Button>
-        </Form>
+        <p className="auth-extra" style={{ marginTop: 16 }}>
+          มีบัญชีแล้ว?{" "}
+          <span onClick={() => (window.location.href = "/")}>เข้าสู่ระบบ</span>
+        </p>
       </div>
     </div>
   );

@@ -2,10 +2,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /* ═══════════════════════════════════════════════════════════════
-   CONSTANTS & DATA
+   ค่าคงที่ & ข้อมูล
 ═══════════════════════════════════════════════════════════════ */
 const DRAFT_KEY = "resume_editor_v3_draft";
-const API_URL   = "http://localhost:3000/api/resume";
+const API_URL   = import.meta.env.VITE_API_URL || "http://localhost:3000/api/resume";
+const REQUEST_TIMEOUT = 10000;
+const MAX_RETRIES = 2;
 
 const LANG_LEVELS    = ["เจ้าของภาษา", "คล่องแคล่ว", "ขั้นสูง", "ระดับกลาง", "เบื้องต้น"];
 const LANG_LEVEL_PCT = { เจ้าของภาษา: 100, คล่องแคล่ว: 85, ขั้นสูง: 68, ระดับกลาง: 50, เบื้องต้น: 28 };
@@ -30,20 +32,20 @@ const SUMMARY_REWRITES = [
 ];
 
 const TEMPLATES = [
-  { id: "modern",  label: "Modern",  desc: "สีสันทันสมัย",    accent: "#1e3a5f" },
-  { id: "minimal", label: "Minimal", desc: "สะอาดเรียบร้อย",  accent: "#2d2d2d" },
-  { id: "bold",    label: "Bold",    desc: "เข้มแข็งโดดเด่น", accent: "#8b1a1a" },
-  { id: "forest",  label: "Forest",  desc: "ธรรมชาติสดใส",    accent: "#1a4a2e" },
-  { id: "dusk",    label: "Dusk",    desc: "หรูหราสง่างาม",   accent: "#4a2d6b" },
+  { id: "modern",  label: "ทันสมัย",   desc: "สีสันทันสมัย",    accent: "#1e3a5f" },
+  { id: "minimal", label: "เรียบ",     desc: "สะอาดเรียบร้อย",  accent: "#2d2d2d" },
+  { id: "bold",    label: "โดดเด่น",   desc: "เข้มแข็งโดดเด่น", accent: "#8b1a1a" },
+  { id: "forest",  label: "ธรรมชาติ",  desc: "ธรรมชาติสดใส",    accent: "#1a4a2e" },
+  { id: "dusk",    label: "หรูหรา",    desc: "หรูหราสง่างาม",   accent: "#4a2d6b" },
 ];
 
 const JOB_ROLES = [
   { id: "",          label: "— เลือกสายงาน —" },
-  { id: "frontend",  label: "Frontend Developer" },
-  { id: "backend",   label: "Backend Developer" },
-  { id: "fullstack", label: "Full Stack Developer" },
-  { id: "data",      label: "Data Analyst" },
-  { id: "uxui",      label: "UX/UI Designer" },
+  { id: "frontend",  label: "นักพัฒนา Frontend" },
+  { id: "backend",   label: "นักพัฒนา Backend" },
+  { id: "fullstack", label: "นักพัฒนา Full Stack" },
+  { id: "data",      label: "นักวิเคราะห์ข้อมูล" },
+  { id: "uxui",      label: "นักออกแบบ UX/UI" },
 ];
 
 const ROLE_KEYWORDS = {
@@ -56,7 +58,7 @@ const ROLE_KEYWORDS = {
 
 const FORM_SECTIONS = [
   { id: "profile",    label: "โปรไฟล์",      icon: "◈" },
-  { id: "summary",    label: "Summary",       icon: "≡" },
+  { id: "summary",    label: "สรุปตัวเอง",    icon: "≡" },
   { id: "skills",     label: "ทักษะ",         icon: "◇" },
   { id: "experience", label: "ประสบการณ์",    icon: "◉" },
   { id: "education",  label: "การศึกษา",      icon: "▣" },
@@ -70,12 +72,20 @@ const EMPTY_RESUME = {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   HELPERS
+   ฟังก์ชันช่วยเหลือ
 ═══════════════════════════════════════════════════════════════ */
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
 function saveDraft(data) {
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ ts: Date.now(), data })); }
+  try { 
+    // Only save if data is valid to prevent corrupting draft
+    if (!isValidForDraft(data)) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ 
+      ts: Date.now(), 
+      version: 1,
+      data 
+    })); 
+  }
   catch (err) { console.error("บันทึก draft ไม่สำเร็จ:", err); }
 }
 
@@ -89,11 +99,47 @@ function clearDraft() {
   catch (err) { console.error("ลบ draft ไม่สำเร็จ:", err); }
 }
 
+/** Validate if resume has minimum data for drafting */
+function isValidForDraft(resume) {
+  return !!(
+    resume.fullName && resume.fullName.trim().length > 0 &&
+    (resume.jobTitle?.trim().length > 0 || resume.summary?.trim().length > 0 || resume.skills?.length > 0)
+  );
+}
+
+/** Retry with exponential backoff */
+async function retryFetch(fn, maxRetries = MAX_RETRIES, initialDelay = 300) {
+  let lastError;
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (i < maxRetries) {
+        const delay = initialDelay * Math.pow(2, i);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+/** Fetch with AbortController timeout */
+async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function calcCompletion(resume) {
   const checks = [
     { key: "fullName",     label: "ชื่อ-นามสกุล",        done: !!resume.fullName.trim() },
     { key: "jobTitle",     label: "ตำแหน่งงาน",           done: !!resume.jobTitle.trim() },
-    { key: "summary",      label: "สรุปตัวเอง (Summary)", done: resume.summary.trim().length > 30 },
+    { key: "summary",      label: "สรุปตัวเอง (อย่างน้อย 30 ตัวอักษร)", done: resume.summary.trim().length > 30 },
     { key: "skills",       label: "ทักษะ (อย่างน้อย 3)",  done: resume.skills.length >= 3 },
     { key: "experience",   label: "ประสบการณ์ทำงาน",      done: resume.experience.length > 0 },
     { key: "education",    label: "ประวัติการศึกษา",       done: resume.education.length > 0 },
@@ -118,7 +164,7 @@ function getAccentColor(templateId) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MICRO COMPONENTS
+   คอมโพเนนต์ขนาดเล็ก
 ═══════════════════════════════════════════════════════════════ */
 function Spinner({ dark }) {
   return <span className={`re-spinner${dark ? " re-spinner-dark" : ""}`} />;
@@ -126,10 +172,10 @@ function Spinner({ dark }) {
 
 function Toast({ toast }) {
   if (!toast) return null;
-  const icons = { success: "✓", error: "✕", info: "i" };
+  const icons = { success: "✓", error: "✕", info: "ℹ" };
   return (
     <div className={`re-toast re-toast--${toast.type}`} role="alert">
-      <span className="re-toast__icon">{icons[toast.type] || "i"}</span>
+      <span className="re-toast__icon">{icons[toast.type] || "ℹ"}</span>
       <span>{toast.message}</span>
     </div>
   );
@@ -145,7 +191,7 @@ function SLabel({ children, sub }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION NAV (Left sidebar navigation)
+   แนวนำทาง Section (แถบด้านซ้าย)
 ═══════════════════════════════════════════════════════════════ */
 function SectionNav({ activeSection, onNav, resume }) {
   const { checks } = calcCompletion(resume);
@@ -179,7 +225,7 @@ function SectionNav({ activeSection, onNav, resume }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COMPLETION PANEL
+   แผงความสมบูรณ์
 ═══════════════════════════════════════════════════════════════ */
 function CompletionPanel({ resume }) {
   const { pct, checks } = calcCompletion(resume);
@@ -202,14 +248,14 @@ function CompletionPanel({ resume }) {
         </div>
       )}
       {pct === 100 && (
-        <div className="re-completion-done">✓ พร้อมส่งสมัครงาน</div>
+        <div className="re-completion-done">✓ พร้อมส่งสมัครงาน!</div>
       )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   FEEDBACK PANEL
+   แผงข้อเสนอแนะ
 ═══════════════════════════════════════════════════════════════ */
 function FeedbackPanel({ resume }) {
   const [open, setOpen] = useState(false);
@@ -221,8 +267,8 @@ function FeedbackPanel({ resume }) {
     if (resume.experience.length === 0) items.push({ level: "error", text: "ยังไม่ได้เพิ่มประสบการณ์ทำงาน" });
     if (resume.education.length === 0)  items.push({ level: "error", text: "ยังไม่ได้เพิ่มประวัติการศึกษา" });
     if (resume.summary.trim().length > 0 && resume.summary.trim().length < 50)
-      items.push({ level: "warn", text: `Summary สั้นเกินไป (${resume.summary.trim().length}/50)` });
-    if (resume.summary.trim().length === 0) items.push({ level: "warn", text: "ยังไม่ได้เขียน Summary" });
+      items.push({ level: "warn", text: `สรุปตัวเองสั้นเกินไป (${resume.summary.trim().length}/50 ตัวอักษร)` });
+    if (resume.summary.trim().length === 0) items.push({ level: "warn", text: "ยังไม่ได้เขียนสรุปตัวเอง" });
     if (resume.skills.length > 0 && resume.skills.length < 3)
       items.push({ level: "warn", text: `ทักษะน้อยเกินไป (${resume.skills.length}/3)` });
     if (resume.skills.length === 0)     items.push({ level: "warn", text: "ยังไม่ได้เพิ่มทักษะ" });
@@ -237,7 +283,7 @@ function FeedbackPanel({ resume }) {
   if (feedbacks.length === 0) {
     return (
       <div className="re-feedback-chip re-feedback-chip--ok">
-        <span>✓</span> Resume สมบูรณ์พร้อมสมัครงาน
+        <span>✓</span> Resume สมบูรณ์ พร้อมสมัครงาน!
       </div>
     );
   }
@@ -247,12 +293,12 @@ function FeedbackPanel({ resume }) {
       <button className="re-feedback-trigger" onClick={() => setOpen((v) => !v)}>
         <div className="re-feedback-trigger__left">
           {errors.length > 0 && (
-            <span className="re-feedback-badge re-feedback-badge--error">{errors.length} สำคัญ</span>
+            <span className="re-feedback-badge re-feedback-badge--error">{errors.length} จำเป็น</span>
           )}
           {warns.length > 0 && (
             <span className="re-feedback-badge re-feedback-badge--warn">{warns.length} แนะนำ</span>
           )}
-          <span className="re-feedback-trigger__text">คำแนะนำ Resume</span>
+          <span className="re-feedback-trigger__text">คำแนะนำสำหรับ Resume ของคุณ</span>
         </div>
         <span className="re-feedback-trigger__chevron">{open ? "▲" : "▼"}</span>
       </button>
@@ -275,7 +321,7 @@ function FeedbackPanel({ resume }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   JOB ROLE SELECTOR
+   เลือกสายงาน
 ═══════════════════════════════════════════════════════════════ */
 function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
   const keywords  = useMemo(() => ROLE_KEYWORDS[jobRole] || [], [jobRole]);
@@ -293,7 +339,7 @@ function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
   return (
     <div className="re-card">
       <div className="re-card__header">
-        <SLabel>สายงาน &amp; Keyword แนะนำ</SLabel>
+        <SLabel>สายงาน &amp; คำสำคัญแนะนำ</SLabel>
         {jobRole && available.length > 0 && (
           <button className="re-btn re-btn-ghost re-btn-sm" onClick={addAll} disabled={skills.length >= 10}>
             + เพิ่มทั้งหมด
@@ -309,7 +355,7 @@ function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
       </select>
       {jobRole && keywords.length > 0 && (
         <div className="re-keywords-block">
-          <p className="re-field-label re-keywords-label">Keyword สำหรับสายงานนี้</p>
+          <p className="re-field-label re-keywords-label">คำสำคัญสำหรับสายงานนี้</p>
           <div className="re-keywords-wrap">
             {keywords.map((kw) => {
               const already = skills.includes(kw);
@@ -320,7 +366,7 @@ function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
                   className={`re-keyword-chip${already ? " re-keyword-chip--added" : ""}`}
                   onClick={() => !already && !full && addKeyword(kw)}
                   disabled={full}
-                  title={already ? "มีใน Skills แล้ว" : full ? "Skills เต็ม 10" : `เพิ่ม ${kw}`}
+                  title={already ? "มีใน ทักษะ แล้ว" : full ? "ทักษะเต็ม 10" : `เพิ่ม ${kw}`}
                 >
                   {already ? "✓ " : ""}{kw}
                 </button>
@@ -328,17 +374,17 @@ function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
             })}
           </div>
           {available.length === 0 && (
-            <p className="re-keywords-ok"><span>✓</span><span>เพิ่ม keyword ครบแล้ว</span></p>
+            <p className="re-keywords-ok"><span>✓</span><span>เพิ่มคำสำคัญครบแล้ว</span></p>
           )}
         </div>
       )}
-      {!jobRole && <p className="re-keywords-hint">เลือกสายงานเพื่อดู keyword แนะนำ</p>}
+      {!jobRole && <p className="re-keywords-hint">เลือกสายงานเพื่อดูคำสำคัญแนะนำ</p>}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SKILLS SECTION
+   หมวดทักษะ
 ═══════════════════════════════════════════════════════════════ */
 function SkillsSection({ skills, onChange }) {
   const [val, setVal]         = useState("");
@@ -362,7 +408,7 @@ function SkillsSection({ skills, onChange }) {
   return (
     <div className="re-card">
       <div className="re-card__header">
-        <SLabel>ทักษะ</SLabel>
+        <SLabel>ทักษะความสามารถ</SLabel>
         <span className="re-skills-count">{skills.length}/10</span>
       </div>
       <div className="re-tags-wrap">
@@ -372,7 +418,7 @@ function SkillsSection({ skills, onChange }) {
             <button className="re-tag__x" onClick={() => remove(sk)} aria-label={`ลบ ${sk}`}>×</button>
           </span>
         ))}
-        {skills.length === 0 && <span className="re-empty-hint">ยังไม่มีทักษะ</span>}
+        {skills.length === 0 && <span className="re-empty-hint">ยังไม่มีทักษะ — เพิ่มด้านล่างได้เลย</span>}
       </div>
       {skills.length < 10 && (
         <div className="re-add-row">
@@ -413,7 +459,7 @@ function SkillsSection({ skills, onChange }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EXPERIENCE SECTION
+   หมวดประสบการณ์ทำงาน
 ═══════════════════════════════════════════════════════════════ */
 function ExperienceSection({ experience, onChange }) {
   const [adding, setAdding]   = useState(false);
@@ -467,8 +513,8 @@ function ExperienceSection({ experience, onChange }) {
             <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" placeholder="ม.ค. 2564" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
             <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" placeholder="ปัจจุบัน" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
             <div className="re-input-full">
-              <label className="re-field-label">รายละเอียด</label>
-              <textarea className="re-input re-textarea" rows={3} placeholder="รายละเอียดหน้าที่และความสำเร็จ…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <label className="re-field-label">รายละเอียดงาน</label>
+              <textarea className="re-input re-textarea" rows={3} placeholder="หน้าที่รับผิดชอบและความสำเร็จที่น่าภาคภูมิใจ…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
           </div>
           <div className="re-add-form__actions">
@@ -514,8 +560,8 @@ function ExperienceSection({ experience, onChange }) {
                 <div><label className="re-field-label">วันที่เริ่ม</label><input className="re-input" value={exp.startDate} placeholder="ม.ค. 2564" onChange={(e) => update(exp._id, "startDate", e.target.value)} /></div>
                 <div><label className="re-field-label">วันที่สิ้นสุด</label><input className="re-input" value={exp.endDate} placeholder="ปัจจุบัน" onChange={(e) => update(exp._id, "endDate", e.target.value)} /></div>
                 <div className="re-input-full">
-                  <label className="re-field-label">รายละเอียด</label>
-                  <textarea className="re-input re-textarea" rows={3} value={exp.description} placeholder="รายละเอียดงานและความสำเร็จ…" onChange={(e) => update(exp._id, "description", e.target.value)} />
+                  <label className="re-field-label">รายละเอียดงาน</label>
+                  <textarea className="re-input re-textarea" rows={3} value={exp.description} placeholder="หน้าที่รับผิดชอบและความสำเร็จ…" onChange={(e) => update(exp._id, "description", e.target.value)} />
                 </div>
               </div>
             </div>
@@ -535,7 +581,7 @@ function ExperienceSection({ experience, onChange }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EDUCATION SECTION
+   หมวดการศึกษา
 ═══════════════════════════════════════════════════════════════ */
 function EducationSection({ education, onChange }) {
   const [adding, setAdding]   = useState(false);
@@ -574,9 +620,9 @@ function EducationSection({ education, onChange }) {
           <p className="re-add-form__title">เพิ่มการศึกษาใหม่</p>
           <div className="re-input-grid">
             <div className="re-input-full"><label className="re-field-label">โรงเรียน / มหาวิทยาลัย *</label><input className="re-input" placeholder="จุฬาลงกรณ์มหาวิทยาลัย" value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} /></div>
-            <div className="re-input-full"><label className="re-field-label">วุฒิ / สาขา</label><input className="re-input" placeholder="วิศวกรรมศาสตร์บัณฑิต" value={form.degree} onChange={(e) => setForm({ ...form, degree: e.target.value })} /></div>
-            <div><label className="re-field-label">ปีที่เข้า</label><input className="re-input" placeholder="2559" value={form.startYear} onChange={(e) => setForm({ ...form, startYear: e.target.value })} /></div>
-            <div><label className="re-field-label">ปีที่จบ</label><input className="re-input" placeholder="2563" value={form.endYear} onChange={(e) => setForm({ ...form, endYear: e.target.value })} /></div>
+            <div className="re-input-full"><label className="re-field-label">วุฒิการศึกษา / สาขาวิชา</label><input className="re-input" placeholder="วิศวกรรมศาสตร์บัณฑิต สาขาคอมพิวเตอร์" value={form.degree} onChange={(e) => setForm({ ...form, degree: e.target.value })} /></div>
+            <div><label className="re-field-label">ปีที่เข้าเรียน</label><input className="re-input" placeholder="2559" value={form.startYear} onChange={(e) => setForm({ ...form, startYear: e.target.value })} /></div>
+            <div><label className="re-field-label">ปีที่สำเร็จการศึกษา</label><input className="re-input" placeholder="2563" value={form.endYear} onChange={(e) => setForm({ ...form, endYear: e.target.value })} /></div>
           </div>
           <div className="re-add-form__actions">
             <button className="re-btn re-btn-ghost re-btn-sm" onClick={() => setAdding(false)}>ยกเลิก</button>
@@ -605,9 +651,9 @@ function EducationSection({ education, onChange }) {
             <div className="re-list-item__body">
               <div className="re-input-grid">
                 <div className="re-input-full"><label className="re-field-label">โรงเรียน / มหาวิทยาลัย</label><input className="re-input" value={edu.school} onChange={(e) => update(edu._id, "school", e.target.value)} /></div>
-                <div className="re-input-full"><label className="re-field-label">วุฒิ / สาขา</label><input className="re-input" value={edu.degree} onChange={(e) => update(edu._id, "degree", e.target.value)} /></div>
-                <div><label className="re-field-label">ปีที่เข้า</label><input className="re-input" placeholder="2559" value={edu.startYear} onChange={(e) => update(edu._id, "startYear", e.target.value)} /></div>
-                <div><label className="re-field-label">ปีที่จบ</label><input className="re-input" placeholder="2563" value={edu.endYear} onChange={(e) => update(edu._id, "endYear", e.target.value)} /></div>
+                <div className="re-input-full"><label className="re-field-label">วุฒิการศึกษา / สาขาวิชา</label><input className="re-input" value={edu.degree} onChange={(e) => update(edu._id, "degree", e.target.value)} /></div>
+                <div><label className="re-field-label">ปีที่เข้าเรียน</label><input className="re-input" placeholder="2559" value={edu.startYear} onChange={(e) => update(edu._id, "startYear", e.target.value)} /></div>
+                <div><label className="re-field-label">ปีที่สำเร็จการศึกษา</label><input className="re-input" placeholder="2563" value={edu.endYear} onChange={(e) => update(edu._id, "endYear", e.target.value)} /></div>
               </div>
             </div>
           )}
@@ -626,7 +672,7 @@ function EducationSection({ education, onChange }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   LANGUAGE SECTION
+   หมวดภาษา
 ═══════════════════════════════════════════════════════════════ */
 function LanguagesSection({ languages, onChange }) {
   const add    = () => onChange([...languages, { _id: uid(), name: "", level: "ระดับกลาง" }]);
@@ -640,7 +686,7 @@ function LanguagesSection({ languages, onChange }) {
   return (
     <div className="re-card">
       <div className="re-card__header">
-        <SLabel>ภาษา</SLabel>
+        <SLabel>ภาษาที่ใช้ได้</SLabel>
         <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่ม</button>
       </div>
       {languages.map((lang) => (
@@ -674,7 +720,7 @@ function LanguagesSection({ languages, onChange }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   RESUME PAPER PREVIEW
+   ตัวอย่าง Resume (กระดาษ)
 ═══════════════════════════════════════════════════════════════ */
 const PAPER_RULE = "#e4e7ed";
 
@@ -768,7 +814,7 @@ function ResumePreview({ resume, template, isDark }) {
           </PaperSection>
         )}
         {resume.skills.length > 0 && (
-          <PaperSection title="ทักษะ" accentColor={accent}>
+          <PaperSection title="ทักษะความสามารถ" accentColor={accent}>
             <div className="re-paper-skills">
               {resume.skills.map((sk) => (
                 <span key={sk} className="re-paper-skill"
@@ -780,7 +826,7 @@ function ResumePreview({ resume, template, isDark }) {
           </PaperSection>
         )}
         {resume.languages.length > 0 && (
-          <PaperSection title="ภาษา" accentColor={accent}>
+          <PaperSection title="ภาษาที่ใช้ได้" accentColor={accent}>
             <div className="re-lang-grid">
               {resume.languages.map((lang, i) => (
                 <div key={lang._id || i} className="re-lang-item">
@@ -803,7 +849,6 @@ function ResumePreview({ resume, template, isDark }) {
 }
 
 function lightenColor(hex) {
-  // simple lighten for dark mode
   const n = parseInt(hex.slice(1), 16);
   const r = Math.min(255, ((n >> 16) & 0xff) + 80);
   const g = Math.min(255, ((n >> 8) & 0xff) + 80);
@@ -812,7 +857,7 @@ function lightenColor(hex) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
+   คอมโพเนนต์หลัก
 ═══════════════════════════════════════════════════════════════ */
 export default function ResumeEditor() {
   const [resume, setResume]           = useState(EMPTY_RESUME);
@@ -833,23 +878,50 @@ export default function ResumeEditor() {
   const fileRef    = useRef(null);
   const toastTimer = useRef(null);
   const sectionRefs = useRef({});
+  const lastSavedState = useRef(JSON.stringify(EMPTY_RESUME));
 
-  /* ── Toast helper ── */
-  const showToast = useCallback((message, type = "success") => {
+  /* ── แสดงการแจ้งเตือน ── */
+  const showToast = useCallback((message, type = "success", duration = 4000) => {
     clearTimeout(toastTimer.current);
     setToast({ message, type });
-    toastTimer.current = setTimeout(() => setToast(null), 3200);
+    toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
 
-  /* ── โหลดข้อมูลเมื่อเปิดหน้า ── */
+  /* ── ตรวจสอบการเปลี่ยนแปลงที่ยังไม่บันทึก ── */
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const currentState = JSON.stringify(resume);
+      if (currentState !== lastSavedState.current) {
+        e.preventDefault();
+        e.returnValue = "คุณมีการเปลี่ยนแปลง Resume ที่ยังไม่บันทึก";
+        return e.returnValue;
+      }
+    };
+    
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [resume]);
+
+  /* ── โหลดข้อมูลเมื่อเปิดหน้า (ปรับปรุง) ── */
   useEffect(() => {
     (async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const res = await fetch("http://localhost:3000/api/resume/me", {
-            headers: { "Authorization": `Bearer ${token}` },
-          });
+          const res = await retryFetch(
+            () => fetchWithTimeout(`${API_URL}/me`, {
+              headers: { "Authorization": `Bearer ${token}` },
+            }),
+            MAX_RETRIES
+          );
+          
+          if (res.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userID");
+            showToast("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่", "error", 5000);
+            return;
+          }
+
           if (res.ok) {
             const response = await res.json();
             if (response.success && response.data) {
@@ -866,33 +938,39 @@ export default function ResumeEditor() {
               });
               setResumeId(data.id);
               if (data.template) setTemplate(data.template);
+              lastSavedState.current = JSON.stringify(data);
               try { clearDraft(); } catch (e) { /* ignore */ }
               return;
             }
           }
         } catch (err) {
-          console.debug("Resume fetch failed:", err);
+          console.debug("ดึงข้อมูล Resume ไม่สำเร็จ:", err);
+          // Fall through to draft loading
         }
       }
       const draft = loadDraft();
-      if (draft?.data) {
+      if (draft?.data && isValidForDraft(draft.data)) {
         setResume({ ...EMPTY_RESUME, ...draft.data });
         if (draft.data._resumeId) setResumeId(draft.data._resumeId);
         setDraftBanner(true);
+        lastSavedState.current = JSON.stringify(draft.data);
       }
     })();
   }, []);
 
-  /* ── Auto-save draft ── */
+  /* ── บันทึกอัตโนมัติ (ปรับปรุง - ตรวจสอบความถูกต้อง) ── */
   useEffect(() => {
     const t = setTimeout(() => {
-      saveDraft({ ...resume, _resumeId: resumeId });
-      setAutoSavedAt(Date.now());
-    }, 1500);
+      // Only save if data is valid
+      if (isValidForDraft(resume)) {
+        saveDraft({ ...resume, _resumeId: resumeId });
+        setAutoSavedAt(Date.now());
+      }
+    }, 2000);
     return () => clearTimeout(t);
   }, [resume, resumeId]);
 
-  /* ── Section scroll observer ── */
+  /* ── ติดตาม Section ที่มองเห็น ── */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -916,20 +994,20 @@ export default function ResumeEditor() {
 
   const setField = useCallback((field, value) => setResume((p) => ({ ...p, [field]: value })), []);
 
-  /* ── Generate from profile ── */
+  /* ── สร้างจากโปรไฟล์ ── */
   const handleGenerate = async () => {
     const token  = localStorage.getItem("token");
     const userId = localStorage.getItem("userID");
-    if (!token || !userId) { showToast("กรุณา login ก่อน", "error"); return; }
+    if (!token || !userId) { showToast("กรุณาเข้าสู่ระบบก่อน", "error"); return; }
 
     setGenerating(true);
     try {
       const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("ดึง profile ไม่สำเร็จ");
+      if (!res.ok) throw new Error("ดึงข้อมูลโปรไฟล์ไม่สำเร็จ");
       const profileData = await res.json();
-      if (!profileData || typeof profileData !== "object") throw new Error("ข้อมูล profile ไม่ถูกต้อง");
+      if (!profileData || typeof profileData !== "object") throw new Error("ข้อมูลโปรไฟล์ไม่ถูกต้อง");
 
       setResume({
         fullName:     profileData.name || "",
@@ -947,69 +1025,147 @@ export default function ResumeEditor() {
       try { clearDraft(); } catch (e) { /* ignore */ }
       showToast("สร้าง Resume จากโปรไฟล์สำเร็จ ✓");
     } catch (err) {
-      console.error("สร้าง resume ไม่สำเร็จ:", err);
-      showToast("ไม่สามารถสร้าง Resume จากโปรไฟล์ได้: " + err.message, "error");
+      console.error("สร้าง Resume ไม่สำเร็จ:", err);
+      showToast("ไม่สามารถสร้าง Resume ได้: " + err.message, "error");
     } finally {
       setGenerating(false);
     }
   };
 
-  /* ── Save / Update ── */
+  /* ── บันทึก / อัปเดต (ปรับปรุง - retry + timeout + auth) ── */
   const handleSave = async () => {
-    if (!resume.fullName.trim()) { showToast("กรุณากรอกชื่อ-นามสกุลก่อนบันทึก", "error"); return; }
+    if (!resume.fullName.trim()) {
+      showToast("กรุณากรอกชื่อ-นามสกุลก่อนบันทึก", "error");
+      return;
+    }
+
     const token = localStorage.getItem("token");
-    if (!token) { showToast("กรุณา login ก่อน", "error"); return; }
+    if (!token) {
+      showToast("กรุณาเข้าสู่ระบบก่อน", "error");
+      return;
+    }
 
     setSaving(true);
     try {
-      const body    = { ...resume, template };
+      const body = { ...resume, template };
       const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
-      const res     = resumeId
-        ? await fetch(`${API_URL}/${resumeId}`, { method: "PUT", headers, body: JSON.stringify(body) })
-        : await fetch(API_URL, { method: "POST", headers, body: JSON.stringify(body) });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "บันทึกไม่สำเร็จ");
+      const saveWithRetry = async () => {
+        if (resumeId) {
+          // Update existing
+          const res = await retryFetch(
+            () => fetchWithTimeout(
+              `${API_URL}/${resumeId}`,
+              { method: "PUT", headers, body: JSON.stringify(body) },
+              REQUEST_TIMEOUT
+            ),
+            MAX_RETRIES
+          );
 
-      if (!resumeId) {
-        const newId = json.data?.id || json.data?._id || json.id;
-        if (newId) setResumeId(newId);
+          if (res.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userID");
+            throw new Error("SESSION_EXPIRED");
+          }
+
+          if (res.status === 403) {
+            throw new Error("Resume ไม่พบหรือคุณไม่มีสิทธิ์เข้าถึง");
+          }
+
+          if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.message || `HTTP ${res.status}`);
+          }
+
+          return await res.json();
+        } else {
+          // Create new
+          const res = await retryFetch(
+            () => fetchWithTimeout(
+              API_URL,
+              { method: "POST", headers, body: JSON.stringify(body) },
+              REQUEST_TIMEOUT
+            ),
+            MAX_RETRIES
+          );
+
+          if (res.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userID");
+            throw new Error("SESSION_EXPIRED");
+          }
+
+          if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.message || `HTTP ${res.status}`);
+          }
+
+          return await res.json();
+        }
+      };
+
+      const json = await saveWithRetry();
+
+      if (!resumeId && json.data?.id) {
+        setResumeId(json.data.id);
       }
+
       clearDraft();
+      lastSavedState.current = JSON.stringify(resume);
       showToast(resumeId ? "อัปเดต Resume เรียบร้อยแล้ว ✓" : "บันทึก Resume เรียบร้อยแล้ว ✓");
     } catch (err) {
-      console.error("บันทึก resume ไม่สำเร็จ:", err);
-      showToast("บันทึกไม่สำเร็จ: " + err.message, "error");
+      console.error("บันทึก Resume ไม่สำเร็จ:", err);
+
+      if (err.message === "SESSION_EXPIRED") {
+        showToast("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่", "error", 5000);
+      } else if (err.name === "AbortError") {
+        showToast("หมดเวลารอการตอบสนอง กรุณาลองใหม่", "error");
+      } else {
+        showToast("บันทึกไม่สำเร็จ: " + err.message, "error");
+      }
     } finally {
       setSaving(false);
     }
   };
 
-  /* ── Rewrite Summary ── */
+  /* ── ปรับสรุปตัวเอง ── */
   const handleRewrite = async () => {
     setRewriting(true);
     try {
       await new Promise((r) => setTimeout(r, 900));
       setField("summary", rewriteSummary(resume.summary));
-      showToast("ปรับ Summary เรียบร้อยแล้ว");
+      showToast("ปรับสรุปตัวเองเรียบร้อยแล้ว");
     } catch (err) {
-      showToast("ปรับ Summary ไม่สำเร็จ", "error");
+      showToast("ปรับสรุปตัวเองไม่สำเร็จ", "error");
     } finally {
       setRewriting(false);
     }
   };
 
-  /* ── Export PDF ── */
+  /* ── ส่งออก PDF ── */
   const handleExportPDF = async () => {
     const el = document.getElementById("resume-preview-root");
-    if (!el) { showToast("กรอกข้อมูลก่อนแล้วค่อย Export", "error"); return; }
+    if (!el) {
+      showToast("กรอกข้อมูลก่อนแล้วค่อยส่งออก", "error");
+      return;
+    }
+
+    // Prevent multiple clicks
+    if (exporting) return;
+
     setExporting(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
       const images   = el.querySelectorAll("img");
+
+      // Wait for all images to load
       await Promise.all([...images].map((img) =>
-        img.complete ? Promise.resolve() : new Promise((res) => { img.onload = res; img.onerror = res; })
+        img.complete ? Promise.resolve() : new Promise((res) => {
+          img.onload = res;
+          img.onerror = res;
+        })
       ));
+
       await html2pdf().set({
         margin:      0,
         filename:    `${resume.fullName || "resume"}.pdf`,
@@ -1017,80 +1173,116 @@ export default function ResumeEditor() {
         html2canvas: { scale: 2, useCORS: true, allowTaint: true, letterRendering: true, scrollX: 0, scrollY: 0 },
         jsPDF:       { unit: "mm", format: "a4", orientation: "portrait" },
       }).from(el).save();
-      showToast("Export PDF สำเร็จ ✓");
+
+      showToast("ส่งออก PDF สำเร็จ ✓");
     } catch (err) {
-      console.error("Export PDF ไม่สำเร็จ:", err);
-      showToast("Export ไม่สำเร็จ: " + err.message, "error");
+      if (err.name === "AbortError") {
+        console.log("PDF export cancelled");
+      } else {
+        console.error("ส่งออก PDF ไม่สำเร็จ:", err);
+        showToast("ส่งออกไม่สำเร็จ: " + (err.message || "ข้อผิดพลาดที่ไม่ทราบ"), "error");
+      }
     } finally {
       setExporting(false);
     }
   };
 
-  /* ── Image upload ── */
+  /* ── อัปโหลดรูป ── */
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { showToast("ไฟล์ใหญ่เกิน 5 MB", "error"); return; }
+
+    // Validate file type
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      showToast("รองรับเฉพาะ JPG, PNG, หรือ WebP", "error");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("ไฟล์ใหญ่เกิน 5 MB", "error");
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (ev) => setField("profileImage", ev.target.result);
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setField("profileImage", ev.target.result);
+      }
+    };
+    reader.onerror = () => {
+      showToast("อ่านไฟล์ไม่สำเร็จ", "error");
+    };
     reader.readAsDataURL(file);
   };
 
   const keepDraft    = () => setDraftBanner(false);
-  const discardDraft = () => { clearDraft(); setResume(EMPTY_RESUME); setResumeId(null); setDraftBanner(false); };
+  const discardDraft = () => {
+    if (!window.confirm("ต้องการลบข้อมูลร่างหรือไม่?")) return;
+    clearDraft();
+    setResume(EMPTY_RESUME);
+    setResumeId(null);
+    setDraftBanner(false);
+    lastSavedState.current = JSON.stringify(EMPTY_RESUME);
+  };
 
   const { pct } = useMemo(() => calcCompletion(resume), [resume]);
 
-  /* ════════════════════════════ RENDER ════════════════════════════ */
+  /* ════════════════════════════ เรนเดอร์ ════════════════════════════ */
   return (
     <>
       <Toast toast={toast} />
 
       <div className={`re-page${isDark ? " re-dark" : ""}`}>
 
-        {/* Draft Banner */}
+        {/* แบนเนอร์ Draft */}
         {draftBanner && (
           <div className="re-draft-banner">
             <span className="re-draft-banner__text">
               <span className="re-draft-banner__dot" />
-              โหลด Draft ล่าสุดจาก Local Storage แล้ว
+              โหลดข้อมูลร่างล่าสุดจาก Local Storage แล้ว
             </span>
             <div className="re-draft-banner__actions">
-              <button className="re-btn re-btn-ghost re-btn-sm" onClick={keepDraft}>เก็บ Draft</button>
+              <button className="re-btn re-btn-ghost re-btn-sm" onClick={keepDraft}>เก็บข้อมูลร่าง</button>
               <button className="re-btn re-btn-danger re-btn-sm" onClick={discardDraft}>ล้างข้อมูล</button>
             </div>
           </div>
         )}
 
-        {/* ════════ Left: Sidebar Nav ════════ */}
-        <div className="re-sidebar">
+        {/* ════════ ซ้าย: แถบด้านข้าง ════════ */}
+        <aside className="re-sidebar">
+          {/* Brand */}
           <div className="re-sidebar__brand">
             <span className="re-sidebar__logo">R</span>
-            <span className="re-sidebar__title">Resume<br/>Builder</span>
+            <span className="re-sidebar__title">Resume</span>
           </div>
 
+          {/* Completion */}
           <CompletionPanel resume={resume} />
 
+          {/* Nav */}
           <SectionNav
             activeSection={activeSection}
             onNav={scrollToSection}
             resume={resume}
           />
 
+          {/* Footer */}
           <div className="re-sidebar__footer">
             <button
               className="re-btn re-btn-ghost re-sidebar__dark-toggle"
               onClick={() => setIsDark((d) => !d)}
               title={isDark ? "โหมดสว่าง" : "โหมดมืด"}
             >
-              {isDark ? "☀︎ สว่าง" : "☽ มืด"}
+              {isDark ? "☀︎" : "☽"}
+              <span className="re-sidebar__dark-label">{isDark ? "สว่าง" : "มืด"}</span>
             </button>
           </div>
-        </div>
+        </aside>
 
-        {/* ════════ Center: Form Panel ════════ */}
-        <div className="re-form-panel">
-          {/* Toolbar */}
+        {/* ════════ กลาง: แผงฟอร์ม ════════ */}
+        <main className="re-form-panel">
+
+          {/* Topbar */}
           <div className="re-toolbar">
             <div className="re-toolbar__left">
               <span className="re-toolbar__title">
@@ -1099,17 +1291,17 @@ export default function ResumeEditor() {
               {autoSavedAt && (
                 <span className="re-toolbar__save-status">
                   <span className="re-autosave-dot" />
-                  บันทึกอัตโนมัติแล้ว
+                  บันทึกแล้ว
                 </span>
               )}
             </div>
             <div className="re-toolbar__actions">
               <button className="re-btn re-btn-ghost re-btn-sm" onClick={handleGenerate} disabled={generating}>
-                {generating ? <><Spinner dark={!isDark} />สร้างอยู่…</> : "✦ จากโปรไฟล์"}
+                {generating ? <><Spinner dark={!isDark} />กำลังสร้าง…</> : "✦ จากโปรไฟล์"}
               </button>
               <button className="re-btn re-btn-primary" onClick={handleSave} disabled={saving}>
                 {saving
-                  ? <><Spinner />บันทึกอยู่…</>
+                  ? <><Spinner />กำลังบันทึก…</>
                   : resumeId ? "อัปเดต" : "บันทึก"}
               </button>
             </div>
@@ -1123,13 +1315,13 @@ export default function ResumeEditor() {
           {/* Form body */}
           <div className="re-form-body">
 
-            {/* ── Section: Profile ── */}
+            {/* ── Profile ── */}
             <div ref={(el) => sectionRefs.current.profile = el} data-section="profile" className="re-form-section">
               <div className="re-form-section__title">
                 <span className="re-form-section__icon">◈</span> โปรไฟล์
               </div>
 
-              {/* Profile image */}
+              {/* Avatar */}
               <div className="re-card">
                 <SLabel>รูปโปรไฟล์</SLabel>
                 <div className="re-avatar-wrap">
@@ -1139,7 +1331,7 @@ export default function ResumeEditor() {
                       : (
                         <div className="re-avatar__placeholder">
                           <span>👤</span>
-                          <span className="re-avatar__hint">คลิกอัปโหลด</span>
+                          <span className="re-avatar__hint">คลิก</span>
                         </div>
                       )}
                   </div>
@@ -1166,13 +1358,13 @@ export default function ResumeEditor() {
                     <input className="re-input" placeholder="สมชาย ใจดี" value={resume.fullName} onChange={(e) => setField("fullName", e.target.value)} />
                   </div>
                   <div className="re-input-full">
-                    <label className="re-field-label">ตำแหน่งงาน</label>
+                    <label className="re-field-label">ตำแหน่งงานที่ต้องการ</label>
                     <input className="re-input" placeholder="Senior Frontend Developer" value={resume.jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
                   </div>
                 </div>
               </div>
 
-              {/* Job role & keywords */}
+              {/* Job role selector */}
               <JobRoleSelector
                 jobRole={jobRole}
                 onRoleChange={setJobRole}
@@ -1181,21 +1373,21 @@ export default function ResumeEditor() {
               />
             </div>
 
-            {/* ── Section: Summary ── */}
+            {/* ── Summary ── */}
             <div ref={(el) => sectionRefs.current.summary = el} data-section="summary" className="re-form-section">
               <div className="re-form-section__title">
-                <span className="re-form-section__icon">≡</span> Summary
+                <span className="re-form-section__icon">≡</span> สรุปตัวเอง
               </div>
               <div className="re-card">
                 <div className="re-card__header">
                   <SLabel>สรุปตัวเอง (Summary)</SLabel>
                   <button className="re-btn re-btn-ai" onClick={handleRewrite} disabled={rewriting}>
-                    {rewriting ? <><Spinner dark={!isDark} />ปรับอยู่…</> : "✦ ปรับให้เป็นมืออาชีพ"}
+                    {rewriting ? <><Spinner dark={!isDark} />กำลังปรับ…</> : "✦ ปรับให้เป็นมืออาชีพ"}
                   </button>
                 </div>
                 <textarea
                   className="re-input re-textarea"
-                  rows={5}
+                  rows={4}
                   placeholder="เขียนสรุปเกี่ยวกับตัวคุณ ประสบการณ์ และเป้าหมายในอาชีพ…"
                   value={resume.summary}
                   onChange={(e) => setField("summary", e.target.value)}
@@ -1211,7 +1403,7 @@ export default function ResumeEditor() {
               </div>
             </div>
 
-            {/* ── Section: Skills ── */}
+            {/* ── Skills ── */}
             <div ref={(el) => sectionRefs.current.skills = el} data-section="skills" className="re-form-section">
               <div className="re-form-section__title">
                 <span className="re-form-section__icon">◇</span> ทักษะ
@@ -1219,7 +1411,7 @@ export default function ResumeEditor() {
               <SkillsSection skills={resume.skills} onChange={(v) => setField("skills", v)} />
             </div>
 
-            {/* ── Section: Experience ── */}
+            {/* ── Experience ── */}
             <div ref={(el) => sectionRefs.current.experience = el} data-section="experience" className="re-form-section">
               <div className="re-form-section__title">
                 <span className="re-form-section__icon">◉</span> ประสบการณ์ทำงาน
@@ -1227,7 +1419,7 @@ export default function ResumeEditor() {
               <ExperienceSection experience={resume.experience} onChange={(v) => setField("experience", v)} />
             </div>
 
-            {/* ── Section: Education ── */}
+            {/* ── Education ── */}
             <div ref={(el) => sectionRefs.current.education = el} data-section="education" className="re-form-section">
               <div className="re-form-section__title">
                 <span className="re-form-section__icon">▣</span> ประวัติการศึกษา
@@ -1235,20 +1427,20 @@ export default function ResumeEditor() {
               <EducationSection education={resume.education} onChange={(v) => setField("education", v)} />
             </div>
 
-            {/* ── Section: Languages ── */}
+            {/* ── Languages ── */}
             <div ref={(el) => sectionRefs.current.languages = el} data-section="languages" className="re-form-section">
               <div className="re-form-section__title">
-                <span className="re-form-section__icon">◎</span> ภาษา
+                <span className="re-form-section__icon">◎</span> ภาษาที่ใช้ได้
               </div>
               <LanguagesSection languages={resume.languages} onChange={(v) => setField("languages", v)} />
             </div>
 
-            <div style={{ height: 48 }} />
+            <div style={{ height: 40 }} />
           </div>
-        </div>
+        </main>
 
-        {/* ════════ Right: Preview Panel ════════ */}
-        <div className="re-preview-panel">
+        {/* ════════ ขวา: แผงตัวอย่าง ════════ */}
+        <section className="re-preview-panel">
           {/* Preview topbar */}
           <div className="re-preview-topbar">
             <div className="re-topbar-left">
@@ -1260,17 +1452,17 @@ export default function ResumeEditor() {
               <span className="re-preview-filename">
                 {resume.fullName
                   ? `${resume.fullName.toLowerCase().replace(/\s+/g, "_")}.pdf`
-                  : "resume_preview.pdf"}
+                  : "ตัวอย่าง_resume.pdf"}
               </span>
             </div>
             <div className="re-topbar-right">
-              {/* Zoom controls */}
+              {/* Zoom */}
               <div className="re-zoom-ctrl">
                 <button className="re-zoom-btn" onClick={() => setPreviewZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(1)))} title="ย่อ">−</button>
                 <span className="re-zoom-label">{Math.round(previewZoom * 100)}%</span>
                 <button className="re-zoom-btn" onClick={() => setPreviewZoom((z) => Math.min(1.5, +(z + 0.1).toFixed(1)))} title="ขยาย">+</button>
               </div>
-              {/* Template switcher */}
+              {/* Templates */}
               <div className="re-tmpl-switcher">
                 {TEMPLATES.map((t) => (
                   <button
@@ -1285,18 +1477,18 @@ export default function ResumeEditor() {
                 ))}
               </div>
               <button className="re-btn re-btn-export" onClick={handleExportPDF} disabled={exporting}>
-                {exporting ? <><Spinner />Export…</> : "↓ PDF"}
+                {exporting ? <><Spinner />กำลังส่งออก…</> : "↓ PDF"}
               </button>
             </div>
           </div>
 
-          {/* Preview scroll */}
+          {/* Scroll area */}
           <div className="re-preview-scroll">
             <div className="re-preview-zoom-wrap" style={{ transform: `scale(${previewZoom})`, transformOrigin: "top center" }}>
               <ResumePreview resume={resume} template={template} isDark={isDark} />
             </div>
           </div>
-        </div>
+        </section>
 
       </div>
     </>

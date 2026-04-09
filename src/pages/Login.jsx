@@ -47,22 +47,50 @@ function Login({ setToken, setRole }) {
       const user = res.data.user;
       const token = res.data.token;
 
-      const existingUsers = JSON.parse(localStorage.getItem("loginUsers")) || [];
+      const existingUsers =
+        JSON.parse(localStorage.getItem("loginUsers")) || [];
       const alreadyExists = existingUsers.find((u) => u.id === user.id);
       const updatedUsers = alreadyExists
         ? [user, ...existingUsers.filter((u) => u.id !== user.id)]
         : [user, ...existingUsers];
-      localStorage.setItem("loginUsers", JSON.stringify(updatedUsers.slice(0, 5)));
+      localStorage.setItem(
+        "loginUsers",
+        JSON.stringify(updatedUsers.slice(0, 5)),
+      );
 
-      animateSuccess();
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          role: user.role,
+          profileImage: user.profileImage || null,
+        }),
+      );
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage || null,
+        }),
+      );
 
       setTimeout(() => {
         localStorage.setItem("token", token);
         localStorage.setItem("role", user.role || "user");
-        localStorage.setItem("currentUser", JSON.stringify({
-          id: user.id, name: user.name, email: user.email,
-          role: user.role, profileImage: user.profileImage || null,
-        }));
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profileImage: user.profileImage || null,
+          }),
+        );
         localStorage.setItem("userID", user.id.toString());
         localStorage.setItem("userId", user.id.toString());
         localStorage.setItem("userName", user.name);
@@ -79,7 +107,8 @@ function Login({ setToken, setRole }) {
         setIsBannedError(false);
         setError("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       }
-      animateError();
+
+      animateError(); // ✅ ต้องอยู่ใน catch
     }
   };
 
@@ -112,10 +141,19 @@ function Login({ setToken, setRole }) {
         <span className="auth-toggle-label active">LOG IN</span>
         <div
           className="auth-toggle-track"
-          onClick={() => (window.location.href = "/register")}
+          onClick={() => {
+            window.location.href = "/register";
+          }}
         >
           <div className="auth-toggle-thumb login">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
@@ -124,15 +162,18 @@ function Login({ setToken, setRole }) {
         <span
           className="auth-toggle-label"
           style={{ cursor: "pointer" }}
-          onClick={() => (window.location.href = "/register")}
+          onClick={() => {
+            window.location.href = "/register";
+          }}
         >
           SIGN UP
         </span>
       </div>
 
       {/* Card */}
-      <div className={`auth-card ${shake ? "shake" : ""} ${success ? "success" : ""}`}>
-
+      <div
+        className={`auth-card ${shake ? "shake" : ""} ${success ? "success" : ""}`}
+      >
         {/* RobotCoder */}
         <div className="auth-robot-wrap">
           <RobotCoder
@@ -151,7 +192,8 @@ function Login({ setToken, setRole }) {
           <div
             className="auth-input-group"
             onClick={() => {
-              const users = JSON.parse(localStorage.getItem("loginUsers")) || [];
+              const users =
+                JSON.parse(localStorage.getItem("loginUsers")) || [];
               setSavedUsers(users);
               setShowUsers(true);
             }}
@@ -176,8 +218,14 @@ function Login({ setToken, setRole }) {
               onFocus={() => setBlinkEye(true)}
               onBlur={() => setBlinkEye(false)}
             />
-            <button type="button" className="auth-eye-btn" onClick={togglePassword}>
-              <i className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} ${rotateEye ? "rotate" : ""}`} />
+            <button
+              type="button"
+              className="auth-eye-btn"
+              onClick={togglePassword}
+            >
+              <i
+                className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"} ${rotateEye ? "rotate" : ""}`}
+              />
             </button>
           </div>
 

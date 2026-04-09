@@ -57,8 +57,10 @@
 /* USER LAYOUT (with Header, no Sidebar) */
 /* ========================================= */
 .app.user-layout {
-  display: block; /* Override flex for user layout */
+  display: flex;
+  flex-direction: column;
 }
+
 
 .app.user-layout .app-main {
   width: 100%;

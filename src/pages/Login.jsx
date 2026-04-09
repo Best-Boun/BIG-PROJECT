@@ -82,6 +82,16 @@ const handleLogin = async (e) => {
       localStorage.setItem("role", user.role || "user");
 
       localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          role: user.role,
+          profileImage: user.profileImage || null,
+        }),
+      );
+
+      localStorage.setItem(
         "currentUser",
         JSON.stringify({
           id: user.id,

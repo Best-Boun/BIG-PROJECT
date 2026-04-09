@@ -33,18 +33,17 @@ export default function Feed() {
   const [editCommentText, setEditCommentText] = useState("");
   const [loading, setLoading] = useState(true);
 
- const timeAgo = (date) => {
-   const utc = new Date(date);
-   const local = new Date(utc.getTime() - utc.getTimezoneOffset() * 60000);
+  const timeAgo = (date) => {
+    const utc = new Date(date);
+    const local = new Date(utc.getTime() - utc.getTimezoneOffset() * 60000);
 
-   const diff = Math.floor((Date.now() - local) / 1000);
+    const diff = Math.floor((Date.now() - local) / 1000);
 
-   if (diff < 60) return "เมื่อกี้";
-   if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`;
-   if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`;
-   return `${Math.floor(diff / 86400)} วันที่แล้ว`;
- };
- 
+    if (diff < 60) return "เมื่อกี้";
+    if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`;
+    return `${Math.floor(diff / 86400)} วันที่แล้ว`;
+  };
 
   const userId = localStorage.getItem("userId");
 
@@ -69,11 +68,11 @@ export default function Feed() {
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const currentUser = {
     id: Number(localStorage.getItem("userId")),
-    name: profileData?.name || storedUser?.name || "User",
+    username: profileData?.name || storedUser?.name || "User",
     profileImage:
       profileData?.profileImage ||
       storedUser?.profileImage ||
-      posts?.find((p) => p.userId === Number(userId))?.profileImage  ||
+      posts?.find((p) => p.userId === Number(userId))?.profileImage ||
       null,
     role: storedUser?.role || null,
   };
@@ -128,7 +127,7 @@ export default function Feed() {
       // 🚀 ยิงพร้อมกันเลย ไม่ต้อง await
       loadLikes();
       loadLikedStatus();
-      setLoading(false); 
+      setLoading(false);
     } catch (err) {
       console.error("Post load error:", err);
     }
@@ -333,7 +332,7 @@ export default function Feed() {
     let message = "คุณแน่ใจนะว่าจะลบโพสต์นี้";
 
     if (!isOwner && currentUser.role === "admin") {
-      message = `⚠️ คุณกำลังลบโพสของ "${post.username}"`;
+     message = `⚠️ คุณกำลังลบโพสของ "${post.name}"`;
     }
 
     const result = await Swal.fire({
@@ -528,39 +527,39 @@ export default function Feed() {
   };
 
   // ================= DELETE COMMENT =================
- const handleDeleteComment = async (commentId) => {
-   const token = localStorage.getItem("token");
+  const handleDeleteComment = async (commentId) => {
+    const token = localStorage.getItem("token");
 
-   const result = await Swal.fire({
-     title: "ลบคอมเมนต์นี้?",
-     icon: "warning",
-     showCancelButton: true,
-     confirmButtonText: "ลบ",
-     cancelButtonText: "ยกเลิก",
-   });
+    const result = await Swal.fire({
+      title: "ลบคอมเมนต์นี้?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ลบ",
+      cancelButtonText: "ยกเลิก",
+    });
 
-   if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-   try {
-     await fetch(`http://localhost:3000/api/comments/${commentId}`, {
-       method: "DELETE",
-       headers: {
-         Authorization: `Bearer ${token}`,
-       },
-     });
+    try {
+      await fetch(`http://localhost:3000/api/comments/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-     await loadComments(openCommentsPostId);
+      await loadComments(openCommentsPostId);
 
-     Swal.fire({
-       icon: "success",
-       title: "ลบแล้ว",
-       timer: 1000,
-       showConfirmButton: false,
-     });
-   } catch (err) {
-     console.error(err);
-   }
- };
+      Swal.fire({
+        icon: "success",
+        title: "ลบแล้ว",
+        timer: 1000,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const getProfileImage = (image) => {
     if (!image) {
@@ -576,670 +575,657 @@ export default function Feed() {
     return `http://localhost:3000/upload/${image}`;
   };
 
-    if (loading) {
-  return (
-    <div style={{ maxWidth: 600, margin: "20px auto" }}>
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="skeleton-card">
-          <div className="skeleton-header">
-            <div className="skeleton-avatar"></div>
-            <div>
-              <div className="skeleton-text"></div>
-              <div className="skeleton-text short"></div>
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 600, margin: "20px auto" }}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="skeleton-card">
+            <div className="skeleton-header">
+              <div className="skeleton-avatar"></div>
+              <div>
+                <div className="skeleton-text"></div>
+                <div className="skeleton-text short"></div>
+              </div>
             </div>
+            <div className="skeleton-image"></div>
           </div>
-          <div className="skeleton-image"></div>
-        </div>
-      ))}
-    </div>
-  );
-}
-      return (
-        <div className="feed-page">
-          <Container fluid className="feed-container">
-            <Row className="feed-layout align-items-start">
-              <Col xl={7} lg={8} md={12} className="main-feed">
-                {/* CREATE POST */}
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="feed-page">
+      <Container fluid className="feed-container">
+        <Row className="feed-layout align-items-start">
+          <Col xl={7} lg={8} md={12} className="main-feed">
+            {/* CREATE POST */}
 
-                <div className="create-post-box mb-3">
-                  <div className="d-flex align-items-center mb-3">
-                    {/* Avatar */}
-                    <div className="user-avatar">
-                      <img
-                        src={getProfileImage(currentUser.profileImage)}
-                        onError={(e) => {
-                          e.target.src =
-                            "https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff";
-                        }}
-                        className="avatar-img"
-                      />
-                    </div>
-
-                    {/* Input */}
-                    <input
-                      type="text"
-                      className="form-control ms-3"
-                      placeholder={`What's on your mind, ${
-                        currentUser?.username || "User"
-                      }?`}
-                      value={postText}
-                      onChange={(e) => setPostText(e.target.value)}
-                    />
-
-                    {/* 🔥 File (ซ่อน) */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="upload-image"
-                      style={{ display: "none" }}
-                      onChange={(e) => setImage(e.target.files[0])}
-                    />
-
-                    {/* 🔥 ปุ่ม */}
-                    <label htmlFor="upload-image" className="upload-btn ms-2">
-                              
-                      {/* <i class="bi bi-card-image"></i> */}
-
-                      <i class="bi bi-camera-fill"></i>
-
-                    </label>
-                  </div>
-
-                  {/* Preview */}
-                  {image && (
-                    <div style={{ position: "relative", marginTop: 10 }}>
-                      <img
-                        src={URL.createObjectURL(image)}
-                        style={{
-                          width: "100%",
-                          borderRadius: 12,
-                          maxHeight: 250,
-                          objectFit: "cover",
-                        }}
-                      />
-
-                      {/* ❌ ปุ่มลบแบบ overlay */}
-                      <button
-                        onClick={() => setImage(null)}
-                        style={{
-                          position: "absolute",
-                          top: 10,
-                          right: 10,
-                          background: "rgba(0,0,0,0.6)",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "50%",
-                          width: 30,
-                          height: 30,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Post Button */}
-                  <div className="d-flex justify-content-center mt-2">
-                    <button
-                      className="btn btn-primary"
-                      style={{
-                        padding: "8px 30px",
-                        borderRadius: 20,
-                        fontWeight: "bold",
-                      }}
-                      onClick={handleCreatePost}
-                    >
-                      Post
-                    </button>
-                  </div>
+            <div className="create-post-box mb-3">
+              <div className="d-flex align-items-center mb-3">
+                {/* Avatar */}
+                <div className="user-avatar">
+                  <img
+                    src={getProfileImage(currentUser.profileImage)}
+                    onError={(e) => {
+                      e.target.src =
+                        "https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff";
+                    }}
+                    className="avatar-img"
+                  />
                 </div>
 
-                {/* POSTS */}
-                <div className="feed-posts">
-                  {posts.map((post) => (
-                    <div key={post.id} className="post-card mb-3">
-                      {/* HEADER */}
-                      <div className="post-header">
-                        <div className="d-flex justify-content-between align-items-start w-100">
-                          {/* LEFT */}
-                          <div className="d-flex">
-                            <div className="user-avatar">
-                              <img
-                                src={getProfileImage(post.profileImage)}
-                                className="avatar-img"
-                                alt=""
-                              />
-                            </div>
+                {/* Input */}
+                <input
+                  type="text"
+                  className="form-control ms-3"
+                  placeholder={`What's on your mind, ${
+                    currentUser?.username || "User"
+                  }?`}
+                  value={postText}
+                  onChange={(e) => setPostText(e.target.value)}
+                />
 
-                            <div className="ms-3">
-                              <h6 className="mb-0">{post.name}</h6>
-                              <small className="text-muted">
-                                {timeAgo(post.createdAt)}
-                              </small>
-                            </div>
-                          </div>
+                {/* 🔥 File (ซ่อน) */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="upload-image"
+                  style={{ display: "none" }}
+                  onChange={(e) => setImage(e.target.files[0])}
+                />
 
-                          {/* 🔥 RIGHT (3 จุด) */}
-                          {(currentUser.id === post.userId ||
-                            currentUser.role === "admin") && (
-                            <div style={{ position: "relative" }}>
-                              <button
-                                onClick={() =>
-                                  setOpenMenu(
-                                    openMenu === post.id ? null : post.id,
-                                  )
-                                }
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  fontSize: 20,
-                                  cursor: "pointer",
-                                }}
-                              >
-                                ⋯
-                              </button>
+                {/* 🔥 ปุ่ม */}
+                <label htmlFor="upload-image" className="upload-btn ms-2">
+                  📷
+                </label>
+              </div>
 
-                              {openMenu === post.id && (
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    right: 0,
-                                    top: 25,
-                                    background: "#fff",
-                                    border: "1px solid #ddd",
-                                    borderRadius: 5,
-                                    padding: 5,
-                                    zIndex: 1000,
-                                  }}
-                                >
-                                  <div
-                                    style={{ padding: 5, cursor: "pointer" }}
-                                    onClick={() => {
-                                      setEditingPostId(post.id);
-                                      setEditText(post.text);
-                                      setEditImage(post.image);
-                                      setOpenMenu(null);
-                                    }}
-                                  >
-                                    แก้ไข
-                                  </div>
+              {/* Preview */}
+              {image && (
+                <div style={{ position: "relative", marginTop: 10 }}>
+                  <img
+                    src={URL.createObjectURL(image)}
+                    style={{
+                      width: "100%",
+                      borderRadius: 12,
+                      maxHeight: 250,
+                      objectFit: "cover",
+                    }}
+                  />
 
-                                  <div
-                                    style={{
-                                      padding: 5,
-                                      cursor: "pointer",
-                                      color: "red",
-                                    }}
-                                    onClick={() => {
-                                      deletePost(post);
-                                      setOpenMenu(null);
-                                    }}
-                                  >
-                                    ลบ
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                  {/* ❌ ปุ่มลบแบบ overlay */}
+                  <button
+                    onClick={() => setImage(null)}
+                    style={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      background: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: 30,
+                      height: 30,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Post Button */}
+              <div className="d-flex justify-content-center mt-2">
+                <button
+                  className="btn btn-primary"
+                  style={{
+                    padding: "8px 30px",
+                    borderRadius: 20,
+                    fontWeight: "bold",
+                  }}
+                  onClick={handleCreatePost}
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+
+            {/* POSTS */}
+            <div className="feed-posts">
+              {posts.map((post) => (
+                <div key={post.id} className="post-card mb-3">
+                  {/* HEADER */}
+                  <div className="post-header">
+                    <div className="d-flex justify-content-between align-items-start w-100">
+                      {/* LEFT */}
+                      <div className="d-flex">
+                        <div className="user-avatar">
+                          <img
+                            src={getProfileImage(post.profileImage)}
+                            className="avatar-img"
+                            alt=""
+                          />
+                        </div>
+
+                        <div className="ms-3">
+                          <h6 className="mb-0">{post.name}</h6>
+                          <small className="text-muted">
+                            {timeAgo(post.createdAt)}
+                          </small>
                         </div>
                       </div>
 
-                      {/* TEXT */}
-                      {editingPostId === post.id ? (
-                        <div>
-                          <textarea
-                            className="form-control mb-2"
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                          />
-
-                          {/* 🔥 SHOW IMAGE */}
-                          {editImage && (
-                            <div
-                              style={{ position: "relative", marginBottom: 10 }}
-                            >
-                              <img
-                                src={
-                                  typeof editImage === "string"
-                                    ? editImage
-                                    : URL.createObjectURL(editImage)
-                                }
-                                style={{
-                                  width: "100%",
-                                  borderRadius: 10,
-                                  maxHeight: 250,
-                                  objectFit: "cover",
-                                }}
-                              />
-
-                              {/* ❌ ลบรูป */}
-                              <button
-                                onClick={() => setEditImage(null)}
-                                style={{
-                                  position: "absolute",
-                                  top: 10,
-                                  right: 10,
-                                  background: "rgba(0,0,0,0.6)",
-                                  color: "#fff",
-                                  border: "none",
-                                  borderRadius: "50%",
-                                  width: 30,
-                                  height: 30,
-                                }}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          )}
-
-                          {/* 🔥 upload ใหม่ */}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setEditImage(e.target.files[0])}
-                          />
-
+                      {/* 🔥 RIGHT (3 จุด) */}
+                      {(currentUser.id === post.userId ||
+                        currentUser.role === "admin") && (
+                        <div style={{ position: "relative" }}>
                           <button
-                            className="btn btn-sm btn-success me-2"
-                            onClick={() => handleUpdatePost(post)}
+                            onClick={() =>
+                              setOpenMenu(openMenu === post.id ? null : post.id)
+                            }
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              fontSize: 20,
+                              cursor: "pointer",
+                            }}
                           >
-                            บันทึก
+                            ⋯
                           </button>
 
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => setEditingPostId(null)}
-                          >
-                            ยกเลิก
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="mt-2">{post.text}</p>
-
-                          {post.image && (
+                          {openMenu === post.id && (
                             <div
                               style={{
-                                width: "100%",
-                                maxHeight: 500,
-                                background: "#f0f2f5",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                borderRadius: 10,
-                                marginTop: 10,
-                                overflow: "hidden",
+                                position: "absolute",
+                                right: 0,
+                                top: 25,
+                                background: "#fff",
+                                border: "1px solid #ddd",
+                                borderRadius: 5,
+                                padding: 5,
+                                zIndex: 1000,
                               }}
                             >
-                              <img
-                                src={post.image}
-                                style={{
-                                  maxWidth: "100%",
-                                  maxHeight: "100%",
-                                  objectFit: "contain",
+                              <div
+                                style={{ padding: 5, cursor: "pointer" }}
+                                onClick={() => {
+                                  setEditingPostId(post.id);
+                                  setEditText(post.text);
+                                  setEditImage(post.image);
+                                  setOpenMenu(null);
                                 }}
-                              />
+                              >
+                                แก้ไข
+                              </div>
+
+                              <div
+                                style={{
+                                  padding: 5,
+                                  cursor: "pointer",
+                                  color: "red",
+                                }}
+                                onClick={() => {
+                                  deletePost(post);
+                                  setOpenMenu(null);
+                                }}
+                              >
+                                ลบ
+                              </div>
                             </div>
                           )}
-                        </>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* TEXT */}
+                  {editingPostId === post.id ? (
+                    <div>
+                      <textarea
+                        className="form-control mb-2"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                      />
+
+                      {/* 🔥 SHOW IMAGE */}
+                      {editImage && (
+                        <div style={{ position: "relative", marginBottom: 10 }}>
+                          <img
+                            src={
+                              typeof editImage === "string"
+                                ? editImage
+                                : URL.createObjectURL(editImage)
+                            }
+                            style={{
+                              width: "100%",
+                              borderRadius: 10,
+                              maxHeight: 250,
+                              objectFit: "cover",
+                            }}
+                          />
+
+                          {/* ❌ ลบรูป */}
+                          <button
+                            onClick={() => setEditImage(null)}
+                            style={{
+                              position: "absolute",
+                              top: 10,
+                              right: 10,
+                              background: "rgba(0,0,0,0.6)",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: 30,
+                              height: 30,
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       )}
 
-                      {/* 🔥 LIKE + COMMENT BAR */}
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "flex-start",
-                          alignItems: "center",
-                          marginTop: 10,
-                          padding: "8px 0",
-                          borderTop: "1px solid #eee",
-                          borderBottom: "1px solid #eee",
-                        }}
+                      {/* 🔥 upload ใหม่ */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setEditImage(e.target.files[0])}
+                      />
+
+                      <button
+                        className="btn btn-sm btn-success me-2"
+                        onClick={() => handleUpdatePost(post)}
                       >
-                        {/* left button */}
+                        บันทึก
+                      </button>
+
+                      <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => setEditingPostId(null)}
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mt-2">{post.text}</p>
+
+                      {post.image && (
                         <div
                           style={{
+                            width: "100%",
+                            maxHeight: 500,
+                            background: "#f0f2f5",
                             display: "flex",
+                            justifyContent: "center",
                             alignItems: "center",
-                            gap: 15,
+                            borderRadius: 10,
                             marginTop: 10,
-                            padding: "8px 0",
-                            borderTop: "1px solid #eee",
-                            borderBottom: "1px solid #eee",
+                            overflow: "hidden",
                           }}
                         >
-                          <button
-                            onClick={() => handleLike(post.id)}
+                          <img
+                            src={post.image}
                             style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 5,
-                              color: likedPosts[post.id] ? "#1877f2" : "#555",
-                              fontWeight: likedPosts[post.id]
-                                ? "bold"
-                                : "normal",
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                              objectFit: "contain",
                             }}
-                          >
-                            <i
-                              className={`bi ${
-                                likedPosts[post.id]
-                                  ? "bi-hand-thumbs-up-fill"
-                                  : "bi-hand-thumbs-up"
-                              }`}
-                            ></i>
-                            {likeCounts[post.id] || 0}
-                          </button>
-
-                          <span
-                            style={{ cursor: "pointer" }}
-                            onClick={() => {
-                              setOpenCommentsPostId(post.id);
-                              loadComments(post.id);
-                            }}
-                          >
-                            <i class="bi bi-chat"></i>{" "}
-                            {(comments[post.id] || []).length}
-                          </span>
+                          />
                         </div>
-                      </div>
+                      )}
+                    </>
+                  )}
 
-                      {/* 💬 INPUT */}
-                      <div style={{ marginTop: 10 }}>
+                  {/* 🔥 LIKE + COMMENT BAR */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      marginTop: 10,
+                      padding: "8px 0",
+                      borderTop: "1px solid #eee",
+                      borderBottom: "1px solid #eee",
+                    }}
+                  >
+                    {/* left button */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 15,
+                        marginTop: 10,
+                        padding: "8px 0",
+                        borderTop: "1px solid #eee",
+                        borderBottom: "1px solid #eee",
+                      }}
+                    >
+                      <button
+                        onClick={() => handleLike(post.id)}
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 5,
+                          color: likedPosts[post.id] ? "#1877f2" : "#555",
+                          fontWeight: likedPosts[post.id] ? "bold" : "normal",
+                        }}
+                      >
+                        <i
+                          className={`bi ${
+                            likedPosts[post.id]
+                              ? "bi-hand-thumbs-up-fill"
+                              : "bi-hand-thumbs-up"
+                          }`}
+                        ></i>
+                        {likeCounts[post.id] || 0}
+                      </button>
+
+                      <span
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setOpenCommentsPostId(post.id);
+                          loadComments(post.id);
+                        }}
+                      >
+                        💬 {(comments[post.id] || []).length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 💬 INPUT */}
+                  <div style={{ marginTop: 10 }}>
+                    <input
+                      className="form-control mb-2"
+                      placeholder="เขียนความคิดเห็น..."
+                      value={commentText[post.id] || ""}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleComment(post.id);
+                        }
+                      }}
+                      onChange={(e) =>
+                        setCommentText((prev) => ({
+                          ...prev,
+                          [post.id]: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleComment(post.id);
+                      }}
+                    >
+                      ส่ง
+                    </button>
+                  </div>
+
+                  {/* 💬 COMMENTS */}
+                  <div style={{ marginTop: 10 }}></div>
+                </div> // ✅ ปิด post-card
+              ))}
+            </div>
+          </Col>
+
+          {/* ADS */}
+          <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
+            {ads.map((ad) => {
+              const hasImage = ad.image && ad.image !== "NULL";
+
+              return (
+                <div key={ad.id} className="widget sponsored-widget mb-3">
+                  <span className="sponsored-label">Sponsored</span>
+
+                  {hasImage ? (
+                    <img src={ad.image} className="ad-img" alt="" />
+                  ) : (
+                    <div className="ad-placeholder">พื้นที่โฆษณา</div>
+                  )}
+
+                  <h5>{ad.name}</h5>
+                  <p>{ad.description}</p>
+
+                  <button
+                    className="btn btn-widget w-100 btn-warning"
+                    onClick={() => setSelectedAd(ad)}
+                  >
+                    ดูรายละเอียด
+                  </button>
+                </div>
+              );
+            })}
+          </Col>
+        </Row>
+      </Container>
+
+      {/* ✅ ใส่ตรงนี้เลย */}
+      {openCommentsPostId && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
+
+            overflow: "hidden",
+            overscrollBehavior: "none",
+          }}
+          onClick={() => setOpenCommentsPostId(null)}
+        >
+          <div
+            className="comment-modal"
+            style={{
+              background: "#fff",
+              borderRadius: 10,
+              padding: 20,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h5>Comments</h5>
+
+            <div style={{ maxHeight: 300, overflowY: "auto", marginTop: 10 }}>
+              {(comments[openCommentsPostId] || []).map((c) => (
+                <div
+                  key={c.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    marginBottom: 12,
+                  }}
+                >
+                  <img
+                    src={getProfileImage(c.profileImage)}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      marginRight: 10,
+                    }}
+                  />
+
+                  <div style={{ flex: 1, position: "relative" }}>
+                    {/* TEXT */}
+                    {editingCommentId === c.id ? (
+                      <>
                         <input
-                          className="form-control mb-2"
-                          placeholder="เขียนความคิดเห็น..."
-                          value={commentText[post.id] || ""}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleComment(post.id);
-                            }
-                          }}
-                          onChange={(e) =>
-                            setCommentText((prev) => ({
-                              ...prev,
-                              [post.id]: e.target.value,
-                            }))
-                          }
+                          className="form-control mb-1"
+                          value={editCommentText}
+                          autoFocus
+                          onChange={(e) => setEditCommentText(e.target.value)}
                         />
 
                         <button
-                          className="btn btn-primary btn-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleComment(post.id);
+                          className="btn btn-sm btn-success me-1"
+                          onClick={() => handleUpdateComment(c.id)}
+                        >
+                          บันทึก
+                        </button>
+
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => setEditingCommentId(null)}
+                        >
+                          ยกเลิก
+                        </button>
+                      </>
+                    ) : (
+                      <div
+                        style={{
+                          background: "#f0f2f5",
+                          borderRadius: 16,
+                          padding: "10px 14px",
+                        }}
+                      >
+                        {/* 🔥 ชื่อ */}
+                        <div style={{ fontWeight: "bold", fontSize: 14 }}>
+                          {c.name}
+                        </div>
+
+                        {/* 🔥 ข้อความ */}
+                        <div style={{ fontSize: 14, marginTop: 2 }}>
+                          {c.text}
+                        </div>
+
+                        {/* 🔥 เวลา */}
+                        <div
+                          style={{ fontSize: 11, color: "#888", marginTop: 4 }}
+                        >
+                          {timeAgo(c.createdAt)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MENU */}
+                    {(currentUser.id === c.userId ||
+                      currentUser.role === "admin") && (
+                      <div style={{ position: "absolute", top: 0, right: 0 }}>
+                        <button
+                          onClick={() =>
+                            setOpenMenu(openMenu === c.id ? null : c.id)
+                          }
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
                           }}
                         >
-                          ส่ง
+                          ⋯
                         </button>
-                      </div>
 
-                      {/* 💬 COMMENTS */}
-                      <div style={{ marginTop: 10 }}></div>
-                    </div> // ✅ ปิด post-card
-                  ))}
-                </div>
-              </Col>
-
-              {/* ADS */}
-              <Col xl={3} lg={4} className="right-sidebar d-none d-lg-block">
-                {ads.map((ad) => {
-                  const hasImage = ad.image && ad.image !== "NULL";
-
-                  return (
-                    <div key={ad.id} className="widget sponsored-widget mb-3">
-                      <div className="widget-badge">Sponsored</div>
-
-                      {hasImage ? (
-                        <img src={ad.image} className="ad-img" alt="" />
-                      ) : (
-                        <div className="ad-placeholder">พื้นที่โฆษณา</div>
-                      )}
-
-                      <h5>{ad.name}</h5>
-                      <p>{ad.description}</p>
-
-                      <button
-                        className="btn btn-widget w-100 btn-warning"
-                        onClick={() => setSelectedAd(ad)}
-                      >
-                        ดูรายละเอียด
-                      </button>
-                    </div>
-                  );
-                })}
-              </Col>
-            </Row>
-          </Container>
-
-          {/* ✅ ใส่ตรงนี้เลย */}
-          {openCommentsPostId && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: "rgba(0,0,0,0.5)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 999,
-
-                overflow: "hidden",
-                overscrollBehavior: "none",
-              }}
-              onClick={() => setOpenCommentsPostId(null)}
-            >
-              <div
-                className="comment-modal"
-                style={{
-                  background: "#fff",
-                  borderRadius: 10,
-                  padding: 20,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h5>Comments</h5>
-
-                <div
-                  style={{ maxHeight: 300, overflowY: "auto", marginTop: 10 }}
-                >
-                  {(comments[openCommentsPostId] || []).map((c) => (
-                    <div
-                      key={c.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        marginBottom: 12,
-                      }}
-                    >
-                      <img
-                        src={getProfileImage(c.profileImage)}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
-                          marginRight: 10,
-                        }}
-                      />
-
-                      <div style={{ flex: 1, position: "relative" }}>
-                        {/* TEXT */}
-                        {editingCommentId === c.id ? (
-                          <>
-                            <input
-                              className="form-control mb-1"
-                              value={editCommentText}
-                              autoFocus
-                              onChange={(e) =>
-                                setEditCommentText(e.target.value)
-                              }
-                            />
-
-                            <button
-                              className="btn btn-sm btn-success me-1"
-                              onClick={() => handleUpdateComment(c.id)}
-                            >
-                              บันทึก
-                            </button>
-
-                            <button
-                              className="btn btn-sm btn-secondary"
-                              onClick={() => setEditingCommentId(null)}
-                            >
-                              ยกเลิก
-                            </button>
-                          </>
-                        ) : (
+                        {openMenu === c.id && (
                           <div
                             style={{
-                              background: "#f0f2f5",
-                              borderRadius: 16,
-                              padding: "10px 14px",
+                              position: "absolute",
+                              right: 0,
+                              top: "100%",
+                              background: "#fff",
+                              border: "1px solid #ddd",
+                              borderRadius: 6,
+                              padding: 5,
                             }}
                           >
-                            <div style={{ fontWeight: "600", fontSize: 13 }}>
-                              {c.name}
-                            </div>
-
-                            <div style={{ fontSize: 14 }}>{c.text}</div>
-
-                            <div style={{ fontSize: 11, color: "#888" }}>
-                              {timeAgo(c.createdAt)}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* MENU */}
-                        {(currentUser.id === c.userId ||
-                          currentUser.role === "admin") && (
-                          <div
-                            style={{ position: "absolute", top: 0, right: 0 }}
-                          >
-                            <button
-                              onClick={() =>
-                                setOpenMenu(openMenu === c.id ? null : c.id)
-                              }
-                              style={{
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
+                            <div
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                setEditingCommentId(c.id);
+                                setEditCommentText(c.text);
+                                setOpenMenu(null);
                               }}
                             >
-                              ⋯
-                            </button>
+                              แก้ไข
+                            </div>
 
-                            {openMenu === c.id && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  right: 0,
-                                  top: "100%",
-                                  background: "#fff",
-                                  border: "1px solid #ddd",
-                                  borderRadius: 6,
-                                  padding: 5,
-                                }}
-                              >
-                                <div
-                                  style={{ cursor: "pointer" }}
-                                  onClick={() => {
-                                    setEditingCommentId(c.id);
-                                    setEditCommentText(c.text);
-                                    setOpenMenu(null);
-                                  }}
-                                >
-                                  แก้ไข
-                                </div>
-
-                                <div
-                                  style={{ cursor: "pointer", color: "red" }}
-                                  onClick={() => {
-                                    handleDeleteComment(c.id);
-                                    setOpenMenu(null);
-                                  }}
-                                >
-                                  ลบ
-                                </div>
-                              </div>
-                            )}
+                            <div
+                              style={{ cursor: "pointer", color: "red" }}
+                              onClick={() => {
+                                handleDeleteComment(c.id);
+                                setOpenMenu(null);
+                              }}
+                            >
+                              ลบ
+                            </div>
                           </div>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
-
-                {/* 🔥 INPUT COMMENT */}
-                <div style={{ display: "flex", marginTop: 10 }}>
-                  <input
-                    className="form-control"
-                    placeholder="เขียนคอมเมนต์..."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleComment(openCommentsPostId);
-                      }
-                    }}
-                    value={commentText[openCommentsPostId] || ""}
-                    onChange={(e) =>
-                      setCommentText((prev) => ({
-                        ...prev,
-                        [openCommentsPostId]: e.target.value,
-                      }))
-                    }
-                  />
-
-                  <button
-                    className="btn btn-primary ms-2"
-                    disabled={!commentText[openCommentsPostId]?.trim()}
-                    onClick={() => handleComment(openCommentsPostId)}
-                  >
-                    ส่ง
-                  </button>
-                </div>
-
-                <button
-                  className="btn btn-secondary mt-2"
-                  onClick={() => setOpenCommentsPostId(null)}
-                >
-                  ปิด
-                </button>
-              </div>
+              ))}
             </div>
-          )}
 
-          {/* ของเดิมมึง */}
-          {selectedAd && (
-            <div
-              className="ad-modal-backdrop"
+            {/* 🔥 INPUT COMMENT */}
+            <div style={{ display: "flex", marginTop: 10 }}>
+              <input
+                className="form-control"
+                placeholder="เขียนคอมเมนต์..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleComment(openCommentsPostId);
+                  }
+                }}
+                value={commentText[openCommentsPostId] || ""}
+                onChange={(e) =>
+                  setCommentText((prev) => ({
+                    ...prev,
+                    [openCommentsPostId]: e.target.value,
+                  }))
+                }
+              />
+
+              <button
+                className="btn btn-primary ms-2"
+                disabled={!commentText[openCommentsPostId]?.trim()}
+                onClick={() => handleComment(openCommentsPostId)}
+              >
+                ส่ง
+              </button>
+            </div>
+
+            <button
+              className="btn btn-secondary mt-2"
+              onClick={() => setOpenCommentsPostId(null)}
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ของเดิมมึง */}
+      {selectedAd && (
+        <div className="ad-modal-backdrop" onClick={() => setSelectedAd(null)}>
+          <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
+            {selectedAd.image && selectedAd.image !== "NULL" && (
+              <img src={selectedAd.image} className="ad-modal-img" alt="" />
+            )}
+
+            <h3>{selectedAd.name}</h3>
+            <p>{selectedAd.description}</p>
+
+            <button
+              className="btn-close-modal"
               onClick={() => setSelectedAd(null)}
             >
-              <div className="ad-modal" onClick={(e) => e.stopPropagation()}>
-                {selectedAd.image && selectedAd.image !== "NULL" && (
-                  <img src={selectedAd.image} className="ad-modal-img" alt="" />
-                )}
-
-                <h3>{selectedAd.name}</h3>
-                <p>{selectedAd.description}</p>
-
-                <button
-                  className="btn-close-modal"
-                  onClick={() => setSelectedAd(null)}
-                >
-                  ปิด
-                </button>
-              </div>
-            </div>
-          )}
-        </div> // 🔥 ปิด feed-page
-      );
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
+    </div> // 🔥 ปิด feed-page
+  );
 }

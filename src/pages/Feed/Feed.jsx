@@ -332,7 +332,7 @@ export default function Feed() {
     let message = "คุณแน่ใจนะว่าจะลบโพสต์นี้";
 
     if (!isOwner && currentUser.role === "admin") {
-     message = `⚠️ คุณกำลังลบโพสของ "${post.name}"`;
+      message = `⚠️ คุณกำลังลบโพสของ "${post.name}"`;
     }
 
     const result = await Swal.fire({

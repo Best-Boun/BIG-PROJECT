@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { Card, Button } from 'react-bootstrap';
-import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaClock, FaUsers, FaCheck, FaBriefcase } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaClock, FaUsers, FaCheck, FaBriefcase, FaBolt } from 'react-icons/fa';
 import { calcMatchScore } from '../utils/skillMatch';
 import './JobCard.css';
 
@@ -132,41 +132,63 @@ export default function JobCard({ job, isFavorite, isApplied, onFavoriteToggle, 
                   </div>
                 )}
 
-                {/* Applicants Count */}
-                <p className="applicants-count">
-                    <FaUsers /> {job.applicants} applicants
-                </p>
-                {matchScore !== null && (
-                  <p style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: matchScore >= 70 ? '#16a34a' : matchScore >= 40 ? '#ca8a04' : '#dc2626',
-                    margin: '4px 0 0'
-                  }}>
-                    ⚡ {matchScore}% Match
-                  </p>
-                )}
             </Card.Body>
 
-            {/* Card Footer - Action Buttons */}
-            <Card.Footer className="job-card-footer">
-                <Button 
-                    variant="outline-secondary" 
-                    size="sm"
-                    onClick={() => onViewDetails(job.id)}
-                    className="btn-view-details"
+            {/* Card Footer */}
+            <Card.Footer className="job-card-footer" style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              {/* ซ้าย — applicants + match */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <FaUsers style={{ fontSize: '13px' }} /> {job.applicants} applicants
+                </span>
+
+                {matchScore !== null && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    ...(matchScore >= 70
+                      ? { background: '#dcfce7', color: '#166534', border: '0.5px solid #bbf7d0' }
+                      : matchScore >= 40
+                      ? { background: '#dbeafe', color: '#1e40af', border: '0.5px solid #bfdbfe' }
+                      : { background: '#fef3c7', color: '#92400e', border: '0.5px solid #fde68a' })
+                  }}>
+                    <FaBolt style={{ fontSize: '11px',
+                      color: matchScore >= 70 ? '#16a34a' : matchScore >= 40 ? '#2563eb' : '#d97706'
+                    }} />
+                    {matchScore}% Match
+                  </span>
+                )}
+              </div>
+
+              {/* ขวา — buttons */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={() => onViewDetails(job.id)}
+                  className="btn-view-details"
                 >
-                    View Details
+                  View Details
                 </Button>
                 {onApply && (
                   <button
-                      className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
-                      onClick={() => !isApplied && onApply(job.id)}
-                      disabled={isApplied}
+                    className={`jc-apply-btn${isApplied ? ' is-applied' : ''}`}
+                    onClick={() => !isApplied && onApply(job.id)}
+                    disabled={isApplied}
                   >
-                      {isApplied ? <><FaCheck /> Already Applied</> : 'Apply Now'}
+                    {isApplied ? <><FaCheck /> Already Applied</> : 'Apply Now'}
                   </button>
                 )}
+              </div>
             </Card.Footer>
         </Card>
     );

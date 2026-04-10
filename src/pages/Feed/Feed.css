@@ -3,14 +3,24 @@
 /* ========================================= */
 /* FEED PAGE - 2 Columns Layout (No Left Sidebar) */
 /* ========================================= */
-
+:root {
+  --primary: #3b82f6;        /* ฟ้า */
+  --primary-soft: #eff6ff;   /* ฟ้าอ่อน */
+  --accent: #6366f1;         /* ม่วงน้ำเงินนิดๆ */
+}
 .feed-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: 
+    radial-gradient(circle at 20% 20%, #e0f2fe, transparent 40%),
+    radial-gradient(circle at 80% 30%, #eef2ff, transparent 40%),
+    linear-gradient(to bottom, #eef2f6, #f8fafc);
+        min-height: 100vh;
+}
+body {
+  background: #f4f7fb;
 }
 
 .feed-container {
-  min-height: calc(100vh - 65px);
+  min-height: auto;
   padding: 25px;
   display: flex;
   justify-content: center;
@@ -22,25 +32,26 @@
   width: 100%;
   max-width: 1300px;
   margin: 0 auto;
+   align-items: stretch;   /* 🔥 สำคัญมาก */
 }
 
 /* MAIN FEED */
 .main-feed {
   margin: 0 auto;
+  flex: 1;
 }
 
-.create-post-box,
-.post-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+.post-card,
+.create-post-box {
+  background: #e8eaed;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid #e5e7eb;
 }
-
 .post-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border-color: #dbeafe;
 }
 
 /* USER AVATAR */
@@ -76,10 +87,8 @@
 }
 
 .create-post-box input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .post-buttons {
@@ -106,26 +115,19 @@
 .btn-post-action:hover {
   background: #f5f5f5;
   border-color: #667eea;
-  transform: translateY(-2px);
+  
 }
 
-.btn-primary-post {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-   background-color: #3d8bfd !important;   /* สีฟ้า */
-  color: white;
-  padding: 10px 30px;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+.btn-primary {
+  background: var(--primary) !important;
+  transition: all 0.2s ease;
 }
 
-.btn-primary-post:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-   background-color: #1b6ff9 !important;   /* ฟ้าเข้มตอน hover */
+.btn-primary:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(59,130,246,0.2);
 }
-
 .post-icon {
   font-size: 16px;
 }
@@ -139,9 +141,15 @@
 }
 
 .post-header h6 {
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 2px;
+  color: #0f172a;
+}
+
+.post-header h6:hover {
+  color: var(--primary);
+  cursor: pointer;
+}
+.text-muted {
+  color: #6b7280 !important;
 }
 
 .post-header .text-muted {
@@ -208,9 +216,8 @@
 }
 
 .btn-action:hover {
-  background: #f5f5f5;
-  color: #667eea;
-  transform: translateY(-2px);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .action-icon {
@@ -219,10 +226,25 @@
 
 /* RIGHT SIDEBAR */
 .right-sidebar {
-  padding: 0 15px;
-  position: sticky;
-  top: 80px;
-  height: fit-content;
+  position: fixed;
+  top: 90px;
+
+  right: 80px;   /* 🔥 ขยับเข้ามา */
+  width: 220px;  /* 🔥 เล็กลง */
+
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+
+  padding-right: 4px;
+}
+
+.right-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.right-sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 
 .widget {
@@ -233,58 +255,148 @@
   transition: all 0.3s ease;
 }
 
+.sponsored-widget .btn {
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.sponsored-widget .btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(59,130,246,0.25);
+}
+
 .widget:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+
 }
 
 /* Sponsored look */
+
 .sponsored-widget {
-  background: linear-gradient(135deg, #ff6ec7 0%, #c45fff 100%);
-  position: relative;
+  display: flex;
+   background: #e8eaed;
+  flex-direction: column;
+  align-items: center;
+   border: 1px solid #e2e8f0;   /* 🔥 เส้นบาง */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+::selection {
+  background: #3b82f6;
+  color: white;
+}
+
+.sponsored-widget h5,
+.sponsored-widget p {
   text-align: center;
-  border: none;
-  color: white;
-  padding: 22px;
 }
 
-/* badge */
-.widget-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+.sponsored-widget:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+   border-color: #c7d2fe;  /* ฟ้าอ่อน */
+   
 }
 
-/* title/desc */
+.sponsored-widget {
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.sponsored-widget img {
+  height: 120px;
+}
+
 .sponsored-widget h5 {
-  margin-top: 10px;
-  font-weight: 800;
-  color: white;
-  font-size: 18px;
+  font-size: 13px;
 }
 
 .sponsored-widget p {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
-  margin: 10px 0 15px;
+  font-size: 11px;
+}
+
+.sponsored-widget .btn {
+  font-size: 12px;
+  padding: 6px;
+}
+
+/* ===== Sponsored Badge ใหม่ ===== */
+.sponsored-label {
+  display: inline-block;
+   margin-top: 10px; 
+    margin-bottom: 8px;  
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+
+  background: linear-gradient(135deg, #eef2ff, #f1f5f9);
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  letter-spacing: 0.4px;
+  transition: all 0.2s ease;
+}
+
+/* dot */
+.sponsored-label::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* hover */
+.sponsored-widget:hover .sponsored-label {
+  color: #3b82f6;
+  background: #e0e7ff;
+  transform: translateY(-1px);
+}
+
+
+/* badge */
+/* .widget-badge {
+  background: #f1f5f9;
+  color: #555;
+  border: none;
+} */
+
+/* title/desc */
+.sponsored-widget h5 {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.sponsored-widget p {
+  color: #64748b;
+}
+.sponsored-widget h5:hover {
+  color: var(--primary);
+  cursor: pointer;
 }
 
 /* ad image */
 .ad-img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 12px;
-  display: block;
-  margin-bottom: 12px;
+  position: relative;
+}
+
+.ad-img::after {
+  content: "Sponsored";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 
@@ -387,6 +499,7 @@
   }
   .main-feed {
     padding: 0 15px;
+      margin-right: 340px; /* 320 + gap */
   }
 }
 
@@ -396,52 +509,7 @@
   }
 }
 
-/* ========================================= /
-/ DARK MODE TEXT COLORS /
-/ ========================================= /
 
-/ หัวเรื่องของโพสต์ /
-body.dark-mode .post-header h6 {
-  color: #f2f2f2 !important;
-}
-
-/ เวลาโพสต์ /
-body.dark-mode .post-header .text-muted {
-  color: #bbbbbb !important;
-}
-
-/ เนื้อหาโพสต์ /
-body.dark-mode .post-content {
-  color: #e5e5e5 !important;
-}
-
-/ ปุ่มไลก์ / คอมเมนต์ /
-body.dark-mode .btn-action {
-  color: #cccccc !important;
-}
-
-body.dark-mode .btn-action:hover {
-  background: #333 !important;
-  color: var(--theme-color) !important;
-}
-
-/ ตัวเลขสถิติใต้โพสต์ /
-body.dark-mode .post-stats {
-  color: #bbbbbb !important;
-  border-color: #333 !important;
-}
-
-/ ชื่อผู้ใช้ใน feed (สีตาม theme) /
-body.dark-mode .feed-username {
-  color: var(--theme-color) !important;
-}
-body.dark-mode input {
-  color: #ffffff !important;   / สีตัวอักษร input /
-}
-body.dark-mode input::placeholder {
-  color: #b5b5b5 !important;   / สีเทาสว่าง /
-  opacity: 1 !important;       / ป้องกัน browser ลดความเข้ม */
-/* } */
 .feed-page,
 .feed-container,
 .post-card,
@@ -449,7 +517,8 @@ body.dark-mode input::placeholder {
   font-size: var(--font-size) !important;
 }
 .post-card {
-  border-left: 4px solid var(--theme-color) !important;
+  border-left: 4px solid var(--primary);
+    border-top: 1px solid #f1f5f9;
 }
 
 .feed-title,
@@ -480,4 +549,13 @@ body.layout-compact .feed-container {
 
 .upload-btn:hover {
   background: #e4e6eb;
+}
+
+.right-sidebar .widget {
+  transition: all 0.2s ease;
+}
+
+.right-sidebar .widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }

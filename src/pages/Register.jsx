@@ -143,7 +143,7 @@ function Register() {
               >
                 <div style={{ display: "flex", justifyContent: "center"}}>
                   {React.cloneElement(opt.svg, {
-                    stroke: role === opt.value ? "#0066ff" : "#888"
+                    stroke: role === opt.value ? "#f0d878" : "#888"
                   })}
                 </div>
                 <span className="role-label">{opt.label}</span>

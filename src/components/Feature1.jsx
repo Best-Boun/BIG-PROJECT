@@ -3,6 +3,8 @@
  * Full UI Builder: layout · theme · sections · animation · dark mode
  * 
  * PRODUCTION-READY FEATURES:
+ * ✅ JWT authentication with token management
+ * ✅ All buttons properly wired to backend API
  * ✅ Unsaved changes protection (beforeunload)
  * ✅ Retry logic with exponential backoff
  * ✅ Enhanced error handling & messaging
@@ -11,11 +13,82 @@
  * ✅ Improved Toast system (dismiss, hover-pause)
  * ✅ Full accessibility (ARIA labels, keyboard nav)
  * ✅ Safe data merging & validation
+ * ✅ Team system compatibility
  */
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Feature1.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+/* ═══════════════════════════════════════════
+   AUTH & TOKEN UTILITIES
+═══════════════════════════════════════════ */
+const getAuthToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("AUTH_MISSING");
+  }
+  return token;
+};
+
+const getAuthHeaders = () => {
+  const token = getAuthToken();
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+  };
+};
+
+/* ═══════════════════════════════════════════
+   JWT TOKEN DECODER
+═══════════════════════════════════════════ */
+const decodeToken = () => {
+  try {
+    const token = getAuthToken();
+    if (!token) return null;
+
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const decoded = JSON.parse(atob(parts[1]));
+    return decoded;
+  } catch (err) {
+    return null;
+  }
+};
+
+const getUserId = () => {
+  // 🔒 Primary: Extract from JWT token
+  const decoded = decodeToken();
+  if (decoded?.id) return decoded.id;
+  if (decoded?.userId) return decoded.userId;
+
+  // 📌 Fallback: localStorage for backward compatibility
+  return localStorage.getItem("userID") || localStorage.getItem("userId");
+};
+
+/* ═══════════════════════════════════════════
+   API ERROR HANDLER
+═══════════════════════════════════════════ */
+const handleApiError = (err, defaultMsg = "An error occurred") => {
+  if (err.message === "AUTH_MISSING") {
+    return "Authentication required. Please log in.";
+  }
+  if (err.status === 403) {
+    return "Access denied. Please check your permissions.";
+  }
+  if (err.status === 401) {
+    return "Your session expired. Please log in again.";
+  }
+  if (err.status === 500) {
+    return "Server error. Please try again later.";
+  }
+  if (err.status === 404) {
+    return "Resource not found.";
+  }
+  return err.message || defaultMsg;
+};
 
 /* ═══════════════════════════════════════════
    RETRY UTILITY WITH EXPONENTIAL BACKOFF
@@ -27,6 +100,12 @@ const retryFetch = async (fn, maxRetries = 2, initialDelay = 500) => {
       return await fn();
     } catch (err) {
       lastError = err;
+
+      // 🔒 SKIP: Don't retry auth errors (401/403)
+      if (err.status === 401 || err.status === 403) {
+        throw err;
+      }
+
       if (i < maxRetries) {
         const delay = initialDelay * Math.pow(2, i); // exponential backoff
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -219,6 +298,7 @@ function SectionRow({ sec, visible, onToggle, onDragStart, onDragOver, onDrop, i
    MAIN COMPONENT
 ═══════════════════════════════════════════ */
 export default function ProfileEditor() {
+  const navigate = useNavigate();
   const [style,      setStyle]      = useState(() => ({ ...DEFAULT_STYLE, ...loadJSON(LS_STYLE, {}) }));
   const [tab,        setTab]        = useState("layout");
   const [toast,      setToast]      = useState({ msg: "", on: false, isError: false });
@@ -227,10 +307,29 @@ export default function ProfileEditor() {
   const [dragIdx,    setDragIdx]    = useState(null);
   const [overIdx,    setOverIdx]    = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isAuthed,   setIsAuthed]   = useState(false);
+  const [loading,    setLoading]    = useState(true);
   
   // Track last saved style to detect changes
   const lastSavedStyle = useRef(null);
   const toastTimeoutRef = useRef(null);
+
+  /* ── Check authentication on mount ── */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = getUserId();
+    
+    if (!token || !userId) {
+      ping("Please log in to access profile editor", true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+      return;
+    }
+    
+    setIsAuthed(true);
+    setLoading(false);
+  }, [navigate]);
 
   const setSt = useCallback((k, v) => {
     setStyle(s => {
@@ -290,28 +389,27 @@ export default function ProfileEditor() {
 
   /* ── Load existing style from backend (runs once on mount) ── */
   useEffect(() => {
-    (async () => {
-      const token  = localStorage.getItem("token");
-      const userId = localStorage.getItem("userID") || localStorage.getItem("userId");
-      if (!token || !userId) {
-        console.debug("load: no token or userId");
-        return;
-      }
+    if (!isAuthed) return;
 
+    (async () => {
       try {
+        const token = getAuthToken();
+        const userId = getUserId();
+
         // Use retry logic for initial load
-        await retryFetch(async () => {
-          const res = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
+        const res = await retryFetch(async () => {
+          const response = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
             headers: { "Authorization": `Bearer ${token}` },
           });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res;
+          if (response.status === 403 || response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userID");
+            navigate("/login");
+            throw new Error("AUTH_EXPIRED");
+          }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response;
         }, 2, 300);
-
-        const res = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
-          headers: { "Authorization": `Bearer ${token}` },
-        });
-        if (!res.ok) return;
 
         const data = await res.json();
         if (data?.style && typeof data.style === "object") {
@@ -324,22 +422,32 @@ export default function ProfileEditor() {
           setHasChanges(false);
         }
       } catch (err) {
+        if (err.message === "AUTH_EXPIRED") {
+          ping("Session expired. Please log in again.", true);
+          return;
+        }
         console.debug("style load failed:", err.message);
         // Non-fatal: use cached or default style
       }
     })();
     
-    // Intentionally run once on mount only
+    // Intentionally run once on auth check
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthed]);
 
   /* ── Save style with retry logic & optimistic updates ── */
   const save = useCallback(async () => {
-    const token  = localStorage.getItem("token");
-    const userId = localStorage.getItem("userID") || localStorage.getItem("userId");
-    
-    if (!token || !userId) { 
+    try {
+      const token = getAuthToken();
+      const userId = getUserId();
+      
+      if (!userId) { 
+        ping("User ID not found. Please log in again.", true);
+        return;
+      }
+    } catch (err) {
       ping("Please log in first", true);
+      setTimeout(() => navigate("/login"), 2000);
       return;
     }
 
@@ -384,13 +492,28 @@ export default function ProfileEditor() {
     setSaving(true);
 
     try {
+      const token = getAuthToken();
+      const userId = getUserId();
+
       // Step 1: Fetch current profile with retry
       let currentProfile;
       await retryFetch(async () => {
         const fetchRes = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
           headers: { "Authorization": `Bearer ${token}` },
         });
-        if (!fetchRes.ok) throw new Error(`Failed to fetch profile: HTTP ${fetchRes.status}`);
+        
+        if (fetchRes.status === 403 || fetchRes.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userID");
+          navigate("/login");
+          throw new Error("Session expired");
+        }
+        
+        if (!fetchRes.ok) {
+          const errText = await fetchRes.text();
+          throw new Error(`Failed to fetch profile: ${errText || fetchRes.statusText}`);
+        }
+        
         currentProfile = await fetchRes.json();
         return currentProfile;
       }, 2, 300);
@@ -406,13 +529,22 @@ export default function ProfileEditor() {
       await retryFetch(async () => {
         const saveRes = await fetch(`${BASE_URL}/api/profiles/${userId}`, {
           method:  "PUT",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          headers: getAuthHeaders(),
           body:    JSON.stringify(updatePayload),
         });
+        
+        if (saveRes.status === 403 || saveRes.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userID");
+          navigate("/login");
+          throw new Error("Session expired");
+        }
+        
         if (!saveRes.ok) {
-          const errData = await saveRes.json();
+          const errData = await saveRes.json().catch(() => ({}));
           throw new Error(errData?.error || `HTTP ${saveRes.status}: ${saveRes.statusText}`);
         }
+        
         saveSuccess = true;
         return saveRes.json();
       }, 2, 300);
@@ -422,18 +554,18 @@ export default function ProfileEditor() {
         saveJSON(LS_STYLE, validatedStyle);
         lastSavedStyle.current = { ...validatedStyle };
         setHasChanges(false);
-        ping("Profile design saved successfully ✓");
+        ping("✓ Design saved successfully");
       }
     } catch (err) {
       // Revert optimistic update on error
       setStyle(prevStyle);
-      const errorMsg = err.message || "Failed to save design. Please try again.";
+      const errorMsg = handleApiError(err, "Failed to save design");
       console.error("save style failed:", errorMsg);
       ping(`Error: ${errorMsg}`, true, 5000);
     } finally {
       setSaving(false);
     }
-  }, [style, ping]);
+  }, [style, ping, navigate]);
 
   /* ── Section ordering drag ── */
   const handleDrop = useCallback((toIdx) => {
@@ -550,13 +682,36 @@ export default function ProfileEditor() {
   /* ════════════════════════════════════════
      RENDER
   ════════════════════════════════════════ */
+  
+  if (loading) {
+    return (
+      <div className="pe-shell" style={{ "--accent": "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "18px", marginBottom: "12px" }}>Loading...</p>
+          <div style={{ width: "40px", height: "40px", border: "3px solid rgba(79, 70, 229, 0.2)", borderTop: "3px solid #4f46e5", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto" }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthed) {
+    return (
+      <div className="pe-shell" style={{ "--accent": "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "18px", marginBottom: "12px" }}>Please log in to continue...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pe-shell" style={{ "--accent": style.accent }}>
 
       {/* ── Topbar ── */}
       <header className="pe-topbar">
         <button type="button" className="pe-topbar-back" onClick={() => window.history.back()}
-          aria-label="Go back to previous page">
+          aria-label="Go back to previous page"
+          title="Go back">
           ← Go Back
         </button>
         <h1 className="pe-topbar-title">
@@ -566,13 +721,14 @@ export default function ProfileEditor() {
           <button type="button" className="pe-btn pe-btn--ghost pe-btn--mobile-icon"
             onClick={() => setMobileOpen(v => !v)} 
             aria-label={mobileOpen ? "Close panel" : "Open panel"}
-            aria-expanded={mobileOpen}>
+            aria-expanded={mobileOpen}
+            title={mobileOpen ? "Close settings panel" : "Open settings panel"}>
             {mobileOpen ? "✕" : "☰"}
           </button>
           <button type="button" className="pe-btn pe-btn--solid" onClick={save} 
-            disabled={saving}
+            disabled={saving || !isAuthed}
             aria-busy={saving}
-            title={hasChanges ? "You have unsaved changes" : "Save your design"}>
+            title={!isAuthed ? "Not authenticated" : saving ? "Saving..." : hasChanges ? "You have unsaved changes" : "Save your design"}>
             {saving ? "Saving…" : "Save Design"}
           </button>
         </div>
@@ -809,7 +965,10 @@ export default function ProfileEditor() {
                 </section>
 
                 <section className="pe-section">
-                  <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} disabled={saving}>
+                  <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} 
+                    disabled={saving || !isAuthed}
+                    title={saving ? "Saving..." : isAuthed ? "Save design" : "Please log in"}
+                    aria-busy={saving}>
                     {saving ? "กำลังบันทึก…" : "บันทึก Design"}
                   </button>
                 </section>
@@ -854,7 +1013,10 @@ export default function ProfileEditor() {
                 </section>
 
                 <section className="pe-section">
-                  <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} disabled={saving}>
+                  <button type="button" className="pe-btn pe-btn--solid pe-btn--full" onClick={save} 
+                    disabled={saving || !isAuthed}
+                    title={saving ? "Saving..." : isAuthed ? "Save layout" : "Please log in"}
+                    aria-busy={saving}>
                     {saving ? "กำลังบันทึก…" : "บันทึกเลย์เอาต์"}
                   </button>
                 </section>

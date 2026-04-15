@@ -426,7 +426,8 @@ export default function ProfileEditor() {
           ping("Session expired. Please log in again.", true);
           return;
         }
-        console.debug("style load failed:", err.message);
+        console.error("Failed to load profile style:", err.message);
+        ping("Failed to load profile style. Using default theme.", false);
         // Non-fatal: use cached or default style
       }
     })();

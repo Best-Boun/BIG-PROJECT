@@ -99,6 +99,23 @@ function clearDraft() {
   try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
 }
 
+// ✅ API Response Validator
+function validateApiResponse(response, requiredFields = ['data']) {
+  if (!response?.success) {
+    throw new Error("API returned non-success status");
+  }
+  const data = response.data;
+  if (!data) {
+    throw new Error("API response missing data field");
+  }
+  for (const field of requiredFields) {
+    if (!(field in data)) {
+      throw new Error(`API response missing required field: ${field}`);
+    }
+  }
+  return data;
+}
+
 async function retryFetch(fn, maxRetries=MAX_RETRIES, delay=300) {
   let last;
   for(let i=0; i<=maxRetries; i++) {
@@ -928,7 +945,8 @@ export default function ResumeEditor() {
             }
           }
         } catch(err) {
-          console.debug("ดึงข้อมูล Resume ไม่สำเร็จ:", err);
+          console.error("Resume load failed:", err);
+          showToast("โหลดข้อมูลเรซูเม่ไม่สำเร็จ กรุณาลองใหม่", "error", 5000);
         }
       }
       const draft = loadDraft();

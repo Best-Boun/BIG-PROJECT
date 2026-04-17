@@ -241,9 +241,9 @@ function Login({ setToken, setRole }) {
           </button>
         </form>
 
-        <p className="auth-extra" style={{ marginTop: 16 }}>
+        {/* <p className="auth-extra" style={{ marginTop: 16 }}>
           Forgot your password?
-        </p>
+        </p> */}
       </div>
     </div>
   );

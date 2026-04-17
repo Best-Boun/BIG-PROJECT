@@ -847,7 +847,7 @@ export default function Feed() {
                     </div>
                   ) : (
                     <>
-                      <p className="mt-2">{post.text}</p>
+                      <p className="post-content mt-2">{post.text}</p>
 
                       {post.image && (
                         <div

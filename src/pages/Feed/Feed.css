@@ -32,9 +32,12 @@ body {
   width: 100%;
   max-width: 1300px;
   margin: 0 auto;
-   align-items: stretch;   /* 🔥 สำคัญมาก */
-}
 
+  display: flex;        /* 🔥 เพิ่ม */
+  gap: 20px;            /* 🔥 เพิ่ม */
+
+  align-items: flex-start; /* 🔥 เปลี่ยน */
+}
 /* MAIN FEED */
 .main-feed {
   margin: 0 auto;
@@ -233,8 +236,7 @@ body {
 .right-sidebar {
   position: fixed;
   top: 90px;
-
-  right: 80px;   /* 🔥 ขยับเข้ามา */
+  right: 5px;  
   width: 220px;  /* 🔥 เล็กลง */
 
   max-height: calc(100vh - 110px);

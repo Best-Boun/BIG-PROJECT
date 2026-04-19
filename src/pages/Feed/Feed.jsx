@@ -66,9 +66,14 @@ export default function Feed() {
   }, [profileData]);
 
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const fullName = profileData?.name || storedUser?.name || "User";
+
+  const [firstName, lastName] = fullName.split(" ");
+
   const currentUser = {
     id: Number(localStorage.getItem("userId")),
-    username: profileData?.name || storedUser?.name || "User",
+    firstName: firstName || "U",
+    lastName: lastName || "",
     profileImage:
       profileData?.profileImage ||
       storedUser?.profileImage ||
@@ -561,19 +566,21 @@ export default function Feed() {
     }
   };
 
-  const getProfileImage = (image) => {
-    if (!image) {
-      return "https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff";
-    }
+ const getProfileImage = (image, name = "User") => {
+   if (!image) {
+     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+       name,
+     )}&background=6a11cb&color=fff`;
+   }
 
-    if (image.startsWith("http")) return image;
+   if (image.startsWith("http")) return image;
 
-    if (image.startsWith("/upload")) {
-      return `http://localhost:3000${image}`;
-    }
+   if (image.startsWith("/upload")) {
+     return `http://localhost:3000${image}`;
+   }
 
-    return `http://localhost:3000/upload/${image}`;
-  };
+   return `http://localhost:3000/upload/${image}`;
+ };
 
   if (loading) {
     return (
@@ -605,7 +612,10 @@ export default function Feed() {
                 {/* Avatar */}
                 <div className="user-avatar">
                   <img
-                    src={getProfileImage(currentUser.profileImage)}
+                    src={getProfileImage(
+                      currentUser.profileImage,
+                      currentUser.firstName + " " + currentUser.lastName,
+                    )}
                     onError={(e) => {
                       e.target.src =
                         "https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff";
@@ -619,7 +629,9 @@ export default function Feed() {
                   type="text"
                   className="form-control ms-3"
                   placeholder={`What's on your mind, ${
-                    currentUser?.username || "User"
+                    currentUser.firstName
+                      ? currentUser.firstName + " " + currentUser.lastName
+                      : "User"
                   }?`}
                   value={postText}
                   onChange={(e) => setPostText(e.target.value)}
@@ -701,9 +713,8 @@ export default function Feed() {
                       <div className="d-flex">
                         <div className="user-avatar">
                           <img
-                            src={getProfileImage(post.profileImage)}
+                            src={getProfileImage(post.profileImage, post.name)}
                             className="avatar-img"
-                            alt=""
                           />
                         </div>
 
@@ -1048,7 +1059,7 @@ export default function Feed() {
                   }}
                 >
                   <img
-                    src={getProfileImage(c.profileImage)}
+                    src={getProfileImage(c.profileImage, c.name)}
                     style={{
                       width: 36,
                       height: 36,

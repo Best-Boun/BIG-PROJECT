@@ -5,7 +5,8 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
    ค่าคงที่ & ข้อมูล
 ═══════════════════════════════════════════════════════════════ */
 const DRAFT_KEY       = "resume_editor_v3_draft";
-const API_URL         = import.meta.env.VITE_API_URL || "http://localhost:3000/api/resume";
+const API_BASE        = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL         = `${API_BASE}/api/resume`;
 const REQUEST_TIMEOUT = 10000;
 const MAX_RETRIES     = 2;
 
@@ -19,18 +20,6 @@ const SKILL_SUGGESTIONS = [
   "Git","CI/CD","Figma","Tailwind CSS","HTML","CSS","Linux","Agile","Scrum",
 ];
 
-const SUMMARY_REWRITES = [
-  (s) => (s.includes("ทำเว็บ")||s.includes("web"))
-    ? "พัฒนาเว็บแอปพลิเคชันที่มีประสิทธิภาพสูงด้วย React, Node.js และเทคโนโลยีสมัยใหม่ พร้อมมุ่งเน้นการยกระดับประสบการณ์ผู้ใช้และคุณภาพโค้ดให้ดียิ่งขึ้นอยู่เสมอ"
-    : null,
-  (s) => (s.includes("ดูแล")||s.includes("manage"))
-    ? "ขับเคลื่อนและบริหารจัดการโปรเจคด้านเทคโนโลยีให้บรรลุเป้าหมาย พร้อมนำทีมพัฒนาให้ทำงานได้อย่างมีประสิทธิภาพสูงสุดในทุกสถานการณ์"
-    : null,
-  (s) => (s.includes("วิเคราะห์")||s.includes("data")||s.includes("ข้อมูล"))
-    ? "วิเคราะห์และประมวลผลข้อมูลขนาดใหญ่เพื่อสร้าง insight เชิงธุรกิจ ด้วย Python และเครื่องมือ Data Science ชั้นนำระดับอุตสาหกรรม"
-    : null,
-];
-
 const TEMPLATES = [
   { id:"modern",  label:"ทันสมัย",  desc:"สีสันทันสมัย",    accent:"#1e3a5f" },
   { id:"minimal", label:"เรียบ",    desc:"สะอาดเรียบร้อย",  accent:"#2d2d2d" },
@@ -38,6 +27,9 @@ const TEMPLATES = [
   { id:"forest",  label:"ธรรมชาติ", desc:"ธรรมชาติสดใส",    accent:"#1a4a2e" },
   { id:"dusk",    label:"หรูหรา",   desc:"หรูหราสง่างาม",   accent:"#4a2d6b" },
 ];
+
+// Backend-supported template names (must match Backend)
+const BACKEND_TEMPLATES = ["modern", "minimal", "bold", "forest", "dusk"];
 
 const JOB_ROLES = [
   { id:"",          label:"— เลือกสายงาน —" },
@@ -99,7 +91,7 @@ function clearDraft() {
   try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
 }
 
-// ✅ API Response Validator
+// ✅ API Response Validator & Normalizer
 function validateApiResponse(response, requiredFields = ['data']) {
   if (!response?.success) {
     throw new Error("API returned non-success status");
@@ -114,6 +106,53 @@ function validateApiResponse(response, requiredFields = ['data']) {
     }
   }
   return data;
+}
+
+// ✅ Normalize resume data from API
+function normalizeResumeData(apiData) {
+  if (!apiData || typeof apiData !== 'object') {
+    throw new Error('Invalid resume data format');
+  }
+  
+  // Validate template
+  const template = apiData.template || 'modern';
+  if (!BACKEND_TEMPLATES.includes(template)) {
+    console.warn(`Invalid template "${template}", using 'modern' instead`);
+  }
+  
+  return {
+    fullName:     String(apiData.fullName || "").trim(),
+    jobTitle:     String(apiData.jobTitle || "").trim(),
+    summary:      String(apiData.summary || "").trim(),
+    profileImage: String(apiData.profileImage || ""),
+    skills:       Array.isArray(apiData.skills) ? apiData.skills.map(s => String(s || "").trim()).filter(Boolean) : [],
+    experience:   Array.isArray(apiData.experience) 
+      ? apiData.experience.map(e => ({
+          _id:         e._id || uid(),
+          position:    String(e.position || "").trim(),
+          company:     String(e.company || "").trim(),
+          startDate:   String(e.startDate || "").trim(),
+          endDate:     String(e.endDate || "").trim(),
+          description: String(e.description || "").trim(),
+        }))
+      : [],
+    education:    Array.isArray(apiData.education)
+      ? apiData.education.map(e => ({
+          _id:       e._id || uid(),
+          school:    String(e.school || "").trim(),
+          degree:    String(e.degree || "").trim(),
+          startYear: String(e.startYear || "").trim(),
+          endYear:   String(e.endYear || "").trim(),
+        }))
+      : [],
+    languages:    Array.isArray(apiData.languages)
+      ? apiData.languages.map(l => ({
+          _id:   l._id || uid(),
+          name:  String(l.name || "").trim(),
+          level: String(l.level || "").trim() || "ระดับกลาง",
+        }))
+      : [],
+  };
 }
 
 async function retryFetch(fn, maxRetries=MAX_RETRIES, delay=300) {
@@ -148,15 +187,6 @@ function calcCompletion(resume) {
   ];
   const done = checks.filter(c => c.done).length;
   return { pct: Math.round((done/checks.length)*100), checks };
-}
-
-function rewriteSummary(summary) {
-  const lower = summary.toLowerCase();
-  for(const fn of SUMMARY_REWRITES) { const r = fn(lower); if(r) return r; }
-  const t = summary.trim();
-  if(!t)          return "นักพัฒนาซอฟต์แวร์ที่มีทักษะหลากหลาย มุ่งมั่นสร้างสรรค์ผลงานคุณภาพสูง และพร้อมเรียนรู้เทคโนโลยีใหม่อยู่เสมอ";
-  if(t.length<30) return `${t} พร้อมนำความเชี่ยวชาญมาสร้างคุณค่าให้กับองค์กร และมุ่งพัฒนาตนเองอย่างต่อเนื่อง`;
-  return t;
 }
 
 function getAccentColor(templateId) {
@@ -875,7 +905,6 @@ export default function ResumeEditor() {
   const [generating, setGenerating]   = useState(false);
   const [saving, setSaving]           = useState(false);
   const [exporting, setExporting]     = useState(false);
-  const [rewriting, setRewriting]     = useState(false);
   const [toast, setToast]             = useState(null);
   const [draftBanner, setDraftBanner] = useState(false);
   const [autoSavedAt, setAutoSavedAt] = useState(null);
@@ -926,20 +955,21 @@ export default function ResumeEditor() {
           if(res.ok) {
             const json = await res.json();
             if(json.success && json.data) {
-              const d = json.data;
-              setResume({
-                fullName:     d.fullName||"",
-                jobTitle:     d.jobTitle||"",
-                summary:      d.summary||"",
-                profileImage: d.profileImage||"",
-                skills:       Array.isArray(d.skills) ? d.skills : [],
-                experience:   Array.isArray(d.experience) ? d.experience.map(e => ({ _id:e._id||uid(), position:e.position||"", company:e.company||"", startDate:e.startDate||"", endDate:e.endDate||"", description:e.description||"" })) : [],
-                education:    Array.isArray(d.education)  ? d.education.map(e  => ({ _id:e._id||uid(), school:e.school||"", degree:e.degree||"", startYear:e.startYear||"", endYear:e.endYear||"" })) : [],
-                languages:    Array.isArray(d.languages)  ? d.languages.map(l  => ({ _id:l._id||uid(), name:l.name||"", level:l.level||"" })) : [],
-              });
-              setResumeId(d.id);
-              if(d.template) setTemplate(d.template);
-              lastSavedState.current = JSON.stringify(d);
+              // ✅ Normalize and validate resume data
+              const normalized = normalizeResumeData(json.data);
+              setResume(normalized);
+              setResumeId(json.data.id);
+              
+              // ✅ Validate template is supported
+              const template = json.data.template || 'modern';
+              if (BACKEND_TEMPLATES.includes(template)) {
+                setTemplate(template);
+              } else {
+                console.warn(`Template "${template}" not supported, using 'modern'`);
+                setTemplate('modern');
+              }
+              
+              lastSavedState.current = JSON.stringify(normalized);
               try { clearDraft(); } catch(e2) {}
               return;
             }
@@ -991,7 +1021,7 @@ export default function ResumeEditor() {
     if(!token||!userId) { showToast("กรุณาเข้าสู่ระบบก่อน","error"); return; }
     setGenerating(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/profiles?userId=${userId}`, { headers:{ "Authorization":`Bearer ${token}` } });
+      const res = await fetch(`${API_BASE}/api/profiles?userId=${userId}`, { headers:{ "Authorization":`Bearer ${token}` } });
       if(!res.ok) throw new Error("ดึงข้อมูลโปรไฟล์ไม่สำเร็จ");
       const data = await res.json();
       if(!data||typeof data!=="object") throw new Error("ข้อมูลโปรไฟล์ไม่ถูกต้อง");
@@ -1016,6 +1046,13 @@ export default function ResumeEditor() {
   /* ── Save ── */
   const handleSave = async () => {
     if(!resume.fullName.trim()) { showToast("กรุณากรอกชื่อ-นามสกุลก่อนบันทึก","error"); return; }
+    
+    // ✅ Validate template
+    if (!BACKEND_TEMPLATES.includes(template)) {
+      showToast(`เทมเพลต "${template}" ไม่รองรับ กรุณาเลือกใหม่`, "error");
+      return;
+    }
+    
     const token = localStorage.getItem("token");
     if(!token) { showToast("กรุณาเข้าสู่ระบบก่อน","error"); return; }
     setSaving(true);
@@ -1043,17 +1080,6 @@ export default function ResumeEditor() {
       else if(err.name==="AbortError")    showToast("หมดเวลารอการตอบสนอง กรุณาลองใหม่","error");
       else                                showToast("บันทึกไม่สำเร็จ: "+err.message,"error");
     } finally { setSaving(false); }
-  };
-
-  /* ── Rewrite summary ── */
-  const handleRewrite = async () => {
-    setRewriting(true);
-    try {
-      await new Promise(r => setTimeout(r,900));
-      setField("summary", rewriteSummary(resume.summary));
-      showToast("ปรับสรุปตัวเองเรียบร้อยแล้ว");
-    } catch(e) { showToast("ปรับสรุปตัวเองไม่สำเร็จ","error"); }
-    finally { setRewriting(false); }
   };
 
   /* ── Export PDF ── */
@@ -1201,9 +1227,6 @@ export default function ResumeEditor() {
                 <div className="re-card">
                   <div className="re-card__header">
                     <SLabel>สรุปตัวเอง (Summary)</SLabel>
-                    <button className="re-btn re-btn-ai" onClick={handleRewrite} disabled={rewriting}>
-                      {rewriting ? <><Spinner dark={!isDark} />กำลังปรับ…</> : "✦ ปรับให้เป็นมืออาชีพ"}
-                    </button>
                   </div>
                   <textarea
                     className="re-input re-textarea"

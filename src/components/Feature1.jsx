@@ -309,10 +309,12 @@ export default function ProfileEditor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isAuthed,   setIsAuthed]   = useState(false);
   const [loading,    setLoading]    = useState(true);
+  const [coverImage, setCoverImage] = useState("");
   
   // Track last saved style to detect changes
   const lastSavedStyle = useRef(null);
   const toastTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   /* ── Check authentication on mount ── */
   useEffect(() => {
@@ -418,6 +420,10 @@ export default function ProfileEditor() {
             ...s,
             ...data.style
           }));
+          // Load coverImage from backend
+          if (data.style?.coverImage) {
+            setCoverImage(data.style.coverImage);
+          }
           lastSavedStyle.current = { ...data.style };
           setHasChanges(false);
         }
@@ -435,6 +441,44 @@ export default function ProfileEditor() {
     // Intentionally run once on auth check
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthed]);
+
+  /* ── Handle cover image upload ── */
+  const handleCoverImageUpload = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      ping("Please select an image file", true);
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      ping(`File size exceeds 10MB limit (${(file.size / 1024 / 1024).toFixed(1)}MB)`, true);
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result;
+      if (typeof base64 === "string") {
+        setCoverImage(base64);
+        ping("Image preview updated");
+      }
+    };
+    reader.onerror = () => {
+      ping("Failed to read file", true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [ping]);
 
   /* ── Save style with retry logic & optimistic updates ── */
   const save = useCallback(async () => {
@@ -471,6 +515,7 @@ export default function ProfileEditor() {
       cover: typeof style.cover === "string" ? style.cover : COVERS[0],
       coverBlur: Number.isInteger(style.coverBlur) ? Math.max(0, Math.min(16, style.coverBlur)) : 0,
       showCover: !!style.showCover,
+      coverImage: typeof coverImage === "string" ? coverImage : "",
       fontSize: Number.isInteger(style.fontSize) ? Math.max(12, Math.min(20, style.fontSize)) : 15,
       lineSpacing: Number.isInteger(style.lineSpacing) ? Math.max(16, Math.min(48, style.lineSpacing)) : 28,
       cardRadius: Number.isInteger(style.cardRadius) ? Math.max(0, Math.min(24, style.cardRadius)) : 10,
@@ -566,7 +611,7 @@ export default function ProfileEditor() {
     } finally {
       setSaving(false);
     }
-  }, [style, ping, navigate]);
+  }, [style, ping, navigate, coverImage]);
 
   /* ── Section ordering drag ── */
   const handleDrop = useCallback((toIdx) => {
@@ -861,17 +906,25 @@ export default function ProfileEditor() {
                   <Toggle label="แสดงรูปปก" on={style.showCover} onChange={v => setSt("showCover", v)} />
                   {style.showCover && (
                     <>
-                      {style.cover && (
-                        <div className="pe-cover-preview" style={{ backgroundImage: `url("${style.cover}")` }} />
+                      {coverImage && (
+                        <div className="pe-cover-preview" style={{ backgroundImage: `url("${coverImage}")` }} />
                       )}
                       <div className="pe-btn-group">
                         <button type="button" className="pe-btn pe-btn--outline"
-                          onClick={() => setSt("cover", COVERS[Math.floor(Math.random() * COVERS.length)])}>
-                          สุ่มรูป
+                          onClick={() => fileInputRef.current?.click()}>
+                          อัปโหลดรูปหน้าปก
                         </button>
-                        {style.cover && (
+                        <input 
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={handleCoverImageUpload}
+                          aria-label="Upload cover image"
+                        />
+                        {coverImage && (
                           <button type="button" className="pe-btn pe-btn--ghost"
-                            onClick={() => setSt("cover", "")}>
+                            onClick={() => setCoverImage("")}>
                             ลบออก
                           </button>
                         )}

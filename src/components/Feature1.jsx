@@ -18,6 +18,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Feature1.css";
+import { validateStyleConfig, validateProfile, cleanLegacyFields } from "../utils/validators";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -393,6 +394,13 @@ export default function ProfileEditor() {
         }, 2, 300);
 
         const profileData = await res.json();
+        // Validate profile data before using it
+        const validationResult = validateProfile(profileData);
+        if (!validationResult.success) {
+          console.warn("Profile validation warning:", validationResult.error);
+          // Continue anyway but log the issue
+        }
+        
         // Store complete profile for later save operations
         if (profileData && typeof profileData === "object") {
           lastSavedStyle.current = { profile: profileData, style: profileData.style };
@@ -405,6 +413,15 @@ export default function ProfileEditor() {
           // Clean up old cover fields from loaded data (backward compatibility)
           const { cover, coverBlur, coverImage, coverPosition, coverOverlay, showCover, ...cleanedStyle } = loadedStyle;
           loadedStyle = cleanedStyle;
+          
+          // Validate and sanitize style configuration
+          const styleValidation = validateStyleConfig(loadedStyle);
+          if (styleValidation.success) {
+            loadedStyle = styleValidation.data;
+          } else {
+            console.warn("Style validation warning:", styleValidation.error);
+            // Use defaults for any invalid fields
+          }
           
           // Ensure all sections are present in sectionOrder
           const allSections = ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"];
@@ -534,6 +551,13 @@ export default function ProfileEditor() {
         ...existingData,
         style: validatedStyle,
       };
+
+      // Validate payload before sending to API
+      const payloadValidation = validateProfile(updatePayload);
+      if (!payloadValidation.success) {
+        console.warn("Payload validation warning:", payloadValidation.error);
+        ping("Warning: Some data may not be valid", false, 3000);
+      }
 
       // Step 2: Save with retry
       let saveSuccess = false;

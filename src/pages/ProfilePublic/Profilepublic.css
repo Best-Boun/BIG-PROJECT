@@ -91,11 +91,6 @@
 
 /* — Classic — */
 .pp-header-classic { background: var(--pp-surface); }
-.pp-cover {
-  height: 200px;
-  background-size: cover; background-position: center;
-  background-color: var(--pp-accent);
-}
 .pp-header-body { padding: 0 32px 28px; }
 .pp-header-classic--center .pp-header-body { display: flex; flex-direction: column; align-items: center; }
 .pp-header-classic--center .pp-contacts { justify-content: center; flex-wrap: wrap; }
@@ -117,7 +112,6 @@
 .pp-header-banner { position: relative; background: var(--pp-surface); }
 .pp-banner-cover {
   height: 220px;
-  background-size: cover; background-position: center;
   background-color: var(--pp-accent);
 }
 .pp-banner-body {

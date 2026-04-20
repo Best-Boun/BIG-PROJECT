@@ -390,13 +390,6 @@ html,body,#root { width:100%; min-height:100%; overflow:auto; margin:0; padding:
 .pe-toggle--on          { background: var(--accent); }
 .pe-toggle--on::after   { transform: translateX(16px); }
 
-/* Cover preview */
-.pe-cover-preview {
-  height: 72px; border-radius: 8px;
-  background-size: cover; background-position: center;
-  border: 1px solid var(--c-border);
-}
-
 /* Avatar row */
 .pe-avatar-row { display: flex; align-items: center; gap: var(--s4); }
 .pe-avatar-thumb {

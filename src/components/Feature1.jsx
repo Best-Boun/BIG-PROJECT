@@ -172,6 +172,7 @@ const DEFAULT_STYLE = {
   alignment:        "left",
   containerWidth:   "md",
   headerStyle:      "classic",
+  avatarSize:       88,
   skillStyle:       "pill",
   timelineStyle:    "line",
 };
@@ -573,6 +574,7 @@ export default function ProfileEditor() {
       alignment: ["left","center"].includes(style.alignment) ? style.alignment : "left",
       containerWidth: ["sm","md","lg","full"].includes(style.containerWidth) ? style.containerWidth : "md",
       headerStyle: ["classic","banner","compact"].includes(style.headerStyle) ? style.headerStyle : "classic",
+      avatarSize: Number.isInteger(style.avatarSize) ? Math.max(48, Math.min(140, style.avatarSize)) : 88,
       skillStyle: ["pill","badge","bar","dot"].includes(style.skillStyle) ? style.skillStyle : "pill",
       timelineStyle: ["line","compact","card"].includes(style.timelineStyle) ? style.timelineStyle : "line",
     };
@@ -670,6 +672,18 @@ export default function ProfileEditor() {
       setSaving(false);
     }
   }, [style, ping, navigate]);
+
+  /* ── Keyboard shortcut: Ctrl/Cmd+S to save ── */
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if (!saving && isAuthed) save();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [saving, isAuthed, save]);
 
   /* ── Section ordering drag ── */
   const toggleSection = useCallback((key) => {
@@ -825,6 +839,7 @@ export default function ProfileEditor() {
                       </label>
                     ))}
                   </div>
+                  <Slider label="ขนาดรูปโปรไฟล์" value={style.avatarSize} min={48} max={140} unit="px" onChange={v => setSt("avatarSize", v)} />
                 </section>
 
                 {/* Dark mode */}

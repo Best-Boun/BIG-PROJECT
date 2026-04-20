@@ -204,14 +204,15 @@ async function fetchWithTimeout(url, opts={}, timeout=REQUEST_TIMEOUT) {
 
 function calcCompletion(resume) {
   const checks = [
-    { key:"fullName",     label:"ชื่อ-นามสกุล",                    done: !!resume.fullName.trim() },
-    { key:"jobTitle",     label:"ตำแหน่งงาน",                      done: !!resume.jobTitle.trim() },
-    { key:"summary",      label:"สรุปตัวเอง (อย่างน้อย 30 ตัวอักษร)", done: resume.summary.trim().length > 30 },
-    { key:"skills",       label:"ทักษะ (อย่างน้อย 3)",             done: resume.skills.length >= 3 },
-    { key:"experience",   label:"ประสบการณ์ทำงาน",                 done: resume.experience.length > 0 },
-    { key:"education",    label:"ประวัติการศึกษา",                  done: resume.education.length > 0 },
-    { key:"languages",    label:"ภาษา",                             done: resume.languages.length > 0 },
-    { key:"profileImage", label:"รูปโปรไฟล์",                       done: !!resume.profileImage },
+    { key:"fullName",       label:"ชื่อ-นามสกุล",                    done: !!resume.fullName.trim() },
+    { key:"jobTitle",       label:"ตำแหน่งงาน",                      done: !!resume.jobTitle.trim() },
+    { key:"summary",        label:"สรุปตัวเอง (อย่างน้อย 30 ตัวอักษร)", done: resume.summary.trim().length > 30 },
+    { key:"contact",        label:"ข้อมูลติดต่อ (อีเมลหรือเบอร์โทร)", done: !!(resume.email?.trim() || resume.phone?.trim()) },
+    { key:"skills",         label:"ทักษะ (อย่างน้อย 3)",             done: resume.skills.length >= 3 },
+    { key:"experience",     label:"ประสบการณ์ทำงาน",                 done: resume.experience.length > 0 },
+    { key:"education",      label:"ประวัติการศึกษา",                  done: resume.education.length > 0 },
+    { key:"languages",      label:"ภาษา",                             done: resume.languages.length > 0 },
+    { key:"profileImage",   label:"รูปโปรไฟล์",                       done: !!resume.profileImage },
   ];
   const done = checks.filter(c => c.done).length;
   return { pct: Math.round((done/checks.length)*100), checks };
@@ -262,18 +263,21 @@ function SLabel({ children, sub }) {
 function TopNav({
   resume, activeSection, onNav,
   autoSavedAt, generating, saving, isDark,
-  onGenerate, onSave, onToggleDark, onTogglePreview,
+  onGenerate, onSave, onReset, onToggleDark, onTogglePreview,
 }) {
   const { pct, checks } = calcCompletion(resume);
   const checkMap = Object.fromEntries(checks.map(c => [c.key, c.done]));
 
   const sectionDone = {
-    profile:    checkMap.fullName && checkMap.jobTitle && checkMap.profileImage,
-    summary:    checkMap.summary,
-    skills:     checkMap.skills,
-    experience: checkMap.experience,
-    education:  checkMap.education,
-    languages:  checkMap.languages,
+    profile:        checkMap.fullName && checkMap.jobTitle && checkMap.profileImage,
+    contact:        checkMap.contact,
+    summary:        checkMap.summary,
+    skills:         checkMap.skills,
+    experience:     checkMap.experience,
+    education:      checkMap.education,
+    languages:      checkMap.languages,
+    certifications: resume.certifications?.length > 0,
+    projects:       resume.projects?.length > 0,
   };
 
   const barMod = pct >= 80 ? "high" : pct >= 50 ? "mid" : "low";
@@ -333,6 +337,14 @@ function TopNav({
           </button>
 
           <button
+            className="re-btn re-btn-ghost re-btn-sm"
+            onClick={onReset}
+            title="ล้างข้อมูลทั้งหมดและเริ่มใหม่"
+          >
+            🗑
+          </button>
+
+          <button
             className="re-btn re-btn-dark-toggle"
             onClick={onToggleDark}
             title={isDark?"โหมดสว่าง":"โหมดมืด"}
@@ -356,23 +368,29 @@ function TopNav({
 /* ═══════════════════════════════════════════════════════════════
    Feedback Panel (shared full-width strip)
 ═══════════════════════════════════════════════════════════════ */
-function FeedbackPanel({ resume }) {
+function FeedbackPanel({ resume, onNav }) {
   const [open, setOpen] = useState(false);
 
   const feedbacks = useMemo(() => {
     const items = [];
-    if(!resume.fullName.trim())        items.push({ level:"error", text:"ยังไม่ได้กรอกชื่อ-นามสกุล" });
-    if(!resume.jobTitle.trim())        items.push({ level:"error", text:"ยังไม่ได้กรอกตำแหน่งงาน" });
-    if(resume.experience.length===0)   items.push({ level:"error", text:"ยังไม่ได้เพิ่มประสบการณ์ทำงาน" });
-    if(resume.education.length===0)    items.push({ level:"error", text:"ยังไม่ได้เพิ่มประวัติการศึกษา" });
+    if(!resume.fullName.trim())        items.push({ level:"error", text:"ยังไม่ได้กรอกชื่อ-นามสกุล", section:"profile" });
+    if(!resume.jobTitle.trim())        items.push({ level:"error", text:"ยังไม่ได้กรอกตำแหน่งงาน", section:"profile" });
+    if(resume.experience.length===0)   items.push({ level:"error", text:"ยังไม่ได้เพิ่มประสบการณ์ทำงาน", section:"experience" });
+    if(resume.education.length===0)    items.push({ level:"error", text:"ยังไม่ได้เพิ่มประวัติการศึกษา", section:"education" });
+    if(!resume.email?.trim() && !resume.phone?.trim())
+      items.push({ level:"error", text:"ยังไม่ได้กรอกอีเมลหรือเบอร์โทร (ต้องมีอย่างน้อย 1 อย่าง)", section:"contact" });
     if(resume.summary.trim().length>0 && resume.summary.trim().length<50)
-      items.push({ level:"warn", text:`สรุปตัวเองสั้นเกินไป (${resume.summary.trim().length}/50 ตัวอักษร)` });
-    if(resume.summary.trim().length===0) items.push({ level:"warn", text:"ยังไม่ได้เขียนสรุปตัวเอง" });
+      items.push({ level:"warn", text:`สรุปตัวเองสั้นเกินไป (${resume.summary.trim().length}/50 ตัวอักษร)`, section:"summary" });
+    if(resume.summary.trim().length===0) items.push({ level:"warn", text:"ยังไม่ได้เขียนสรุปตัวเอง", section:"summary" });
     if(resume.skills.length>0 && resume.skills.length<3)
-      items.push({ level:"warn", text:`ทักษะน้อยเกินไป (${resume.skills.length}/3)` });
-    if(resume.skills.length===0)       items.push({ level:"warn", text:"ยังไม่ได้เพิ่มทักษะ" });
-    if(!resume.profileImage)           items.push({ level:"warn", text:"ยังไม่มีรูปโปรไฟล์" });
-    if(resume.languages.length===0)    items.push({ level:"warn", text:"ยังไม่ได้เพิ่มข้อมูลภาษา" });
+      items.push({ level:"warn", text:`ทักษะน้อยเกินไป (${resume.skills.length}/3)`, section:"skills" });
+    if(resume.skills.length===0)       items.push({ level:"warn", text:"ยังไม่ได้เพิ่มทักษะ", section:"skills" });
+    if(!resume.profileImage)           items.push({ level:"warn", text:"ยังไม่มีรูปโปรไฟล์", section:"profile" });
+    if(resume.languages.length===0)    items.push({ level:"warn", text:"ยังไม่ได้เพิ่มข้อมูลภาษา", section:"languages" });
+    if(!resume.linkedin?.trim() && !resume.github?.trim())
+      items.push({ level:"warn", text:"แนะนำเพิ่ม LinkedIn หรือ GitHub เพื่อเพิ่มความน่าเชื่อถือ", section:"contact" });
+    if(resume.certifications?.length===0 && resume.projects?.length===0)
+      items.push({ level:"warn", text:"แนะนำเพิ่มใบรับรองหรือโปรเจกต์เพื่อให้ Resume โดดเด่นขึ้น", section:"certifications" });
     return items;
   }, [resume]);
 
@@ -403,13 +421,13 @@ function FeedbackPanel({ resume }) {
         {open && (
           <div className="re-feedback-list">
             {errors.map((f,i) => (
-              <div key={i} className="re-feedback-item re-feedback-item--error">
-                <span className="re-feedback-icon">✕</span><span>{f.text}</span>
+              <div key={i} className="re-feedback-item re-feedback-item--error re-feedback-item--clickable" onClick={() => onNav?.(f.section)} title="คลิกเพื่อไปที่ส่วนนี้">
+                <span className="re-feedback-icon">✕</span><span>{f.text}</span><span className="re-feedback-goto">→</span>
               </div>
             ))}
             {warns.map((f,i) => (
-              <div key={i} className="re-feedback-item re-feedback-item--warn">
-                <span className="re-feedback-icon">–</span><span>{f.text}</span>
+              <div key={i} className="re-feedback-item re-feedback-item--warn re-feedback-item--clickable" onClick={() => onNav?.(f.section)} title="คลิกเพื่อไปที่ส่วนนี้">
+                <span className="re-feedback-icon">–</span><span>{f.text}</span><span className="re-feedback-goto">→</span>
               </div>
             ))}
           </div>
@@ -1079,6 +1097,11 @@ export default function ResumeEditor() {
     toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
 
+  /* ── Cleanup toast timer on unmount ── */
+  useEffect(() => {
+    return () => clearTimeout(toastTimer.current);
+  }, []);
+
   /* ── beforeunload ── */
   useEffect(() => {
     const handler = (e) => {
@@ -1283,8 +1306,31 @@ export default function ResumeEditor() {
   };
 
   /* ── Save ── */
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if(!resume.fullName.trim()) { showToast("กรุณากรอกชื่อ-นามสกุลก่อนบันทึก","error"); return; }
+    
+    // ✅ Validate email format (if provided)
+    if(resume.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resume.email.trim())) {
+      showToast("รูปแบบอีเมลไม่ถูกต้อง","error"); return;
+    }
+
+    // ✅ Validate phone format (if provided) — Thai format: 0x-xxxx-xxxx or 10 digits
+    if(resume.phone?.trim() && !/^0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{3,4}$/.test(resume.phone.trim())) {
+      showToast("รูปแบบเบอร์โทรไม่ถูกต้อง (เช่น 081-234-5678)","error"); return;
+    }
+
+    // ✅ Validate URL format for social links (if provided)
+    const urlFields = [
+      { key:"linkedin", label:"LinkedIn" },
+      { key:"github",   label:"GitHub" },
+      { key:"website",  label:"เว็บไซต์" },
+    ];
+    for(const { key, label } of urlFields) {
+      const val = resume[key]?.trim();
+      if(val && !val.startsWith("http://") && !val.startsWith("https://")) {
+        showToast(`${label} ต้องเริ่มต้นด้วย https://`,"error"); return;
+      }
+    }
     
     // ✅ Validate template
     if (!BACKEND_TEMPLATES.includes(template)) {
@@ -1319,13 +1365,15 @@ export default function ResumeEditor() {
       else if(err.name==="AbortError")    showToast("หมดเวลารอการตอบสนอง กรุณาลองใหม่","error");
       else                                showToast("บันทึกไม่สำเร็จ: "+err.message,"error");
     } finally { setSaving(false); }
-  };
+  }, [resume, resumeId, template, showToast]);
 
   /* ── Export PDF ── */
+  const exportingRef = useRef(false);
   const handleExportPDF = async () => {
     const el = document.getElementById("resume-preview-root");
     if(!el) { showToast("กรอกข้อมูลก่อนแล้วค่อยส่งออก","error"); return; }
-    if(exporting) return;
+    if(exportingRef.current) return;
+    exportingRef.current = true;
     setExporting(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
@@ -1343,8 +1391,20 @@ export default function ResumeEditor() {
       showToast("ส่งออก PDF สำเร็จ ✓");
     } catch(err) {
       if(err.name!=="AbortError") showToast("ส่งออกไม่สำเร็จ: "+(err.message||"ข้อผิดพลาดที่ไม่ทราบ"),"error");
-    } finally { setExporting(false); }
+    } finally { exportingRef.current = false; setExporting(false); }
   };
+
+  /* ── Keyboard shortcut: Ctrl/Cmd+S to save ── */
+  useEffect(() => {
+    const handler = (e) => {
+      if((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if(!saving) handleSave();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [saving, handleSave]);
 
   /* ── Image upload ── */
   const handleImageChange = (e) => {
@@ -1366,6 +1426,17 @@ export default function ResumeEditor() {
     setResumeId(null);
     setDraftBanner(false);
     lastSavedState.current = JSON.stringify(EMPTY_RESUME);
+  };
+
+  const handleResetAll = () => {
+    if(!window.confirm("ต้องการล้างข้อมูล Resume ทั้งหมดใช่หรือไม่?\nข้อมูลที่กรอกจะหายทั้งหมด")) return;
+    clearDraft();
+    setResume(EMPTY_RESUME);
+    setResumeId(null);
+    setJobRole("");
+    setTemplate("modern");
+    lastSavedState.current = JSON.stringify(EMPTY_RESUME);
+    showToast("ล้างข้อมูลทั้งหมดแล้ว","info");
   };
 
   const previewContent = (
@@ -1404,12 +1475,13 @@ export default function ResumeEditor() {
           isDark={isDark}
           onGenerate={handleGenerate}
           onSave={handleSave}
+          onReset={handleResetAll}
           onToggleDark={() => setIsDark(d => !d)}
           onTogglePreview={() => setPreviewOpen(v => !v)}
         />
 
         {/* Feedback strip — full width under topnav */}
-        <FeedbackPanel resume={resume} />
+        <FeedbackPanel resume={resume} onNav={scrollToSection} />
 
         {/* ══════════ BODY (form + preview) ══════════ */}
         <div className="re-body">
@@ -1509,15 +1581,17 @@ export default function ResumeEditor() {
                   <textarea
                     className="re-input re-textarea"
                     rows={4}
+                    maxLength={500}
                     placeholder="เขียนสรุปเกี่ยวกับตัวคุณ ประสบการณ์ และเป้าหมายในอาชีพ…"
                     value={resume.summary}
                     onChange={e => setField("summary",e.target.value)}
                   />
                   <div className="re-char-count">
-                    <span className={resume.summary.length<50&&resume.summary.length>0?"re-char-count--warn":""}>
-                      {resume.summary.length} ตัวอักษร
+                    <span className={resume.summary.length<50&&resume.summary.length>0?"re-char-count--warn":resume.summary.length>=480?"re-char-count--warn":""}>
+                      {resume.summary.length}/500 ตัวอักษร
                     </span>
                     {resume.summary.length<50&&resume.summary.length>0 && <span className="re-char-count__hint"> · แนะนำอย่างน้อย 50 ตัวอักษร</span>}
+                    {resume.summary.length>=480 && <span className="re-char-count__hint"> · ใกล้ถึงขีดจำกัดแล้ว</span>}
                   </div>
                 </div>
               </div>

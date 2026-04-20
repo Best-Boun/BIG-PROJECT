@@ -120,16 +120,7 @@ const retryFetch = async (fn, maxRetries = 2, initialDelay = 500) => {
 ═══════════════════════════════════════════ */
 const LS_STYLE = "pe_v3_style";
 
-const THEMES = [
-  { name: "คราม",    accent: "#4f46e5" },
-  { name: "มหาสมุทร", accent: "#0284c7" },
-  { name: "หินชนวน",  accent: "#475569" },
-  { name: "มรกต",    accent: "#059669" },
-  { name: "กุหลาบ",  accent: "#e11d48" },
-  { name: "อำพัน",   accent: "#d97706" },
-  { name: "ม่วง",    accent: "#7c3aed" },
-  { name: "เทอร์คอยซ์", accent: "#0d9488" },
-];
+// Direct accent color input (no preset themes)
 
 const FONTS = [
   { id: "geist",    label: "Geist",       stack: "'Geist', 'Inter', system-ui, sans-serif" },
@@ -139,37 +130,24 @@ const FONTS = [
   { id: "syne",     label: "Syne",        stack: "'Syne', system-ui, sans-serif" },
 ];
 
-const COVERS = [
-  "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1400&q=80",
-  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80",
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=80",
-  "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1400&q=80",
-  "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1400&q=80",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1400&q=80",
-];
-
 const LAYOUTS = [
   { id: "sidebar",  label: "แถบข้าง",   icon: "⊟", desc: "ข้อมูลซ้าย · เนื้อหาขวา" },
   { id: "minimal",  label: "เรียบง่าย", icon: "▭",  desc: "คอลัมน์เดียวสะอาดตา" },
   { id: "grid",     label: "กริด",      icon: "⊞",  desc: "แสดงเป็นการ์ด" },
   { id: "split",    label: "สองฝั่ง",   icon: "⊠",  desc: "สองคอลัมน์เท่ากัน" },
-  { id: "card",     label: "การ์ด",     icon: "◫",  desc: "แต่ละส่วนเป็นการ์ด" },
 ];
 
 const SECTION_KEYS = [
+  { id: "basicInfo",      label: "ข้อมูลพื้นฐาน",   icon: "◈" },
+  { id: "quickInfo",      label: "ข้อมูลด่วน",       icon: "★" },
+  { id: "contact",        label: "ติดต่อ & โซเชียล",  icon: "◎" },
   { id: "summary",        label: "สรุปตัวเอง",      icon: "≡" },
   { id: "experience",     label: "ประสบการณ์",      icon: "◉" },
   { id: "projects",       label: "ผลงาน",           icon: "◈" },
   { id: "skills",         label: "ทักษะ",           icon: "◇" },
   { id: "education",      label: "การศึกษา",        icon: "▣" },
-  { id: "languages",      label: "ภาษา",            icon: "◎" },
+  { id: "languages",      label: "ภาษา",            icon: "⊙" },
   { id: "certifications", label: "ใบรับรอง",        icon: "✦" },
-];
-
-const ANIMATIONS = [
-  { id: "none",  label: "ไม่มี" },
-  { id: "fade",  label: "ค่อยๆ ปรากฏ" },
-  { id: "slide", label: "เลื่อนขึ้น" },
 ];
 
 const CONTAINER_WIDTHS = [
@@ -180,28 +158,22 @@ const CONTAINER_WIDTHS = [
 ];
 
 const DEFAULT_STYLE = {
-  // existing
   themeIdx:     0,
   accent:       "#4f46e5",
   fontId:       "geist",
-  cover:        COVERS[0],
-  coverBlur:    0,
-  showCover:    true,
   fontSize:     15,
   lineSpacing:  28,
   cardRadius:   10,
   shadowPx:     16,
-  // new
   layout:           "sidebar",
   darkMode:         false,
-  sectionOrder:     ["summary","experience","projects","skills","education","languages","certifications"],
-  visibleSections:  { summary: true, experience: true, projects: true, skills: true, education: true, languages: true, certifications: true },
+  sectionOrder:     ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"],
+  visibleSections:  { basicInfo: true, quickInfo: true, contact: true, summary: true, experience: true, projects: true, skills: true, education: true, languages: true, certifications: true },
   alignment:        "left",
   containerWidth:   "md",
-  animation:        "fade",
-  headerStyle:      "classic",   // "classic" | "banner" | "compact"
-  skillStyle:       "pill",      // "pill" | "badge" | "bar" | "dot"
-  timelineStyle:    "line",      // "line" | "compact" | "card"
+  headerStyle:      "classic",
+  skillStyle:       "pill",
+  timelineStyle:    "line",
 };
 
 /* ═══════════════════════════════════════════
@@ -270,16 +242,9 @@ function Toast({ msg, visible, onDismiss, isError = false }) {
 }
 
 /* Draggable section row */
-function SectionRow({ sec, visible, onToggle, onDragStart, onDragOver, onDrop, isDragging, isOver }) {
+function SectionRow({ sec, visible, onToggle }) {
   return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={e => { e.preventDefault(); onDragOver(); }}
-      onDrop={onDrop}
-      className={`pe-section-row${isDragging ? " pe-section-row--drag" : ""}${isOver ? " pe-section-row--over" : ""}`}
-    >
-      <span className="pe-section-row__handle">⠿</span>
+    <div className="pe-section-row">
       <span className="pe-section-row__icon">{sec.icon}</span>
       <span className="pe-section-row__label">{sec.label}</span>
       <button
@@ -304,45 +269,13 @@ export default function ProfileEditor() {
   const [toast,      setToast]      = useState({ msg: "", on: false, isError: false });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [saving,     setSaving]     = useState(false);
-  const [dragIdx,    setDragIdx]    = useState(null);
-  const [overIdx,    setOverIdx]    = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isAuthed,   setIsAuthed]   = useState(false);
   const [loading,    setLoading]    = useState(true);
-  const [coverImage, setCoverImage] = useState("");
   
   // Track last saved style to detect changes
   const lastSavedStyle = useRef(null);
   const toastTimeoutRef = useRef(null);
-  const fileInputRef = useRef(null);
-
-  /* ── Check authentication on mount ── */
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userId = getUserId();
-    
-    if (!token || !userId) {
-      ping("Please log in to access profile editor", true);
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-      return;
-    }
-    
-    setIsAuthed(true);
-    setLoading(false);
-  }, [navigate]);
-
-  const setSt = useCallback((k, v) => {
-    setStyle(s => {
-      const newStyle = { ...s, [k]: v };
-      // Check if there are unsaved changes
-      if (JSON.stringify(newStyle) !== JSON.stringify(lastSavedStyle.current)) {
-        setHasChanges(true);
-      }
-      return newStyle;
-    });
-  }, []);
 
   const ping = useCallback((msg, isError = false, duration = 2800) => {
     // Clear any existing timeout
@@ -359,9 +292,55 @@ export default function ProfileEditor() {
     }, finalDuration);
   }, []);
 
+  /* ── Check authentication on mount ── */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = getUserId();
+    
+    if (!token || !userId) {
+      ping("Please log in to access profile editor", true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+      return;
+    }
+    
+    setIsAuthed(true);
+    setLoading(false);
+  }, [navigate, ping]);
+
+  const setSt = useCallback((k, v) => {
+    setStyle(s => {
+      const newStyle = { ...s, [k]: v };
+      // Compare against saved style, not full profile
+      const savedStyle = lastSavedStyle.current?.style || {};
+      if (JSON.stringify(newStyle) !== JSON.stringify(savedStyle)) {
+        setHasChanges(true);
+      }
+      return newStyle;
+    });
+  }, []);
+
+  const resetStyle = useCallback(() => {
+    const confirmed = window.confirm("Reset to default design? This cannot be undone.");
+    if (!confirmed) return;
+
+    setStyle({ ...DEFAULT_STYLE });
+    saveJSON(LS_STYLE, DEFAULT_STYLE);
+    // Keep reference to profile data if exists
+    lastSavedStyle.current = { 
+      profile: lastSavedStyle.current?.profile,
+      style: DEFAULT_STYLE 
+    };
+    setHasChanges(false);
+    ping("✓ Design reset to default");
+  }, [ping]);
+
   const dismissToast = useCallback(() => {
+    // Clear auto-dismiss timeout when manually closing
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
     }
     setToast(t => ({ ...t, on: false }));
   }, []);
@@ -389,7 +368,7 @@ export default function ProfileEditor() {
     };
   }, []);
 
-  /* ── Load existing style from backend (runs once on mount) ── */
+  /* ── Load existing profile from backend (runs once on mount) ── */
   useEffect(() => {
     if (!isAuthed) return;
 
@@ -413,18 +392,41 @@ export default function ProfileEditor() {
           return response;
         }, 2, 300);
 
-        const data = await res.json();
-        if (data?.style && typeof data.style === "object") {
-          // Merge safely: only override with backend data, don't reset with defaults
+        const profileData = await res.json();
+        // Store complete profile for later save operations
+        if (profileData && typeof profileData === "object") {
+          lastSavedStyle.current = { profile: profileData, style: profileData.style };
+          
+          // Merge style safely with defaults
+          let loadedStyle = profileData.style && typeof profileData.style === "object" 
+            ? profileData.style 
+            : {};
+          
+          // Clean up old cover fields from loaded data (backward compatibility)
+          const { cover, coverBlur, coverImage, coverPosition, coverOverlay, showCover, ...cleanedStyle } = loadedStyle;
+          loadedStyle = cleanedStyle;
+          
+          // Ensure all sections are present in sectionOrder
+          const allSections = ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"];
+          const existingOrder = Array.isArray(loadedStyle.sectionOrder) ? loadedStyle.sectionOrder : [];
+          const mergedOrder = [
+            ...existingOrder,
+            ...allSections.filter(s => !existingOrder.includes(s))
+          ];
+          
+          // Ensure all sections are present in visibleSections
+          const existingVisible = typeof loadedStyle.visibleSections === "object" ? loadedStyle.visibleSections : {};
+          const mergedVisible = {};
+          allSections.forEach(s => {
+            mergedVisible[s] = existingVisible.hasOwnProperty(s) ? existingVisible[s] : true;
+          });
+          
           setStyle(s => ({
             ...s,
-            ...data.style
+            ...loadedStyle,
+            sectionOrder: mergedOrder,
+            visibleSections: mergedVisible
           }));
-          // Load coverImage from backend
-          if (data.style?.coverImage) {
-            setCoverImage(data.style.coverImage);
-          }
-          lastSavedStyle.current = { ...data.style };
           setHasChanges(false);
         }
       } catch (err) {
@@ -441,44 +443,6 @@ export default function ProfileEditor() {
     // Intentionally run once on auth check
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthed]);
-
-  /* ── Handle cover image upload ── */
-  const handleCoverImageUpload = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      ping("Please select an image file", true);
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      ping(`File size exceeds 10MB limit (${(file.size / 1024 / 1024).toFixed(1)}MB)`, true);
-      return;
-    }
-
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result;
-      if (typeof base64 === "string") {
-        setCoverImage(base64);
-        ping("Image preview updated");
-      }
-    };
-    reader.onerror = () => {
-      ping("Failed to read file", true);
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input so same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, [ping]);
 
   /* ── Save style with retry logic & optimistic updates ── */
   const save = useCallback(async () => {
@@ -497,12 +461,12 @@ export default function ProfileEditor() {
     }
 
     // Validate & clamp all values before saving
-    const validLayout = ["sidebar","minimal","grid","split","card"].includes(style.layout) ? style.layout : "sidebar";
+    const validLayout = ["sidebar","minimal","grid","split"].includes(style.layout) ? style.layout : "sidebar";
     const validSectionOrder = (style.sectionOrder || []).filter(key =>
-      ["summary","experience","projects","skills","education","languages","certifications"].includes(key)
+      ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"].includes(key)
     );
     if (validSectionOrder.length === 0) {
-      validSectionOrder.push(...["summary","experience","projects","skills","education","languages","certifications"]);
+      validSectionOrder.push(...["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"]);
     }
 
     const validVisibleSections = typeof style.visibleSections === "object" ? style.visibleSections : {};
@@ -512,10 +476,6 @@ export default function ProfileEditor() {
       themeIdx: Number.isInteger(style.themeIdx) ? Math.max(0, Math.min(7, style.themeIdx)) : 0,
       accent: typeof style.accent === "string" ? style.accent : "#4f46e5",
       fontId: validFontId,
-      cover: typeof style.cover === "string" ? style.cover : COVERS[0],
-      coverBlur: Number.isInteger(style.coverBlur) ? Math.max(0, Math.min(16, style.coverBlur)) : 0,
-      showCover: !!style.showCover,
-      coverImage: typeof coverImage === "string" ? coverImage : "",
       fontSize: Number.isInteger(style.fontSize) ? Math.max(12, Math.min(20, style.fontSize)) : 15,
       lineSpacing: Number.isInteger(style.lineSpacing) ? Math.max(16, Math.min(48, style.lineSpacing)) : 28,
       cardRadius: Number.isInteger(style.cardRadius) ? Math.max(0, Math.min(24, style.cardRadius)) : 10,
@@ -526,7 +486,6 @@ export default function ProfileEditor() {
       visibleSections: validVisibleSections,
       alignment: ["left","center"].includes(style.alignment) ? style.alignment : "left",
       containerWidth: ["sm","md","lg","full"].includes(style.containerWidth) ? style.containerWidth : "md",
-      animation: ["none","fade","slide"].includes(style.animation) ? style.animation : "fade",
       headerStyle: ["classic","banner","compact"].includes(style.headerStyle) ? style.headerStyle : "classic",
       skillStyle: ["pill","badge","bar","dot"].includes(style.skillStyle) ? style.skillStyle : "pill",
       timelineStyle: ["line","compact","card"].includes(style.timelineStyle) ? style.timelineStyle : "line",
@@ -565,6 +524,12 @@ export default function ProfileEditor() {
       }, 2, 300);
 
       const existingData = currentProfile ? { ...currentProfile } : {};
+      
+      // Guard: ensure we have valid profile data structure
+      if (!existingData || typeof existingData !== "object") {
+        throw new Error("Invalid profile data structure");
+      }
+
       const updatePayload = {
         ...existingData,
         style: validatedStyle,
@@ -598,7 +563,11 @@ export default function ProfileEditor() {
       // Only persist to localStorage if save succeeded
       if (saveSuccess) {
         saveJSON(LS_STYLE, validatedStyle);
-        lastSavedStyle.current = { ...validatedStyle };
+        // Keep reference to full profile data for next save
+        lastSavedStyle.current = { 
+          profile: updatePayload,
+          style: validatedStyle 
+        };
         setHasChanges(false);
         ping("✓ Design saved successfully");
       }
@@ -611,18 +580,9 @@ export default function ProfileEditor() {
     } finally {
       setSaving(false);
     }
-  }, [style, ping, navigate, coverImage]);
+  }, [style, ping, navigate]);
 
   /* ── Section ordering drag ── */
-  const handleDrop = useCallback((toIdx) => {
-    if (dragIdx === null || dragIdx === toIdx) return;
-    const arr = [...style.sectionOrder];
-    const [moved] = arr.splice(dragIdx, 1);
-    arr.splice(toIdx, 0, moved);
-    setSt("sectionOrder", arr);
-    setDragIdx(null); setOverIdx(null);
-  }, [dragIdx, style.sectionOrder, setSt]);
-
   const toggleSection = useCallback((key) => {
     setSt("visibleSections", { ...style.visibleSections, [key]: !style.visibleSections[key] });
   }, [style.visibleSections, setSt]);
@@ -670,7 +630,14 @@ export default function ProfileEditor() {
       ),
       grid: (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ height: 40, background: style.showCover ? `url(${style.cover}) center/cover` : `${accent}20`, borderRadius: 6, display: "flex", alignItems: "flex-end", padding: "0 8px 6px" }}>
+          <div style={{ 
+            height: 40, 
+            background: `${accent}20`,
+            borderRadius: 6, 
+            display: "flex", 
+            alignItems: "flex-end", 
+            padding: "0 8px 6px" 
+          }}>
             <div style={{ width: 24, height: 24, borderRadius: "50%", background: accent, border: "2px solid white" }} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
@@ -695,23 +662,6 @@ export default function ProfileEditor() {
                   <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
                 </div>
               ))}
-            </div>
-          ))}
-        </div>
-      ),
-      card: (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          <div style={{ background: surf, borderRadius: 6, padding: 8, display: "flex", alignItems: "center", gap: 8, border: `1px solid ${dark?"#334155":"#e2e8f0"}` }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: accent, flexShrink: 0 }} />
-            <div>
-              <div style={{ height: 4, width: 80, background: ink, borderRadius: 2, opacity: .7, marginBottom: 3 }} />
-              <div style={{ height: 3, width: 50, background: accent, borderRadius: 2 }} />
-            </div>
-          </div>
-          {style.sectionOrder.filter(k => style.visibleSections[k] !== false).slice(0,3).map(k => (
-            <div key={k} style={{ background: surf, borderRadius: 6, padding: 8, border: `1px solid ${dark?"#334155":"#e2e8f0"}`, boxShadow: `0 ${style.shadowPx/4}px ${style.shadowPx/2}px rgba(0,0,0,.06)` }}>
-              <div style={{ height: 3, width: "35%", background: accent, borderRadius: 2, marginBottom: 5 }} />
-              <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
             </div>
           ))}
         </div>
@@ -874,20 +824,6 @@ export default function ProfileEditor() {
                   </div>
                 </section>
 
-                {/* Animation */}
-                <section className="pe-section">
-                  <SectionHead title="แอนิเมชันหน้าเพจ" />
-                  <div className="pe-width-btns">
-                    {ANIMATIONS.map(a => (
-                      <button key={a.id} type="button"
-                        className={`pe-width-btn${style.animation === a.id ? " pe-width-btn--on" : ""}`}
-                        onClick={() => setSt("animation", a.id)}>
-                        {a.label}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
                 {/* Dark mode */}
                 <section className="pe-section">
                   <SectionHead title="โหมดสี" />
@@ -897,62 +833,17 @@ export default function ProfileEditor() {
               </>
             )}
 
-            {/* ════ DESIGN TAB ════ */}
+            {/* ════ DESIGN TAB (continued) - moved here ════ */}
             {tab === "design" && (
               <>
-                {/* Cover */}
-                <section className="pe-section">
-                  <SectionHead title="รูปหน้าปก" />
-                  <Toggle label="แสดงรูปปก" on={style.showCover} onChange={v => setSt("showCover", v)} />
-                  {style.showCover && (
-                    <>
-                      {coverImage && (
-                        <div className="pe-cover-preview" style={{ backgroundImage: `url("${coverImage}")` }} />
-                      )}
-                      <div className="pe-btn-group">
-                        <button type="button" className="pe-btn pe-btn--outline"
-                          onClick={() => fileInputRef.current?.click()}>
-                          อัปโหลดรูปหน้าปก
-                        </button>
-                        <input 
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          style={{ display: "none" }}
-                          onChange={handleCoverImageUpload}
-                          aria-label="Upload cover image"
-                        />
-                        {coverImage && (
-                          <button type="button" className="pe-btn pe-btn--ghost"
-                            onClick={() => setCoverImage("")}>
-                            ลบออก
-                          </button>
-                        )}
-                      </div>
-                      <Slider label="ความเบลอ" value={style.coverBlur} min={0} max={16} unit="px"
-                        onChange={v => setSt("coverBlur", v)} />
-                    </>
-                  )}
-                </section>
-
                 {/* Accent color */}
                 <section className="pe-section">
                   <SectionHead title="สีหลัก" />
-                  <div className="pe-theme-dots">
-                    {THEMES.map((t, i) => (
-                      <button key={t.name} type="button" aria-label={t.name} title={t.name}
-                        className={`pe-theme-dot${style.themeIdx === i ? " pe-theme-dot--on" : ""}`}
-                        style={{ background: t.accent }}
-                        onClick={() => setStyle(s => ({ ...s, themeIdx: i, accent: t.accent }))}>
-                        {style.themeIdx === i && <span className="pe-theme-tick">✓</span>}
-                      </button>
-                    ))}
-                    <div className="pe-theme-custom">
-                      <label className="pe-field-label" htmlFor="custom-accent">กำหนดเอง</label>
-                      <input id="custom-accent" type="color" className="pe-color-picker"
-                        value={style.accent}
-                        onChange={e => setStyle(s => ({ ...s, themeIdx: -1, accent: e.target.value }))} />
-                    </div>
+                  <div className="pe-theme-custom">
+                    <label className="pe-field-label" htmlFor="custom-accent">เลือกสี</label>
+                    <input id="custom-accent" type="color" className="pe-color-picker"
+                      value={style.accent}
+                      onChange={e => setSt("accent", e.target.value)} />
                   </div>
                 </section>
 
@@ -1033,10 +924,10 @@ export default function ProfileEditor() {
             {tab === "content" && (
               <>
                 <section className="pe-section">
-                  <SectionHead title="ลำดับและการแสดงผลส่วนต่างๆ" />
-                  <p className="pe-hint">ลากเพื่อเรียงลำดับ · กด ● เพื่อเปิด/ปิดการแสดงผล</p>
+                  <SectionHead title="แสดง/ซ่อนส่วนต่างๆ" />
+                  <p className="pe-hint">กด ● เพื่อเปิด/ปิดการแสดงผลแต่ละส่วน</p>
                   <div className="pe-section-list">
-                    {style.sectionOrder.map((key, idx) => {
+                    {style.sectionOrder.map((key) => {
                       const sec = SECTION_KEYS.find(s => s.id === key);
                       if (!sec) return null;
                       return (
@@ -1045,11 +936,6 @@ export default function ProfileEditor() {
                           sec={sec}
                           visible={style.visibleSections[key] !== false}
                           onToggle={() => toggleSection(key)}
-                          onDragStart={() => setDragIdx(idx)}
-                          onDragOver={() => setOverIdx(idx)}
-                          onDrop={() => handleDrop(idx)}
-                          isDragging={dragIdx === idx}
-                          isOver={overIdx === idx && dragIdx !== idx}
                         />
                       );
                     })}
@@ -1106,10 +992,6 @@ export default function ProfileEditor() {
                 <span className="pe-preview-stat__value">
                   {Object.values(style.visibleSections).filter(Boolean).length}/{SECTION_KEYS.length} ส่วน
                 </span>
-              </div>
-              <div className="pe-preview-stat">
-                <span className="pe-preview-stat__label">แอนิเมชัน</span>
-                <span className="pe-preview-stat__value">{ANIMATIONS.find(a => a.id === style.animation)?.label ?? style.animation}</span>
               </div>
               <div className="pe-preview-stat">
                 <span className="pe-preview-stat__label">ฟอนต์</span>

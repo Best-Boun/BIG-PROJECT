@@ -19,27 +19,37 @@ const BASE_URL = import.meta.env.VITE_API_URL;
    DEFAULTS & CONSTANTS
 ═══════════════════════════════════════════ */
 const DEFAULT_STYLE = {
+  // Theme & Color
+  themeIdx:        0,
   accent:          "#4f46e5",
   fontId:          "geist",
+  
+  // Typography
   fontSize:        15,
   lineSpacing:     28,
+  
+  // Cards & Spacing
   cardRadius:      10,
   shadowPx:        16,
-  coverBlur:       0,
-  showCover:       true,
-  cover:           "",
-  avatarSrc:       "",
-  avatarSize:      88,
-  darkMode:        false,
+  
+  // Layout & Display
   layout:          "sidebar",
+  darkMode:        false,
+  sectionOrder:    ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"],
+  visibleSections: { basicInfo:true, quickInfo:true, contact:true, summary:true, experience:true, projects:true, skills:true, education:true, languages:true, certifications:true },
+  
+  // Header & Alignment
   alignment:       "left",
   containerWidth:  "md",
-  animation:       "fade",
   headerStyle:     "classic",
+  
+  // Component Styles
   skillStyle:      "pill",
   timelineStyle:   "line",
-  sectionOrder:    ["summary","experience","projects","skills","education","languages","certifications"],
-  visibleSections: { summary:true, experience:true, projects:true, skills:true, education:true, languages:true, certifications:true },
+  
+  // Legacy/computed
+  avatarSize:      88,
+  animation:       "fade",
 };
 
 const FONT_STACKS = {
@@ -52,7 +62,7 @@ const FONT_STACKS = {
 
 const CONTAINER_PX = { sm:"680px", md:"860px", lg:"1060px", full:"100%" };
 
-const SECTION_RENDERERS_ORDER = ["summary","experience","projects","skills","education","languages","certifications"];
+const SECTION_RENDERERS_ORDER = ["basicInfo","quickInfo","contact","summary","experience","projects","skills","education","languages","certifications"];
 
 /* ═══════════════════════════════════════════
    UTILS
@@ -148,6 +158,11 @@ function StyleInjector({ st }) {
         background:  var(--pp-bg);
         color:       var(--pp-ink);
       }
+      
+      /* Apply theme index styling if needed */
+      .pp-root[data-theme-idx="${st.themeIdx}"] {
+        /* Theme customization can be added here based on themeIdx */
+      }
     `}</style>
   );
 }
@@ -157,25 +172,17 @@ function StyleInjector({ st }) {
 ═══════════════════════════════════════════ */
 function HeaderClassic({ p, st }) {
   const center = st.alignment === "center";
+  const avatarSize = st.avatarSize || 88;
+  
   return (
     <div className={`pp-header-classic${center ? " pp-header-classic--center" : ""}`}>
-      {st.showCover && (
-        <div className="pp-cover"
-          style={{
-            backgroundImage: (st.cover || p.profileImage)
-              ? `url(${st.cover || (p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`)})` : "none",
-            filter: st.coverBlur ? `blur(${st.coverBlur}px)` : "none",
-          }}
-        />
-      )}
       <div className="pp-header-body" style={{ textAlign: center ? "center" : "left" }}>
-        <div className={`pp-avatar-wrap${center ? " pp-avatar-wrap--center" : ""}`}
-          style={{ marginTop: st.showCover ? -st.avatarSize / 2 : 0 }}>
+        <div className={`pp-avatar-wrap${center ? " pp-avatar-wrap--center" : ""}`}>
           <div className="pp-avatar"
-            style={{ width: st.avatarSize, height: st.avatarSize, borderColor: st.accent }}>
-            {(st.avatarSrc || p.profileImage)
-              ? <img src={st.avatarSrc || (p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`)} alt="Profile" />
-              : <span style={{ fontSize: st.avatarSize * .4, opacity: .3 }}>👤</span>}
+            style={{ width: avatarSize, height: avatarSize, borderColor: st.accent }}>
+            {p.profileImage
+              ? <img src={p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`} alt="Profile" />
+              : <span style={{ fontSize: avatarSize * .4, opacity: .3 }}>👤</span>}
           </div>
         </div>
         <div className="pp-header-info">
@@ -190,22 +197,21 @@ function HeaderClassic({ p, st }) {
 }
 
 function HeaderBanner({ p, st }) {
+  const avatarSize = st.avatarSize || 88;
+  
   return (
     <div className="pp-header-banner">
       <div className="pp-banner-cover"
         style={{
-          backgroundImage: (st.cover || p.profileImage)
-            ? `url(${st.cover || "none"})` : "none",
-          backgroundColor: st.cover ? undefined : st.accent,
-          filter: st.coverBlur ? `blur(${st.coverBlur}px)` : "none",
+          backgroundColor: st.accent,
         }}
       />
       <div className="pp-banner-body">
         <div className="pp-banner-avatar"
-          style={{ width: st.avatarSize, height: st.avatarSize, borderColor: "var(--pp-surface)" }}>
-          {(st.avatarSrc || p.profileImage)
-            ? <img src={st.avatarSrc || (p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`)} alt="Profile" />
-            : <span style={{ fontSize: st.avatarSize * .4, opacity: .3 }}>👤</span>}
+          style={{ width: avatarSize, height: avatarSize, borderColor: "var(--pp-surface)" }}>
+          {p.profileImage
+            ? <img src={p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`} alt="Profile" />
+            : <span style={{ fontSize: avatarSize * .4, opacity: .3 }}>👤</span>}
         </div>
         <div className="pp-banner-info">
           <h1 className="pp-name">{p.name || "Your Name"}</h1>
@@ -219,13 +225,15 @@ function HeaderBanner({ p, st }) {
 }
 
 function HeaderCompact({ p, st }) {
+  const avatarSize = st.avatarSize || 88;
+  
   return (
     <div className="pp-header-compact">
       <div className="pp-compact-avatar"
-        style={{ width: st.avatarSize * .7, height: st.avatarSize * .7, borderColor: st.accent }}>
-        {(st.avatarSrc || p.profileImage)
-          ? <img src={st.avatarSrc || (p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`)} alt="Profile" />
-          : <span style={{ fontSize: st.avatarSize * .25, opacity: .3 }}>👤</span>}
+        style={{ width: avatarSize * .7, height: avatarSize * .7, borderColor: st.accent }}>
+        {p.profileImage
+          ? <img src={p.profileImage?.startsWith("http") || p.profileImage?.startsWith("data:") ? p.profileImage : `http://localhost:3000${p.profileImage}`} alt="Profile" />
+          : <span style={{ fontSize: avatarSize * .25, opacity: .3 }}>👤</span>}
       </div>
       <div className="pp-compact-info">
         <div className="pp-compact-top">
@@ -652,17 +660,23 @@ function SidebarPanel({ p, st, onShare, onNavigate }) {
 }
 
 /* ═══════════════════════════════════════════
-   LAYOUT RENDERERS
+   LAYOUT RENDERERS — MATCHING PreviewMini
 ═══════════════════════════════════════════ */
+
 function LayoutSidebar({ p, st, onPreview, onShare, onNavigate }) {
-  const mainSections = ["summary","experience","projects","certifications"];
-  const order = (st.sectionOrder || SECTION_RENDERERS_ORDER).filter(k => mainSections.includes(k));
+  // Filter sections by visibleSections, respecting sectionOrder
+  const visibleOrder = (st.sectionOrder || SECTION_RENDERERS_ORDER).filter(
+    key => st.visibleSections[key] !== false
+  );
 
   return (
-    <div className="pp-layout-sidebar">
+    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 24 }}>
+      {/* Left: Sidebar Panel */}
       <SidebarPanel p={p} st={st} onShare={onShare} onNavigate={onNavigate} />
-      <div className="pp-main-col">
-        {order.map((key, i) => (
+      
+      {/* Right: Main Content */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {visibleOrder.map((key, i) => (
           <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 80} />
         ))}
       </div>
@@ -671,32 +685,48 @@ function LayoutSidebar({ p, st, onPreview, onShare, onNavigate }) {
 }
 
 function LayoutMinimal({ p, st, onPreview, onShare, onNavigate }) {
-  const order = st.sectionOrder || SECTION_RENDERERS_ORDER;
+  // Filter sections by visibleSections, respecting sectionOrder
+  const visibleOrder = (st.sectionOrder || SECTION_RENDERERS_ORDER).filter(
+    key => st.visibleSections[key] !== false
+  );
+
   return (
-    <div className="pp-layout-minimal">
-      <div className="pp-layout-minimal__actions">
-        <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost">Share</button>
-        <button onClick={() => onNavigate("edit")} className="pp-action-btn pp-action-btn--primary" style={{ background: st.accent }}>Edit</button>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, maxWidth: "100%", margin: "0 auto" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: "100%" }}>
+        <div style={{ textAlign: "center" }}>
+          <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost" style={{ marginRight: 8 }}>Share</button>
+          <button onClick={() => onNavigate("edit")} className="pp-action-btn pp-action-btn--primary" style={{ background: st.accent }}>Edit</button>
+        </div>
       </div>
-      {order.map((key, i) => (
-        <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 60} />
+      
+      {visibleOrder.map((key, i) => (
+        <div key={key} style={{ width: "100%" }}>
+          <RenderSection sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 80} />
+        </div>
       ))}
     </div>
   );
 }
 
 function LayoutGrid({ p, st, onPreview, onShare, onNavigate }) {
-  const order = st.sectionOrder || SECTION_RENDERERS_ORDER;
+  // Filter sections by visibleSections, respecting sectionOrder
+  const visibleOrder = (st.sectionOrder || SECTION_RENDERERS_ORDER).filter(
+    key => st.visibleSections[key] !== false
+  );
+
   return (
-    <div className="pp-layout-grid">
-      <div className="pp-grid-actions">
-        <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost">Share</button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Header actions */}
+      <div style={{ textAlign: "center" }}>
+        <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost" style={{ marginRight: 8 }}>Share</button>
         <button onClick={() => onNavigate("edit")} className="pp-action-btn pp-action-btn--primary" style={{ background: st.accent }}>Edit</button>
       </div>
-      <div className="pp-grid-body">
-        {order.map((key, i) => (
-          <div key={key} className={`pp-grid-cell${key === "summary" || key === "experience" ? " pp-grid-cell--wide" : ""}`}>
-            <RenderSection sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 60} />
+
+      {/* Sections in 2-column grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {visibleOrder.map((key, i) => (
+          <div key={key}>
+            <RenderSection sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 80} />
           </div>
         ))}
       </div>
@@ -705,47 +735,38 @@ function LayoutGrid({ p, st, onPreview, onShare, onNavigate }) {
 }
 
 function LayoutSplit({ p, st, onPreview, onShare, onNavigate }) {
-  const order  = st.sectionOrder || SECTION_RENDERERS_ORDER;
-  const half   = Math.ceil(order.length / 2);
-  const leftK  = order.slice(0, half);
-  const rightK = order.slice(half);
+  // Filter sections by visibleSections, respecting sectionOrder
+  const visibleOrder = (st.sectionOrder || SECTION_RENDERERS_ORDER).filter(
+    key => st.visibleSections[key] !== false
+  );
+  
+  const half = Math.ceil(visibleOrder.length / 2);
+  const leftK = visibleOrder.slice(0, half);
+  const rightK = visibleOrder.slice(half);
+
   return (
-    <div className="pp-layout-split">
-      <div className="pp-split-col">
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      {/* Left Column */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {leftK.map((key, i) => (
-          <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 70} />
+          <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 80} />
         ))}
       </div>
-      <div className="pp-split-col">
-        <div className="pp-split-actions">
-          <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost">Share</button>
+
+      {/* Right Column */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ textAlign: "center" }}>
+          <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost" style={{ marginRight: 8 }}>Share</button>
           <button onClick={() => onNavigate("edit")} className="pp-action-btn pp-action-btn--primary" style={{ background: st.accent }}>Edit</button>
         </div>
         {rightK.map((key, i) => (
-          <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 70 + 35} />
+          <RenderSection key={key} sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 80 + 35} />
         ))}
       </div>
     </div>
   );
 }
 
-function LayoutCard({ p, st, onPreview, onShare, onNavigate }) {
-  const order = st.sectionOrder || SECTION_RENDERERS_ORDER;
-  return (
-    <div className="pp-layout-card">
-      <div className="pp-card-actions">
-        <button onClick={onShare} className="pp-action-btn pp-action-btn--ghost">Share</button>
-        <button onClick={() => onNavigate("edit")} className="pp-action-btn pp-action-btn--primary" style={{ background: st.accent }}>Edit</button>
-      </div>
-      {order.map((key, i) => (
-        <div key={key} className="pp-card-wrap"
-          style={{ borderRadius: st.cardRadius, boxShadow: `0 ${st.shadowPx/3}px ${st.shadowPx}px rgba(0,0,0,.07)` }}>
-          <RenderSection sectionKey={key} p={p} st={st} onPreview={onPreview} delay={i * 70} />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════
    MAIN COMPONENT
@@ -779,11 +800,45 @@ const ProfilePublic = ({ onNavigate }) => {
 
   const profileData = data || {};
 
-  /* merge style: backend style → defaults */
-  const st = useMemo(() => ({
-    ...DEFAULT_STYLE,
-    ...(profileData.style && typeof profileData.style === "object" ? profileData.style : {}),
-  }), [profileData.style]);
+  /* Merge style: backend style → defaults with validation */
+  const st = useMemo(() => {
+    const backendStyle = profileData.style && typeof profileData.style === "object" ? profileData.style : {};
+    
+    // Validate individual fields with proper type checking
+    return {
+      // Theme & Color
+      themeIdx:        Number.isInteger(backendStyle.themeIdx) ? Math.max(0, Math.min(7, backendStyle.themeIdx)) : DEFAULT_STYLE.themeIdx,
+      accent:          typeof backendStyle.accent === "string" ? backendStyle.accent : DEFAULT_STYLE.accent,
+      fontId:          FONT_STACKS.hasOwnProperty(backendStyle.fontId) ? backendStyle.fontId : DEFAULT_STYLE.fontId,
+      
+      // Typography
+      fontSize:        Number.isInteger(backendStyle.fontSize) ? Math.max(12, Math.min(20, backendStyle.fontSize)) : DEFAULT_STYLE.fontSize,
+      lineSpacing:     Number.isInteger(backendStyle.lineSpacing) ? Math.max(16, Math.min(48, backendStyle.lineSpacing)) : DEFAULT_STYLE.lineSpacing,
+      
+      // Cards & Spacing
+      cardRadius:      Number.isInteger(backendStyle.cardRadius) ? Math.max(0, Math.min(24, backendStyle.cardRadius)) : DEFAULT_STYLE.cardRadius,
+      shadowPx:        Number.isInteger(backendStyle.shadowPx) ? Math.max(0, Math.min(48, backendStyle.shadowPx)) : DEFAULT_STYLE.shadowPx,
+      
+      // Layout & Display
+      layout:          ["sidebar","minimal","grid","split"].includes(backendStyle.layout) ? backendStyle.layout : DEFAULT_STYLE.layout,
+      darkMode:        typeof backendStyle.darkMode === "boolean" ? backendStyle.darkMode : DEFAULT_STYLE.darkMode,
+      sectionOrder:    Array.isArray(backendStyle.sectionOrder) ? backendStyle.sectionOrder : DEFAULT_STYLE.sectionOrder,
+      visibleSections: typeof backendStyle.visibleSections === "object" ? backendStyle.visibleSections : DEFAULT_STYLE.visibleSections,
+      
+      // Header & Alignment
+      alignment:       ["left","center"].includes(backendStyle.alignment) ? backendStyle.alignment : DEFAULT_STYLE.alignment,
+      containerWidth:  ["sm","md","lg","full"].includes(backendStyle.containerWidth) ? backendStyle.containerWidth : DEFAULT_STYLE.containerWidth,
+      headerStyle:     ["classic","banner","compact"].includes(backendStyle.headerStyle) ? backendStyle.headerStyle : DEFAULT_STYLE.headerStyle,
+      
+      // Component Styles
+      skillStyle:      ["pill","badge","bar","dot"].includes(backendStyle.skillStyle) ? backendStyle.skillStyle : DEFAULT_STYLE.skillStyle,
+      timelineStyle:   ["line","compact","card"].includes(backendStyle.timelineStyle) ? backendStyle.timelineStyle : DEFAULT_STYLE.timelineStyle,
+      
+      // Legacy/computed
+      avatarSize:      Number.isInteger(backendStyle.avatarSize) ? Math.max(64, Math.min(128, backendStyle.avatarSize)) : DEFAULT_STYLE.avatarSize,
+      animation:       ["fade","slide","pop","none"].includes(backendStyle.animation) ? backendStyle.animation : DEFAULT_STYLE.animation,
+    };
+  }, [profileData.style]);
 
   const handleShareProfile = useCallback(() => {
     const url = window.location.href;
@@ -836,28 +891,29 @@ const ProfilePublic = ({ onNavigate }) => {
     minimal: <LayoutMinimal {...layoutProps} />,
     grid:    <LayoutGrid    {...layoutProps} />,
     split:   <LayoutSplit   {...layoutProps} />,
-    card:    <LayoutCard    {...layoutProps} />,
   };
   const layoutEl = layoutMap[st.layout] || layoutMap.sidebar;
 
   return (
-    <div className="pp-root" data-layout={st.layout} data-dark={st.darkMode}>
+    <div className="pp-root" data-layout={st.layout} data-dark={st.darkMode} data-theme-idx={st.themeIdx}>
       <StyleInjector st={st} />
 
       {/* Header */}
       <Animated animation={st.animation} delay={0}>
-        {headerEl}
+        <div style={{ marginBottom: 20 }}>
+          {headerEl}
+        </div>
       </Animated>
 
       {/* Stats */}
-      <div style={{ maxWidth: "var(--pp-container)", margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: "var(--pp-container)", margin: "0 auto", padding: "0 12px" }}>
         <Animated animation={st.animation} delay={100}>
           <StatsBar p={profileData} st={st} />
         </Animated>
       </div>
 
-      {/* Main content */}
-      <div className="pp-content-wrap" style={{ maxWidth: "var(--pp-container)" }}>
+      {/* Main content — apply containerWidth and padding */}
+      <div style={{ maxWidth: "var(--pp-container)", margin: "0 auto", padding: "0 12px" }}>
         {layoutEl}
       </div>
 

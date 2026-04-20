@@ -835,7 +835,7 @@ const ProfilePublic = ({ onNavigate }) => {
       timelineStyle:   ["line","compact","card"].includes(backendStyle.timelineStyle) ? backendStyle.timelineStyle : DEFAULT_STYLE.timelineStyle,
       
       // Legacy/computed
-      avatarSize:      Number.isInteger(backendStyle.avatarSize) ? Math.max(64, Math.min(128, backendStyle.avatarSize)) : DEFAULT_STYLE.avatarSize,
+      avatarSize:      Number.isInteger(backendStyle.avatarSize) ? Math.max(48, Math.min(140, backendStyle.avatarSize)) : DEFAULT_STYLE.avatarSize,
       animation:       ["fade","slide","pop","none"].includes(backendStyle.animation) ? backendStyle.animation : DEFAULT_STYLE.animation,
     };
   }, [profileData.style]);

@@ -816,6 +816,10 @@
 .re-feedback-list { padding: 2px 0; border-top: 1px solid var(--re-border); }
 
 .re-feedback-item { display: flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 11.5px; }
+.re-feedback-item--clickable { cursor: pointer; transition: background 0.15s; }
+.re-feedback-item--clickable:hover { background: rgba(0,0,0,0.06); }
+.re-feedback-goto { margin-left: auto; opacity: 0.4; font-size: 13px; }
+.re-feedback-item--clickable:hover .re-feedback-goto { opacity: 1; }
 .re-feedback-item--error { color: var(--re-err); background: var(--re-err-bg); }
 .re-feedback-item--warn  { color: var(--re-warn); }
 .re-feedback-icon { flex-shrink: 0; font-size: 9px; width: 12px; text-align: center; }

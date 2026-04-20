@@ -4,6 +4,7 @@ import { useLocation, Link } from "react-router-dom";
 import { Navbar, Nav, Dropdown } from "react-bootstrap";
 import { SettingsContext } from "./SettingContext";
 import { useQuery } from "@tanstack/react-query";
+import { FaCheckCircle } from "react-icons/fa";
 
 import {
   FaCog,
@@ -113,10 +114,16 @@ const profileImage =
                   >
                     Manage Jobs
                   </Nav.Link>
-                  <Nav.Link href="/seekers" className={isActive("/seekers") ? "active" : ""}>
+                  <Nav.Link
+                    href="/seekers"
+                    className={isActive("/seekers") ? "active" : ""}
+                  >
                     Find Seekers
                   </Nav.Link>
-                  <Nav.Link href="/chat" className={isActive("/chat") ? "active" : ""}>
+                  <Nav.Link
+                    href="/chat"
+                    className={isActive("/chat") ? "active" : ""}
+                  >
                     Messages
                   </Nav.Link>
                 </>
@@ -146,7 +153,10 @@ const profileImage =
                   >
                     Resume
                   </Nav.Link>
-                  <Nav.Link href="/chat" className={isActive("/chat") ? "active" : ""}>
+                  <Nav.Link
+                    href="/chat"
+                    className={isActive("/chat") ? "active" : ""}
+                  >
                     Messages
                   </Nav.Link>
                 </>
@@ -175,7 +185,20 @@ const profileImage =
                   className="avatar-img"
                   style={{ width: 32, height: 32, borderRadius: "50%" }}
                 />
-                {displayName}
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {displayName}
+
+                  {displayName === "Admin" && (
+                    <FaCheckCircle
+                      style={{
+                        color: "#1DA1F2",
+                        marginLeft: 6,
+                        fontSize: 14,
+                      }}
+                      title="Verified Admin"
+                    />
+                  )}
+                </span>
               </Dropdown.Toggle>
 
               <Dropdown.Menu>

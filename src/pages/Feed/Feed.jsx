@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Container, Row, Col } from "react-bootstrap";
 import "./Feed.css";
 import Swal from "sweetalert2";
+import { FaCheckCircle } from "react-icons/fa";
 
 export default function Feed() {
   const API_POSTS = "http://localhost:3000/api/posts";
@@ -719,7 +720,20 @@ export default function Feed() {
                         </div>
 
                         <div className="ms-3">
-                          <h6 className="mb-0">{post.name}</h6>
+                          <h6 className="mb-0 d-flex align-items-center">
+                            {post.name}
+
+                            {post.name === "Admin" && (
+                              <FaCheckCircle
+                                style={{
+                                  color: "#1DA1F2",
+                                  marginLeft: 6,
+                                  fontSize: 14,
+                                }}
+                                title="Verified Admin"
+                              />
+                            )}
+                          </h6>
                           <small className="text-muted">
                             {timeAgo(post.createdAt)}
                           </small>
@@ -1102,8 +1116,26 @@ export default function Feed() {
                         }}
                       >
                         {/* 🔥 ชื่อ */}
-                        <div style={{ fontWeight: "bold", fontSize: 14 }}>
+                        <div
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: 14,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
                           {c.name}
+
+                          {c.name === "Admin" && (
+                            <FaCheckCircle
+                              style={{
+                                color: "#1DA1F2",
+                                marginLeft: 5,
+                                fontSize: 12,
+                              }}
+                              title="Verified Admin"
+                            />
+                          )}
                         </div>
 
                         {/* 🔥 ข้อความ */}

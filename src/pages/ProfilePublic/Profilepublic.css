@@ -79,7 +79,7 @@
 .pp-empty-title { font-size: 24px; font-weight: 700; color: var(--pp-ink); }
 .pp-empty-desc  { font-size: 15px; color: var(--pp-muted); max-width: 400px; }
 .pp-empty-btn {
-  padding: 10px 24px; background: var(--pp-accent); color: #fff;
+  padding: 10px 24px; background: var(--pp-accent); color: #ac0a0a;
   border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: opacity .15s ease;
 }

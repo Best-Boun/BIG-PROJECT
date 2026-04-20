@@ -1,0 +1,219 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                   📊 FILE CONNECTION MAP (Visual)                               ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DATABASE LAYER (MySQL)                              │
+│                                                                              │
+│   users | profiles | jobs | company_profiles | notifications | etc.         │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                │               │               │
+┌───────────────────┐ ┌──────────────────┐ ┌──────────────────────┐
+│  AUTH MIDDLEWARE  │ │  ERROR HANDLERS  │ │  VERIFICATION LAYER  │
+│                   │ │                  │ │                      │
+│  authMiddleware   │ │  isAdmin         │ │  JWT Token Check     │
+│  isAdmin          │ │  Verify Logic    │ │  User Validation     │
+└──────┬────────────┘ └──────┬───────────┘ └──────┬───────────────┘
+       │                     │                    │
+       └─────────┬───────────┴────────────────────┘
+                 │
+        ┌────────┴────────────────────────────────────────────────┐
+        │                                                          │
+        ▼                                                          ▼
+    ┌─────────────────────────────┐          ┌─────────────────────────────┐
+    │   BACKEND ROUTES (7 files)   │          │   FRONTEND APPS (13 files)   │
+    └─────────────────────────────┘          └─────────────────────────────┘
+        │                                              │
+        ├─ chat.js (99L)         ──────────────────────┼─ NotificationBell (102L)
+        │  ├─ GET /conversations  │                    │
+        │  ├─ POST /conversations │                    │
+        │  └─ POST /messages      │                    │
+        │                                              │
+        ├─ jobs.js (879L)        ──────────┬───────────┤─ JobBrowse.jsx (661L)
+        │  ├─ GET /              │          │          │  ├─ Fetch /api/jobs
+        │  ├─ GET /:id           │          │          │  ├─ Fetch favorites
+        │  ├─ GET /:id/similar   │          │          │  └─ calcMatchScore()
+        │  ├─ POST /apply        │          │          │
+        │  └─ DELETE/:id         │          │          ├─ JobDetail.jsx (456L)
+        │                         │          │          │  ├─ Fetch /api/jobs/:id
+        ├─ profiles.js (1093L)   │          │          │  ├─ Fetch similar
+        │  ├─ GET /?userId=X    │          │          │  └─ calcMatchScore()
+        │  ├─ POST /skills      │          │          │
+        │  └─ PUT /:id/skills   │          │          ├─ JobManage.jsx (655L)
+        │                         │          │          │  ├─ Fetch /api/jobs/manage
+        ├─ companies.js (47L)   │          │          │  ├─ POST/PUT/DELETE jobs
+        │  ├─ GET /:userId      │          │          │  └─ Fetch /api/skills
+        │  └─ POST /            │          │          │
+        │                         │          │          ├─ JobCard.jsx (236L)
+        ├─ favorites.js (95L)   │          │          │  └─ calcMatchScore()
+        │  ├─ GET /:userId      │          │          │
+        │  ├─ POST /            │          │          └─ skillMatch.js (63L) ⭐
+        │  └─ DELETE /:userId   │          │             └─ calcMatchScore()
+        │                         │          │
+        ├─ notifications.js (59L)├──────────┤
+        │  ├─ GET /             │          │
+        │  ├─ PATCH /read-all   │          │
+        │  └─ GET /unread-count │          │
+        │                         │          │
+        └─ skills.js (19L)      │          │
+           └─ GET /             │          │
+                                 │          │
+                                 └──────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                         🎯 CRITICAL DATA FLOWS                                 ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+FLOW 1: Seeker Browsing Jobs
+───────────────────────────────
+JobBrowse.jsx
+   ↓
+   ├─ Fetch /api/jobs              → Backend: jobs.js GET /
+   ├─ Fetch /api/profiles?userId=X → Backend: profiles.js GET /?userId=X
+   ├─ Fetch /api/favorites/:userId → Backend: favorites.js GET /:userId
+   └─ For each job → JobCard.jsx
+                ↓
+                ├─ calcMatchScore(seekerSkills, job.jobSkills)
+                │                    ↓
+                │            skillMatch.js ⭐
+                │
+                ├─ onViewDetails → JobDetail.jsx
+                │                   ↓
+                │                   ├─ Fetch /api/jobs/:id
+                │                   ├─ Fetch /api/jobs/:id/similar
+                │                   ├─ calcMatchScore()
+                │                   └─ Display match % badge
+                │
+                └─ onApply
+                   ↓
+                   POST /api/jobs/:id/apply
+
+FLOW 2: Employer Managing Jobs
+───────────────────────────────
+JobManage.jsx
+   ↓
+   ├─ Fetch /api/jobs/manage?userId=X    → Backend: jobs.js GET /manage?userId=X
+   ├─ Fetch /api/companies/:userId       → Backend: companies.js GET /:userId
+   ├─ Fetch /api/skills                  → Backend: skills.js GET /
+   └─ For each job
+      ├─ Edit job
+      │  ↓
+      │  PUT /api/jobs/:id
+      │
+      ├─ Delete job
+      │  ↓
+      │  DELETE /api/jobs/:id
+      │
+      └─ View applicants
+         ↓
+         GET /api/jobs/:id/applicants
+
+FLOW 3: Notifications
+──────────────────────
+NotificationBell.jsx
+   ↓
+   └─ Poll every 30 seconds
+      ├─ GET /api/notifications/unread-count
+      ├─ GET /api/notifications
+      └─ PATCH /api/notifications/read-all
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                      ⭐ CORE ENGINE: skillMatch.js                             ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+Location: src/utils/skillMatch.js (63 lines)
+
+Function: calcMatchScore(seekerSkills, jobSkills)
+
+Purpose: Calculate % match between:
+  - seekerSkills    [{skillId, yearsExp}, ...]
+  - jobSkills       [{skillId, requiredLevel, weight}, ...]
+
+Return: 0-100 (percentage)
+
+Algorithm:
+  1. Map seeker skills by skillId → yearsExp
+  2. For each job skill:
+     - If missing: penalty if required
+     - If has skill: calculate level gap
+     - Gap 0: score = 1.0 (100%)
+     - Gap 1: score = 0.6 (60%)
+     - Gap 2+: score = 0.2 (20%)
+  3. Weighted average of all scores
+
+Used by:
+  ✅ JobBrowse.jsx (line ~75)   - Show match % in list
+  ✅ JobDetail.jsx (line ~60)   - Show match % prominently
+  ✅ JobCard.jsx (line ~12)     - Show match % badge
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                       🔗 API ENDPOINT MATRIX                                   ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+Endpoint                              | Method | Used by                   | Auth
+──────────────────────────────────────┼────────┼──────────────────────────┼──────
+/api/jobs                             | GET    | JobBrowse, Dashboard     | ✓
+/api/jobs/:id                         | GET    | JobDetail                | ✓
+/api/jobs/:id/similar                 | GET    | JobDetail                | ✓
+/api/jobs/:id/applicants              | GET    | JobDetail (employer)     | ✓
+/api/jobs/manage?userId=X             | GET    | JobManage                | ✓
+/api/jobs                             | POST   | JobManage (create)       | ✓
+/api/jobs/:id                         | PUT    | JobManage (edit)         | ✓
+/api/jobs/:id                         | DELETE | JobManage (delete)       | ✓
+/api/jobs/:id/apply                   | POST   | JobDetail (seeker)       | ✓
+/api/profiles?userId=X                | GET    | JobBrowse, JobDetail     | ✓
+/api/profiles/:userId                 | GET    | Feature1 (design)        | ✓
+/api/profiles/:userId                 | PUT    | Feature1 (save design)   | ✓
+/api/profiles/:userId/skills          | POST   | ProfileEdit              | ✓
+/api/profiles/:userId/skills/:id      | PUT    | ProfileEdit              | ✓
+/api/profiles/:userId/skills/:id      | DELETE | ProfileEdit              | ✓
+/api/companies/:userId                | GET    | JobDetail, JobManage     | -
+/api/companies                        | POST   | CompanyProfile           | ✓
+/api/favorites/:userId                | GET    | JobBrowse                | -
+/api/favorites                        | POST   | JobBrowse, JobDetail     | -
+/api/favorites/:userId/:jobId         | DELETE | JobBrowse, JobDetail     | -
+/api/chat/conversations               | GET    | Chat page                | ✓
+/api/chat/conversations               | POST   | Chat page                | ✓
+/api/chat/messages                    | POST   | Chat page                | ✓
+/api/chat/messages/:conversationId    | GET    | Chat page                | ✓
+/api/notifications                    | GET    | NotificationBell         | ✓
+/api/notifications/unread-count       | GET    | NotificationBell         | ✓
+/api/notifications/:id/read           | PATCH  | NotificationBell         | ✓
+/api/notifications/read-all           | PATCH  | NotificationBell         | ✓
+/api/skills                           | GET    | JobManage, Skill browser | -
+
+Legend:
+  GET    = Read data (safe)
+  POST   = Create data
+  PUT    = Update data
+  DELETE = Delete data
+  PATCH  = Partial update
+  Auth ✓ = Requires JWT token
+  Auth - = Public endpoint
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    📝 FILE SUMMARY TABLE                                       ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+File Type       | Filename                    | Lines | Purpose
+────────────────┼─────────────────────────────┼───────┼────────────────────────────
+Backend Routes  | chat.js                     | 99    | Conversations & messages
+Backend Routes  | companies.js                | 47    | Company profiles
+Backend Routes  | favorites.js                | 95    | Job favorites (bookmarks)
+Backend Routes  | jobs.js                     | 879   | Job CRUD & applications ⭐
+Backend Routes  | notifications.js            | 59    | Notifications (polling)
+Backend Routes  | profiles.js                 | 1093  | User profiles & skills ⭐
+Backend Routes  | skills.js                   | 19    | Skill master list
+────────────────┼─────────────────────────────┼───────┼────────────────────────────
+Frontend Utils  | skillMatch.js               | 63    | Match % calculator ⭐
+Frontend Pages  | JobBrowse.jsx               | 661   | Job search UI ⭐
+Frontend Pages  | JobDetail.jsx               | 456   | Job detail UI ⭐
+Frontend Pages  | JobManage.jsx               | 655   | Job management UI ⭐
+Frontend Comps  | JobCard.jsx                 | 236   | Job card (reusable)
+Frontend Comps  | NotificationBell.jsx        | 102   | Notifications UI
+────────────────┼─────────────────────────────┼───────┼────────────────────────────
+TOTAL           | 13 files                    | 4921  | Production Ready ✅
+
+⭐ = Most critical files

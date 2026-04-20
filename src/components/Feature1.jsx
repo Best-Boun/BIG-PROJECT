@@ -260,6 +260,92 @@ function SectionRow({ sec, visible, onToggle }) {
 }
 
 /* ═══════════════════════════════════════════
+   PREVIEW MINI (memoized — ไม่สร้างใหม่ทุก render)
+═══════════════════════════════════════════ */
+const PreviewMini = React.memo(function PreviewMini({ accent, darkMode, layout, sectionOrder, visibleSections }) {
+  const dark   = darkMode;
+  const bg     = dark ? "#0f172a" : "#f8fafc";
+  const surf   = dark ? "#1e293b" : "#ffffff";
+  const ink    = dark ? "#e2e8f0" : "#0f172a";
+  const muted  = dark ? "#64748b" : "#94a3b8";
+  const border = dark ? "#334155" : "#e2e8f0";
+  const visibleKeys = sectionOrder.filter(k => visibleSections[k] !== false);
+
+  const MiniCard = ({ k }) => (
+    <div key={k} style={{ background: surf, borderRadius: 5, padding: "6px 8px", border: `1px solid ${border}` }}>
+      <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2, marginBottom: 4 }} />
+      <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
+    </div>
+  );
+
+  const layouts = {
+    sidebar: (
+      <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8, height: "100%" }}>
+        <div style={{ background: dark ? "#1a2744" : `${accent}10`, borderRadius: 6, padding: 8 }}>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: accent, margin: "0 auto 6px" }} />
+          <div style={{ height: 5, background: ink, borderRadius: 2, opacity: .7, marginBottom: 4 }} />
+          <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .5, marginBottom: 8 }} />
+          {[1,2,3].map(i => <div key={i} style={{ height: 3, background: muted, borderRadius: 2, opacity: .3, marginBottom: 3 }} />)}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {visibleKeys.slice(0,4).map(k => <MiniCard key={k} k={k} />)}
+        </div>
+      </div>
+    ),
+    minimal: (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: accent }} />
+        <div style={{ height: 5, width: "60%", background: ink, borderRadius: 2, opacity: .7 }} />
+        <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2 }} />
+        {visibleKeys.slice(0,3).map(k => (
+          <div key={k} style={{ width: "100%", background: surf, borderRadius: 5, padding: "6px 8px", border: `1px solid ${border}` }}>
+            <div style={{ height: 3, width: "35%", background: accent, borderRadius: 2, marginBottom: 4 }} />
+            <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
+          </div>
+        ))}
+      </div>
+    ),
+    grid: (
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ height: 40, background: `${accent}20`, borderRadius: 6, display: "flex", alignItems: "flex-end", padding: "0 8px 6px" }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: accent, border: "2px solid white" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
+          {visibleKeys.slice(0,4).map(k => (
+            <div key={k} style={{ background: surf, borderRadius: 5, padding: 7, border: `1px solid ${border}` }}>
+              <div style={{ height: 3, width: "50%", background: accent, borderRadius: 2, marginBottom: 4 }} />
+              <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    split: (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, height: "100%" }}>
+        {[0,1].map(col => (
+          <div key={col} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {col === 0 && <div style={{ width: 36, height: 36, borderRadius: "50%", background: accent, marginBottom: 4 }} />}
+            {col === 0 && <div style={{ height: 4, background: ink, borderRadius: 2, opacity: .7 }} />}
+            {visibleKeys.slice(col*2, col*2+3).map(k => (
+              <div key={k} style={{ background: surf, borderRadius: 5, padding: 6, border: `1px solid ${border}` }}>
+                <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2, marginBottom: 4 }} />
+                <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    ),
+  };
+
+  return (
+    <div style={{ background: bg, borderRadius: 8, padding: 12, height: "100%", minHeight: 200, transition: "all .3s ease" }}>
+      {layouts[layout] || layouts.sidebar}
+    </div>
+  );
+});
+
+/* ═══════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════ */
 export default function ProfileEditor() {
@@ -500,28 +586,31 @@ export default function ProfileEditor() {
       const token = getAuthToken();
       const userId = getUserId();
 
-      // Step 1: Fetch current profile with retry
-      let currentProfile;
-      await retryFetch(async () => {
-        const fetchRes = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
-          headers: { "Authorization": `Bearer ${token}` },
-        });
-        
-        if (fetchRes.status === 403 || fetchRes.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("userID");
-          navigate("/login");
-          throw new Error("Session expired");
-        }
-        
-        if (!fetchRes.ok) {
-          const errText = await fetchRes.text();
-          throw new Error(`Failed to fetch profile: ${errText || fetchRes.statusText}`);
-        }
-        
-        currentProfile = await fetchRes.json();
-        return currentProfile;
-      }, 2, 300);
+      // Step 1: Use cached profile if available, otherwise fetch
+      let currentProfile = lastSavedStyle.current?.profile || null;
+      
+      if (!currentProfile) {
+        await retryFetch(async () => {
+          const fetchRes = await fetch(`${BASE_URL}/api/profiles?userId=${userId}`, {
+            headers: { "Authorization": `Bearer ${token}` },
+          });
+          
+          if (fetchRes.status === 403 || fetchRes.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userID");
+            navigate("/login");
+            throw new Error("Session expired");
+          }
+          
+          if (!fetchRes.ok) {
+            const errText = await fetchRes.text();
+            throw new Error(`Failed to fetch profile: ${errText || fetchRes.statusText}`);
+          }
+          
+          currentProfile = await fetchRes.json();
+          return currentProfile;
+        }, 2, 300);
+      }
 
       const existingData = currentProfile ? { ...currentProfile } : {};
       
@@ -587,93 +676,7 @@ export default function ProfileEditor() {
     setSt("visibleSections", { ...style.visibleSections, [key]: !style.visibleSections[key] });
   }, [style.visibleSections, setSt]);
 
-  /* ── Preview mini component ── */
-  const PreviewMini = () => {
-    const accent = style.accent;
-    const dark   = style.darkMode;
-    const bg     = dark ? "#0f172a" : "#f8fafc";
-    const surf   = dark ? "#1e293b" : "#ffffff";
-    const ink    = dark ? "#e2e8f0" : "#0f172a";
-    const muted  = dark ? "#64748b" : "#94a3b8";
-
-    const layouts = {
-      sidebar: (
-        <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8, height: "100%" }}>
-          <div style={{ background: dark ? "#1a2744" : `${accent}10`, borderRadius: 6, padding: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: accent, margin: "0 auto 6px" }} />
-            <div style={{ height: 5, background: ink, borderRadius: 2, opacity: .7, marginBottom: 4 }} />
-            <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .5, marginBottom: 8 }} />
-            {[1,2,3].map(i => <div key={i} style={{ height: 3, background: muted, borderRadius: 2, opacity: .3, marginBottom: 3 }} />)}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {style.sectionOrder.filter(k => style.visibleSections[k] !== false).slice(0,4).map(k => (
-              <div key={k} style={{ background: surf, borderRadius: 5, padding: "6px 8px", border: `1px solid ${dark?"#334155":"#e2e8f0"}` }}>
-                <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2, marginBottom: 4 }} />
-                <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-      minimal: (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 40, height: 40, borderRadius: "50%", background: accent }} />
-          <div style={{ height: 5, width: "60%", background: ink, borderRadius: 2, opacity: .7 }} />
-          <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2 }} />
-          {style.sectionOrder.filter(k => style.visibleSections[k] !== false).slice(0,3).map(k => (
-            <div key={k} style={{ width: "100%", background: surf, borderRadius: 5, padding: "6px 8px", border: `1px solid ${dark?"#334155":"#e2e8f0"}` }}>
-              <div style={{ height: 3, width: "35%", background: accent, borderRadius: 2, marginBottom: 4 }} />
-              <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
-            </div>
-          ))}
-        </div>
-      ),
-      grid: (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ 
-            height: 40, 
-            background: `${accent}20`,
-            borderRadius: 6, 
-            display: "flex", 
-            alignItems: "flex-end", 
-            padding: "0 8px 6px" 
-          }}>
-            <div style={{ width: 24, height: 24, borderRadius: "50%", background: accent, border: "2px solid white" }} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
-            {style.sectionOrder.filter(k => style.visibleSections[k] !== false).slice(0,4).map(k => (
-              <div key={k} style={{ background: surf, borderRadius: 5, padding: 7, border: `1px solid ${dark?"#334155":"#e2e8f0"}` }}>
-                <div style={{ height: 3, width: "50%", background: accent, borderRadius: 2, marginBottom: 4 }} />
-                <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-      split: (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, height: "100%" }}>
-          {[0,1].map(col => (
-            <div key={col} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              {col === 0 && <div style={{ width: 36, height: 36, borderRadius: "50%", background: accent, marginBottom: 4 }} />}
-              {col === 0 && <div style={{ height: 4, background: ink, borderRadius: 2, opacity: .7 }} />}
-              {style.sectionOrder.filter(k => style.visibleSections[k] !== false).slice(col*2, col*2+3).map(k => (
-                <div key={k} style={{ background: surf, borderRadius: 5, padding: 6, border: `1px solid ${dark?"#334155":"#e2e8f0"}` }}>
-                  <div style={{ height: 3, width: "40%", background: accent, borderRadius: 2, marginBottom: 4 }} />
-                  <div style={{ height: 3, background: muted, borderRadius: 2, opacity: .4 }} />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      ),
-    };
-
-    return (
-      <div style={{ background: bg, borderRadius: 8, padding: 12, height: "100%", minHeight: 200, transition: "all .3s ease" }}>
-        {layouts[style.layout] || layouts.sidebar}
-      </div>
-    );
-  };
+  /* ── Preview mini: now uses memoized external component ── */
 
   /* ════════════════════════════════════════
      RENDER
@@ -974,7 +977,13 @@ export default function ProfileEditor() {
           </div>
 
           <div className="pe-preview-canvas">
-            <PreviewMini />
+            <PreviewMini
+              accent={style.accent}
+              darkMode={style.darkMode}
+              layout={style.layout}
+              sectionOrder={style.sectionOrder}
+              visibleSections={style.visibleSections}
+            />
           </div>
 
           <div className="pe-preview-info">

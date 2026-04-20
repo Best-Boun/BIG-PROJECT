@@ -1,5 +1,5 @@
 ﻿import "./ResumeEditor.css";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /* ═══════════════════════════════════════════════════════════════
    ค่าคงที่ & ข้อมูล
@@ -49,17 +49,23 @@ const ROLE_KEYWORDS = {
 };
 
 const FORM_SECTIONS = [
-  { id:"profile",    label:"โปรไฟล์",   icon:"◈" },
-  { id:"summary",    label:"สรุปตัวเอง", icon:"≡" },
-  { id:"skills",     label:"ทักษะ",      icon:"◇" },
-  { id:"experience", label:"ประสบการณ์", icon:"◉" },
-  { id:"education",  label:"การศึกษา",   icon:"▣" },
-  { id:"languages",  label:"ภาษา",       icon:"◎" },
+  { id:"profile",        label:"โปรไฟล์",        icon:"◈" },
+  { id:"contact",        label:"ข้อมูลติดต่อ",    icon:"☎" },
+  { id:"summary",        label:"สรุปตัวเอง",      icon:"≡" },
+  { id:"skills",         label:"ทักษะ",           icon:"◇" },
+  { id:"experience",     label:"ประสบการณ์",      icon:"◉" },
+  { id:"education",      label:"การศึกษา",        icon:"▣" },
+  { id:"languages",      label:"ภาษา",            icon:"◎" },
+  { id:"certifications", label:"ใบรับรอง",        icon:"★" },
+  { id:"projects",       label:"โปรเจกต์",        icon:"◆" },
 ];
 
 const EMPTY_RESUME = {
   fullName:"", jobTitle:"", summary:"",
+  email:"", phone:"", location:"",
+  linkedin:"", github:"", website:"",
   skills:[], education:[], experience:[], languages:[],
+  certifications:[], projects:[],
   profileImage:"",
 };
 
@@ -124,6 +130,12 @@ function normalizeResumeData(apiData) {
     fullName:     String(apiData.fullName || "").trim(),
     jobTitle:     String(apiData.jobTitle || "").trim(),
     summary:      String(apiData.summary || "").trim(),
+    email:        String(apiData.email || "").trim(),
+    phone:        String(apiData.phone || "").trim(),
+    location:     String(apiData.location || "").trim(),
+    linkedin:     String(apiData.linkedin || "").trim(),
+    github:       String(apiData.github || "").trim(),
+    website:      String(apiData.website || "").trim(),
     profileImage: String(apiData.profileImage || ""),
     skills:       Array.isArray(apiData.skills) ? apiData.skills.map(s => String(s || "").trim()).filter(Boolean) : [],
     experience:   Array.isArray(apiData.experience) 
@@ -150,6 +162,22 @@ function normalizeResumeData(apiData) {
           _id:   l._id || uid(),
           name:  String(l.name || "").trim(),
           level: String(l.level || "").trim() || "ระดับกลาง",
+        }))
+      : [],
+    certifications: Array.isArray(apiData.certifications)
+      ? apiData.certifications.map(c => ({
+          _id:       c._id || uid(),
+          name:      String(c.name || "").trim(),
+          issuer:    String(c.issuer || "").trim(),
+          issueDate: String(c.issueDate || "").trim(),
+        }))
+      : [],
+    projects: Array.isArray(apiData.projects)
+      ? apiData.projects.map(p => ({
+          _id:       p._id || uid(),
+          name:      String(p.name || "").trim(),
+          techStack: String(p.techStack || "").trim(),
+          link:      String(p.link || "").trim(),
         }))
       : [],
   };
@@ -398,9 +426,9 @@ function FeedbackPanel({ resume }) {
 ═══════════════════════════════════════════════════════════════ */
 function JobRoleSelector({ jobRole, onRoleChange, skills, onSkillsChange }) {
   const keywords  = useMemo(() => ROLE_KEYWORDS[jobRole]||[], [jobRole]);
-  const available = useMemo(() => keywords.filter(kw => !skills.includes(kw)), [keywords,skills]);
+  const available = useMemo(() => keywords.filter(kw => !skills.some(s => s.toLowerCase() === kw.toLowerCase())), [keywords,skills]);
 
-  const addKeyword = (kw) => { if(!skills.includes(kw)&&skills.length<10) onSkillsChange([...skills,kw]); };
+  const addKeyword = (kw) => { if(!skills.some(s => s.toLowerCase() === kw.toLowerCase())&&skills.length<10) onSkillsChange([...skills,kw]); };
   const addAll     = () => { const toAdd=available.slice(0,10-skills.length); if(toAdd.length>0) onSkillsChange([...skills,...toAdd]); };
 
   return (
@@ -446,12 +474,12 @@ function SkillsSection({ skills, onChange }) {
   const [hoverId, setHoverId] = useState(-1);
 
   const suggestions = val.trim().length>0
-    ? SKILL_SUGGESTIONS.filter(sk => sk.toLowerCase().includes(val.toLowerCase()) && !skills.includes(sk)).slice(0,6)
+    ? SKILL_SUGGESTIONS.filter(sk => sk.toLowerCase().includes(val.toLowerCase()) && !skills.some(s => s.toLowerCase() === sk.toLowerCase())).slice(0,6)
     : [];
 
   const addSkill = (skill) => {
     const t = (skill||val).trim();
-    if(t && !skills.includes(t) && skills.length<10) onChange([...skills,t]);
+    if(t && !skills.some(s => s.toLowerCase() === t.toLowerCase()) && skills.length<10) onChange([...skills,t]);
     setVal(""); setHoverId(-1);
   };
 
@@ -767,7 +795,99 @@ function PaperSection({ title, accentColor, children }) {
   );
 }
 
-function ResumePreview({ resume, template, isDark }) {
+/* ── Certifications Section ── */
+function CertificationsSection({ certifications, onChange }) {
+  const add    = () => onChange([...certifications, { _id:uid(), name:"", issuer:"", issueDate:"" }]);
+  const remove = (id) => {
+    const cert = certifications.find(c => c._id===id);
+    if(!window.confirm(`ลบใบรับรอง "${cert?.name||"ไม่ระบุ"}" ใช่หรือไม่?`)) return;
+    onChange(certifications.filter(c => c._id!==id));
+  };
+  const update = (id, field, val) => onChange(certifications.map(c => c._id===id ? { ...c, [field]:val } : c));
+
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>ใบรับรอง / Certifications</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่ม</button>
+      </div>
+      {certifications.map(cert => (
+        <div key={cert._id} className="re-exp-form-row">
+          <div className="re-input-grid">
+            <div className="re-input-full">
+              <label className="re-field-label">ชื่อใบรับรอง</label>
+              <input className="re-input" placeholder="เช่น AWS Solutions Architect" value={cert.name} onChange={e => update(cert._id,"name",e.target.value)} />
+            </div>
+            <div className="re-input-half">
+              <label className="re-field-label">ผู้ออกใบรับรอง</label>
+              <input className="re-input" placeholder="เช่น Amazon" value={cert.issuer} onChange={e => update(cert._id,"issuer",e.target.value)} />
+            </div>
+            <div className="re-input-half">
+              <label className="re-field-label">วันที่ได้รับ</label>
+              <input className="re-input" type="date" value={cert.issueDate} onChange={e => update(cert._id,"issueDate",e.target.value)} />
+            </div>
+          </div>
+          <button className="re-btn re-btn-danger re-btn-icon" onClick={() => remove(cert._id)} title="ลบ" style={{ alignSelf:"flex-start", marginTop:8 }}>×</button>
+        </div>
+      ))}
+      {certifications.length===0 && (
+        <div className="re-empty-state">
+          <span className="re-empty-state__icon">★</span>
+          <p>ยังไม่มีใบรับรอง</p>
+          <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่มรายการแรก</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Projects Section ── */
+function ProjectsSection({ projects, onChange }) {
+  const add    = () => onChange([...projects, { _id:uid(), name:"", techStack:"", link:"" }]);
+  const remove = (id) => {
+    const proj = projects.find(p => p._id===id);
+    if(!window.confirm(`ลบโปรเจกต์ "${proj?.name||"ไม่ระบุ"}" ใช่หรือไม่?`)) return;
+    onChange(projects.filter(p => p._id!==id));
+  };
+  const update = (id, field, val) => onChange(projects.map(p => p._id===id ? { ...p, [field]:val } : p));
+
+  return (
+    <div className="re-card">
+      <div className="re-card__header">
+        <SLabel>โปรเจกต์ / Projects</SLabel>
+        <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่ม</button>
+      </div>
+      {projects.map(proj => (
+        <div key={proj._id} className="re-exp-form-row">
+          <div className="re-input-grid">
+            <div className="re-input-full">
+              <label className="re-field-label">ชื่อโปรเจกต์</label>
+              <input className="re-input" placeholder="เช่น Job Portal Web App" value={proj.name} onChange={e => update(proj._id,"name",e.target.value)} />
+            </div>
+            <div className="re-input-half">
+              <label className="re-field-label">เทคโนโลยีที่ใช้</label>
+              <input className="re-input" placeholder="เช่น React, Node.js, MySQL" value={proj.techStack} onChange={e => update(proj._id,"techStack",e.target.value)} />
+            </div>
+            <div className="re-input-half">
+              <label className="re-field-label">ลิงก์โปรเจกต์</label>
+              <input className="re-input" placeholder="https://github.com/..." value={proj.link} onChange={e => update(proj._id,"link",e.target.value)} />
+            </div>
+          </div>
+          <button className="re-btn re-btn-danger re-btn-icon" onClick={() => remove(proj._id)} title="ลบ" style={{ alignSelf:"flex-start", marginTop:8 }}>×</button>
+        </div>
+      ))}
+      {projects.length===0 && (
+        <div className="re-empty-state">
+          <span className="re-empty-state__icon">◆</span>
+          <p>ยังไม่มีโปรเจกต์</p>
+          <button className="re-btn re-btn-ghost re-btn-sm" onClick={add}>+ เพิ่มรายการแรก</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ResumePreview = React.memo(function ResumePreview({ resume, template, isDark }) {
   const accent  = isDark ? lightenColor(getAccentColor(template)) : getAccentColor(template);
   const textPri = isDark ? "#e8f0f9" : "#0d1b2a";
   const textSec = isDark ? "#6e8aaa" : "#5e7087";
@@ -801,6 +921,21 @@ function ResumePreview({ resume, template, isDark }) {
         <div className="re-paper-meta">
           <h1 className="re-paper-name" style={{ color:textPri }}>{resume.fullName||"ชื่อของคุณ"}</h1>
           {resume.jobTitle && <p className="re-paper-title" style={{ color:accent }}>{resume.jobTitle}</p>}
+          {/* Contact info row */}
+          {(resume.email||resume.phone||resume.location) && (
+            <div className="re-paper-contact" style={{ color:textSec, fontSize:"0.72rem", marginTop:4, display:"flex", flexWrap:"wrap", gap:"6px 14px" }}>
+              {resume.email && <span>✉ {resume.email}</span>}
+              {resume.phone && <span>☎ {resume.phone}</span>}
+              {resume.location && <span>📍 {resume.location}</span>}
+            </div>
+          )}
+          {(resume.linkedin||resume.github||resume.website) && (
+            <div className="re-paper-social" style={{ color:textTer, fontSize:"0.68rem", marginTop:2, display:"flex", flexWrap:"wrap", gap:"6px 14px" }}>
+              {resume.linkedin && <span>LinkedIn: {resume.linkedin}</span>}
+              {resume.github && <span>GitHub: {resume.github}</span>}
+              {resume.website && <span>🌐 {resume.website}</span>}
+            </div>
+          )}
         </div>
       </div>
       <div className="re-paper-rule" style={{ background:`${accent}20` }} />
@@ -859,10 +994,32 @@ function ResumePreview({ resume, template, isDark }) {
             </div>
           </PaperSection>
         )}
+        {resume.certifications.length>0 && (
+          <PaperSection title="ใบรับรอง" accentColor={accent}>
+            {resume.certifications.map((cert,i) => (
+              <div key={cert._id||i} className="re-exp-item" style={{ borderBottom:`1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color:textPri }}>{cert.name}</div>
+                {cert.issuer && <div className="re-exp-co" style={{ color:accent }}>{cert.issuer}</div>}
+                {cert.issueDate && <div className="re-exp-date" style={{ color:textTer }}>{cert.issueDate}</div>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.projects.length>0 && (
+          <PaperSection title="โปรเจกต์" accentColor={accent}>
+            {resume.projects.map((proj,i) => (
+              <div key={proj._id||i} className="re-exp-item" style={{ borderBottom:`1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color:textPri }}>{proj.name}</div>
+                {proj.techStack && <div className="re-exp-co" style={{ color:accent }}>{proj.techStack}</div>}
+                {proj.link && <div className="re-exp-date" style={{ color:textTer }}>{proj.link}</div>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
       </div>
     </div>
   );
-}
+});
 
 /* preview controls shared between panel and drawer */
 function PreviewControls({ template, setTemplate, previewZoom, setPreviewZoom, exporting, onExport }) {
@@ -1025,19 +1182,101 @@ export default function ResumeEditor() {
       if(!res.ok) throw new Error("ดึงข้อมูลโปรไฟล์ไม่สำเร็จ");
       const data = await res.json();
       if(!data||typeof data!=="object") throw new Error("ข้อมูลโปรไฟล์ไม่ถูกต้อง");
+
+      // ── Map skills (dedup + case-insensitive) ──
+      const mappedSkills = Array.isArray(data.skills)
+        ? [...new Map(
+            data.skills
+              .map(s => typeof s === "string" ? s : s.skill || s.name || "")
+              .filter(Boolean)
+              .map(s => [s.toLowerCase(), s])
+          ).values()]
+        : [];
+
+      // ── Map experience จาก profile → resume format ──
+      const mappedExperience = Array.isArray(data.experience)
+        ? data.experience.map(e => ({
+            _id:         uid(),
+            position:    String(e.role || e.title || "").trim(),
+            company:     String(e.company || "").trim(),
+            startDate:   String(e.startDate || "").trim(),
+            endDate:     String(e.endDate || "").trim(),
+            description: String(e.description || "").trim(),
+          })).filter(e => e.position || e.company)
+        : [];
+
+      // ── Map education จาก profile → resume format ──
+      const mappedEducation = Array.isArray(data.education)
+        ? data.education.map(e => ({
+            _id:       uid(),
+            school:    String(e.institution || e.school || "").trim(),
+            degree:    String(e.degree || "").trim() + (e.field ? ` ${e.field}` : ""),
+            startYear: String(e.startDate || e.startYear || "").trim(),
+            endYear:   String(e.endDate || e.endYear || "").trim(),
+          })).filter(e => e.school || e.degree)
+        : [];
+
+      // ── Map languages จาก profile → resume format ──
+      const mappedLanguages = Array.isArray(data.languages)
+        ? data.languages.map(l => ({
+            _id:   uid(),
+            name:  String(l.language || l.name || "").trim(),
+            level: String(l.level || "ระดับกลาง").trim(),
+          })).filter(l => l.name)
+        : [];
+
+      // ── Map certifications จาก profile → resume format ──
+      const mappedCertifications = Array.isArray(data.certifications)
+        ? data.certifications.map(c => ({
+            _id:       uid(),
+            name:      String(c.name || "").trim(),
+            issuer:    String(c.issuer || "").trim(),
+            issueDate: String(c.date || c.issueDate || "").trim(),
+          })).filter(c => c.name)
+        : [];
+
+      // ── Map projects จาก profile → resume format ──
+      const mappedProjects = Array.isArray(data.projects)
+        ? data.projects.map(p => ({
+            _id:       uid(),
+            name:      String(p.name || p.title || "").trim(),
+            techStack: String(p.techStack || p.category || "").trim(),
+            link:      String(p.link || p.url || "").trim(),
+          })).filter(p => p.name)
+        : [];
+
       setResume({
-        fullName:     data.name||"",
-        jobTitle:     data.title||"",
-        summary:      data.summary||"",
-        skills:       Array.isArray(data.skills)
-          ? [...new Set(data.skills.map(s => typeof s==="string"?s:s.skill||s.name||"").filter(Boolean))]
-          : [],
-        education:[], experience:[], languages:[],
-        profileImage: data.profileImage||"",
+        fullName:       data.name || "",
+        jobTitle:       data.title || "",
+        summary:        data.summary || "",
+        email:          data.email || "",
+        phone:          data.phone || "",
+        location:       data.location || "",
+        linkedin:       data.linkedin || "",
+        github:         data.github || "",
+        website:        data.website || "",
+        skills:         mappedSkills.slice(0, 10),
+        experience:     mappedExperience,
+        education:      mappedEducation,
+        languages:      mappedLanguages,
+        certifications: mappedCertifications,
+        projects:       mappedProjects,
+        profileImage:   data.profileImage || "",
       });
+
       setResumeId(null);
       try { clearDraft(); } catch(e) {}
-      showToast("สร้าง Resume จากโปรไฟล์สำเร็จ ✓");
+
+      // ── แจ้งผลสรุปให้ user เห็น ──
+      const parts = [];
+      if(mappedSkills.length)         parts.push(`${mappedSkills.length} ทักษะ`);
+      if(mappedExperience.length)     parts.push(`${mappedExperience.length} ประสบการณ์`);
+      if(mappedEducation.length)      parts.push(`${mappedEducation.length} การศึกษา`);
+      if(mappedLanguages.length)      parts.push(`${mappedLanguages.length} ภาษา`);
+      if(mappedCertifications.length) parts.push(`${mappedCertifications.length} ใบรับรอง`);
+      if(mappedProjects.length)       parts.push(`${mappedProjects.length} โปรเจกต์`);
+      const summary = parts.length > 0 ? ` (${parts.join(", ")})` : "";
+      showToast(`สร้าง Resume จากโปรไฟล์สำเร็จ ✓${summary}`);
     } catch(err) {
       showToast("ไม่สามารถสร้าง Resume ได้: "+err.message,"error");
     } finally { setGenerating(false); }
@@ -1221,6 +1460,45 @@ export default function ResumeEditor() {
                 <JobRoleSelector jobRole={jobRole} onRoleChange={setJobRole} skills={resume.skills} onSkillsChange={v => setField("skills",v)} />
               </div>
 
+              {/* Contact & Social */}
+              <div ref={el => sectionRefs.current.contact=el} data-section="contact" className="re-form-section">
+                <div className="re-form-section__title"><span className="re-form-section__icon">☎</span> ข้อมูลติดต่อ</div>
+                <div className="re-card">
+                  <SLabel>ช่องทางติดต่อ</SLabel>
+                  <div className="re-input-grid">
+                    <div className="re-input-half">
+                      <label className="re-field-label">อีเมล</label>
+                      <input className="re-input" type="email" placeholder="example@email.com" value={resume.email} onChange={e => setField("email",e.target.value)} />
+                    </div>
+                    <div className="re-input-half">
+                      <label className="re-field-label">เบอร์โทรศัพท์</label>
+                      <input className="re-input" type="tel" placeholder="08x-xxx-xxxx" value={resume.phone} onChange={e => setField("phone",e.target.value)} />
+                    </div>
+                    <div className="re-input-full">
+                      <label className="re-field-label">ที่อยู่ / สถานที่</label>
+                      <input className="re-input" placeholder="กรุงเทพมหานคร, ประเทศไทย" value={resume.location} onChange={e => setField("location",e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+                <div className="re-card">
+                  <SLabel>โซเชียลมีเดีย</SLabel>
+                  <div className="re-input-grid">
+                    <div className="re-input-full">
+                      <label className="re-field-label">LinkedIn</label>
+                      <input className="re-input" placeholder="https://linkedin.com/in/yourprofile" value={resume.linkedin} onChange={e => setField("linkedin",e.target.value)} />
+                    </div>
+                    <div className="re-input-half">
+                      <label className="re-field-label">GitHub</label>
+                      <input className="re-input" placeholder="https://github.com/yourprofile" value={resume.github} onChange={e => setField("github",e.target.value)} />
+                    </div>
+                    <div className="re-input-half">
+                      <label className="re-field-label">เว็บไซต์</label>
+                      <input className="re-input" placeholder="https://yourwebsite.com" value={resume.website} onChange={e => setField("website",e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Summary */}
               <div ref={el => sectionRefs.current.summary=el} data-section="summary" className="re-form-section">
                 <div className="re-form-section__title"><span className="re-form-section__icon">≡</span> สรุปตัวเอง</div>
@@ -1266,6 +1544,18 @@ export default function ResumeEditor() {
               <div ref={el => sectionRefs.current.languages=el} data-section="languages" className="re-form-section">
                 <div className="re-form-section__title"><span className="re-form-section__icon">◎</span> ภาษาที่ใช้ได้</div>
                 <LanguagesSection languages={resume.languages} onChange={v => setField("languages",v)} />
+              </div>
+
+              {/* Certifications */}
+              <div ref={el => sectionRefs.current.certifications=el} data-section="certifications" className="re-form-section">
+                <div className="re-form-section__title"><span className="re-form-section__icon">★</span> ใบรับรอง</div>
+                <CertificationsSection certifications={resume.certifications} onChange={v => setField("certifications",v)} />
+              </div>
+
+              {/* Projects */}
+              <div ref={el => sectionRefs.current.projects=el} data-section="projects" className="re-form-section">
+                <div className="re-form-section__title"><span className="re-form-section__icon">◆</span> โปรเจกต์</div>
+                <ProjectsSection projects={resume.projects} onChange={v => setField("projects",v)} />
               </div>
 
               <div style={{ height:40 }} />

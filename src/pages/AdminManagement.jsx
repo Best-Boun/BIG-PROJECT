@@ -343,7 +343,7 @@ function AdminManagement() {
                   className="btn action-btn view"
                   onClick={() => openProfile(u)}
                 >
-                  🪪 ดูโปรไฟล์
+                  🪪 View Profile
                 </button>
 
                 {u.isBanned ? (
@@ -354,7 +354,7 @@ function AdminManagement() {
                       setModalType("unban");
                     }}
                   >
-                    ✅ ปลดแบน
+                    ✅ Unban
                   </button>
                 ) : (
                   <button
@@ -365,7 +365,7 @@ function AdminManagement() {
                       setModalType("ban");
                     }}
                   >
-                    🚫 แบน
+                    🚫 Ban
                   </button>
                 )}
 
@@ -377,7 +377,7 @@ function AdminManagement() {
                       setModalType("delete");
                     }}
                   >
-                    🗑 ลบ
+                    🗑 Delete 
                   </button>
                 )}
               </div>

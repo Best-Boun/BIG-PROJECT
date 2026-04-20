@@ -106,15 +106,16 @@ export default function JobManage() {
       if (!res.ok) throw new Error('Failed to load');
       const fullJob = await res.json();
 
-      const jobSkills = Array.isArray(fullJob.jobSkills) && fullJob.jobSkills.length > 0
-        ? fullJob.jobSkills.map(js => ({
-            skillId: js.skillId,
-            skill: js.skill,
-            requiredLevel: js.requiredLevel || 'Intermediate',
-            weight: js.weight || 2,
-            required: js.required === undefined ? true : Boolean(js.required),
-          }))
-        : [];
+      const jobSkills =
+        Array.isArray(fullJob.jobSkills) && fullJob.jobSkills.length > 0
+          ? fullJob.jobSkills.map((js) => ({
+              skillId: Number(js.skillId),
+              skill: js.skill,
+              requiredLevel: js.requiredLevel || "Intermediate",
+              weight: js.weight || 2,
+              required: js.required === undefined ? true : Boolean(js.required),
+            }))
+          : [];
 
       setForm({
         title: fullJob.title || "",
@@ -148,12 +149,23 @@ export default function JobManage() {
 
   const toggleSkill = (skillObj) => {
     setForm(f => {
-      const exists = f.jobSkills.find(s => s.skillId === skillObj.id);
+      const exists = f.jobSkills.find(
+        (s) => Number(s.skillId) === Number(skillObj.id),
+      );
       return {
         ...f,
         jobSkills: exists
-          ? f.jobSkills.filter(s => s.skillId !== skillObj.id)
-          : [...f.jobSkills, { skillId: skillObj.id, skill: skillObj.name, requiredLevel: 'Intermediate', weight: 2, required: true }]
+          ? f.jobSkills.filter((s) => Number(s.skillId) !== Number(skillObj.id))
+          : [
+              ...f.jobSkills,
+              {
+                skillId: skillObj.id,
+                skill: skillObj.name,
+                requiredLevel: "Intermediate",
+                weight: 2,
+                required: true,
+              },
+            ],
       };
     });
   };

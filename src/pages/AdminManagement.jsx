@@ -6,6 +6,23 @@ const MAIN_ADMIN_ID = 1;
 
 const getToken = () => localStorage.getItem("token");
 
+const getAuthHeaders = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const handleAuthFailure = async (res) => {
+  if (res.status === 401 || res.status === 403) {
+    const data = await res.json().catch(() => null);
+    showPopup(
+      data?.message || "ไม่สามารถเข้าถึงข้อมูลได้ กรุณาเข้าสู่ระบบใหม่",
+      "error",
+    );
+    return true;
+  }
+  return false;
+};
+
 const showPopup = (text, type = "info") => {
   const el = document.createElement("div");
   el.className = `popup ${type}`;
@@ -66,10 +83,23 @@ function AdminManagement() {
 
   const fetchUsers = async () => {
     setLoading(true);
+    const token = getToken();
+    if (!token) {
+      showPopup("กรุณาเข้าสู่ระบบก่อน", "error");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE}/users`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: getAuthHeaders(),
       });
+
+      if (!res.ok) {
+        if (await handleAuthFailure(res)) return;
+        throw new Error("Fetch users failed");
+      }
+
       const data = await res.json();
       setAllUsers(Array.isArray(data) ? data : []);
     } catch {
@@ -165,7 +195,9 @@ function AdminManagement() {
     setProfileData(null);
     setProfileLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/users/${user.id}/profile`);
+      const res = await fetch(`${API_BASE}/users/${user.id}/profile`, {
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       setProfileData(data || null);
     } catch {
@@ -204,7 +236,7 @@ function AdminManagement() {
       {/* ===== HEADER ===== */}
       <div className="am-header">
         <h2>
-          <i class="bi bi-people"></i> User Management
+          <i className="bi bi-people"></i> User Management
         </h2>
         <div className="am-controls">
           <div className="am-controls-inner">
@@ -218,7 +250,7 @@ function AdminManagement() {
             <div className="am-filter-row">
               <div className="am-search-wrapper">
                 <span className="search-icon">
-                  <i class="bi bi-search"></i>
+                  <i className="bi bi-search"></i>
                 </span>
                 <input
                   className="am-search-input"

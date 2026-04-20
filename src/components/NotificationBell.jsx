@@ -4,32 +4,48 @@ import './NotificationBell.css';
 
 const API = 'http://localhost:3000';
 
+const getToken = () => localStorage.getItem('token');
+
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  const token = localStorage.getItem('token');
-
   const fetchUnreadCount = () => {
+    const token = getToken();
     if (!token) return;
+
     fetch(`${API}/api/notifications/unread-count`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(r => r.json())
-      .then(data => setUnreadCount(data.count || 0))
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) throw r;
+        return r.json();
+      })
+      .then((data) => setUnreadCount(data.count || 0))
+      .catch((err) => {
+        if (err?.status === 401 || err?.status === 403) {
+          setUnreadCount(0);
+        }
+      });
   };
 
   const fetchNotifications = () => {
+    const token = getToken();
     if (!token) return;
+
     fetch(`${API}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(r => r.json())
-      .then(data => setNotifications(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) throw r;
+        return r.json();
+      })
+      .then((data) => setNotifications(Array.isArray(data) ? data : []))
+      .catch(() => {
+        setNotifications([]);
+      });
   };
 
   // Poll ทุก 30 วินาที
@@ -51,11 +67,21 @@ export default function NotificationBell() {
   const handleOpen = () => {
     if (!open) {
       fetchNotifications();
-      // mark all read
-      fetch(`${API}/api/notifications/read-all`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(() => setUnreadCount(0)).catch(() => {});
+      const token = getToken();
+      if (token) {
+        // mark all read
+        fetch(`${API}/api/notifications/read-all`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((r) => {
+            if (!r.ok) throw r;
+            setUnreadCount(0);
+          })
+          .catch(() => {
+            setUnreadCount(0);
+          });
+      }
     }
     setOpen(prev => !prev);
   };

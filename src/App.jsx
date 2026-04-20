@@ -252,9 +252,21 @@ function AppContent() {
 
             {role === "admin" && (
               <>
-                <Route path="/chart" element={<ChartPage />} />
-                <Route path="/ads" element={<AdsManagement />} />
-                <Route path="/admin" element={<AdminManagement />} />
+                <Route path="/chart" element={
+                  <ProtectedRoute allowedRole="admin">
+                    <ChartPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/ads" element={
+                  <ProtectedRoute allowedRole="admin">
+                    <AdsManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute allowedRole="admin">
+                    <AdminManagement />
+                  </ProtectedRoute>
+                } />
               </>
             )}
 

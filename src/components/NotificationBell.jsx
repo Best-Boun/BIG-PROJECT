@@ -4,7 +4,34 @@ import './NotificationBell.css';
 
 const API = 'http://localhost:3000';
 
-const getToken = () => localStorage.getItem('token');
+const getToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token || token === 'null' || token === 'undefined') {
+    localStorage.removeItem('token');
+    return null;
+  }
+  return token;
+};
+
+const getAuthHeaders = (token) => ({
+  Authorization: `Bearer ${token}`,
+});
+
+const clearAuth = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('userID');
+  localStorage.removeItem('userId');
+};
+
+const handleAuthFailure = (err) => {
+  if (err?.status === 401 || err?.status === 403) {
+    clearAuth();
+    return true;
+  }
+  return false;
+};
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
@@ -17,7 +44,7 @@ export default function NotificationBell() {
     if (!token) return;
 
     fetch(`${API}/api/notifications/unread-count`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: getAuthHeaders(token),
     })
       .then((r) => {
         if (!r.ok) throw r;
@@ -25,7 +52,9 @@ export default function NotificationBell() {
       })
       .then((data) => setUnreadCount(data.count || 0))
       .catch((err) => {
-        if (err?.status === 401 || err?.status === 403) {
+        if (handleAuthFailure(err)) {
+          setUnreadCount(0);
+        } else {
           setUnreadCount(0);
         }
       });
@@ -36,15 +65,19 @@ export default function NotificationBell() {
     if (!token) return;
 
     fetch(`${API}/api/notifications`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: getAuthHeaders(token),
     })
       .then((r) => {
         if (!r.ok) throw r;
         return r.json();
       })
       .then((data) => setNotifications(Array.isArray(data) ? data : []))
-      .catch(() => {
-        setNotifications([]);
+      .catch((err) => {
+        if (handleAuthFailure(err)) {
+          setNotifications([]);
+        } else {
+          setNotifications([]);
+        }
       });
   };
 
@@ -72,14 +105,18 @@ export default function NotificationBell() {
         // mark all read
         fetch(`${API}/api/notifications/read-all`, {
           method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: getAuthHeaders(token),
         })
           .then((r) => {
             if (!r.ok) throw r;
             setUnreadCount(0);
           })
-          .catch(() => {
-            setUnreadCount(0);
+          .catch((err) => {
+            if (handleAuthFailure(err)) {
+              setUnreadCount(0);
+            } else {
+              setUnreadCount(0);
+            }
           });
       }
     }

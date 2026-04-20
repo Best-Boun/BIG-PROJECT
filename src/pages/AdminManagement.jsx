@@ -84,8 +84,14 @@ function AdminManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     const token = getToken();
+    const role = localStorage.getItem("role");
     if (!token) {
       showPopup("กรุณาเข้าสู่ระบบก่อน", "error");
+      setLoading(false);
+      return;
+    }
+    if (role !== "admin") {
+      showPopup("คุณไม่มีสิทธิ์เข้าถึงหน้านี้", "error");
       setLoading(false);
       return;
     }

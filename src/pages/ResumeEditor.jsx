@@ -1027,16 +1027,16 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
   return (
     <div className="re-paper re-paper--minimal" id="resume-preview-root" style={{ fontFamily: "'Georgia', serif" }}>
       {/* Centered header */}
-      <div style={{ textAlign: "center", padding: "32px 40px 20px", borderBottom: `2px solid ${textPri}` }}>
+      <div style={{ textAlign: "center", padding: "32px 40px 20px", borderBottom: `2px solid ${accent}` }}>
         {resume.profileImage && (
           <img src={resume.profileImage} alt="" crossOrigin="anonymous"
-            style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", marginBottom: 10, border: `2px solid ${textTer}` }} />
+            style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", marginBottom: 10, border: `2px solid ${accent}40` }} />
         )}
         <h1 style={{ fontSize: "1.6rem", fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: textPri, margin: "0 0 4px" }}>
           {resume.fullName || "ชื่อของคุณ"}
         </h1>
         {resume.jobTitle && (
-          <p style={{ fontSize: "0.85rem", letterSpacing: 3, textTransform: "uppercase", color: textSec, margin: "0 0 10px" }}>
+          <p style={{ fontSize: "0.85rem", letterSpacing: 3, textTransform: "uppercase", color: accent, margin: "0 0 10px" }}>
             {resume.jobTitle}
           </p>
         )}
@@ -1052,13 +1052,13 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
       <div style={{ padding: "0 40px 32px" }}>
         {resume.summary && (
           <div style={{ marginTop: 20 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 6 }}>Profile</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 6, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Profile</p>
             <p style={{ fontSize: "0.8rem", lineHeight: 1.7, color: textSec, margin: 0 }}>{resume.summary}</p>
           </div>
         )}
         {resume.experience.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Experience</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Experience</p>
             {resume.experience.map((exp, i) => (
               <div key={exp._id || i} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -1073,7 +1073,7 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
         )}
         {resume.education.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Education</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Education</p>
             {resume.education.map((edu, i) => (
               <div key={edu._id || i} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -1087,13 +1087,13 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
         )}
         {resume.skills.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Skills</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Skills</p>
             <p style={{ fontSize: "0.78rem", color: textSec, lineHeight: 1.8 }}>{resume.skills.join(" · ")}</p>
           </div>
         )}
         {resume.languages.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Languages</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Languages</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
               {resume.languages.map((lang, i) => (
                 <span key={lang._id || i} style={{ fontSize: "0.78rem", color: textSec }}>{lang.name} <span style={{ color: textTer }}>({lang.level})</span></span>
@@ -1103,7 +1103,7 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
         )}
         {resume.certifications.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Certifications</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Certifications</p>
             {resume.certifications.map((cert, i) => (
               <div key={cert._id || i} style={{ marginBottom: 8 }}>
                 <strong style={{ fontSize: "0.78rem", color: textPri }}>{cert.name}</strong>
@@ -1115,7 +1115,7 @@ function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, s
         )}
         {resume.projects.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: textTer, marginBottom: 8, borderBottom: `1px solid ${ruleBdr}`, paddingBottom: 4 }}>Projects</p>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Projects</p>
             {resume.projects.map((proj, i) => (
               <div key={proj._id || i} style={{ marginBottom: 10 }}>
                 <strong style={{ fontSize: "0.8rem", color: textPri }}>{proj.name}</strong>
@@ -1927,23 +1927,79 @@ export default function ResumeEditor() {
     if(exportingRef.current) return;
     exportingRef.current = true;
     setExporting(true);
+
+    const A4_WIDTH_PX = 794;
+
+    // Wrapper วางนอก viewport ไม่กระทบ layout จริง
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = [
+      "position:absolute",
+      "top:0",
+      "left:-9999px",
+      `width:${A4_WIDTH_PX}px`,
+      "overflow:visible",
+      "pointer-events:none",
+      "z-index:-1",
+    ].join(";");
+
+    const clone = el.cloneNode(true);
+    clone.removeAttribute("id");
+
+    // ✅ ตั้งค่าเฉพาะ width — ไม่ override padding/margin ของ template
+    // ✅ force ลบ min-height เพื่อป้องกันหน้าว่างส่วนเกิน
+    clone.style.setProperty("width",      `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("min-width",  `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("max-width",  `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("min-height", "0",                "important");
+    clone.style.setProperty("height",     "auto",             "important");
+    clone.style.setProperty("overflow",   "visible",          "important");
+
+    // ลบ transform/scale ที่อาจติดมาจาก preview zoom
+    clone.style.setProperty("transform",        "none", "important");
+    clone.style.setProperty("transform-origin", "unset","important");
+
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    // รอให้ browser layout clone ก่อน capture
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-      const imgs = el.querySelectorAll("img");
+
+      // รอรูปทุกรูปใน clone โหลดเสร็จ
+      const imgs = clone.querySelectorAll("img");
       await Promise.all([...imgs].map(img =>
-        img.complete ? Promise.resolve() : new Promise(r => { img.onload=r; img.onerror=r; })
+        img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
       ));
+
       await html2pdf().set({
-        margin:0,
-        filename:`${resume.fullName||"resume"}.pdf`,
-        image:       { type:"jpeg", quality:0.97 },
-        html2canvas: { scale:2, useCORS:true, allowTaint:true, letterRendering:true, scrollX:0, scrollY:0 },
-        jsPDF:       { unit:"mm", format:"a4", orientation:"portrait" },
-      }).from(el).save();
+        margin:      0,
+        filename:    `${resume.fullName || "resume"}.pdf`,
+        image:       { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale:           2,
+          useCORS:         true,
+          allowTaint:      true,
+          letterRendering: true,
+          scrollX:         0,
+          scrollY:         0,
+          width:           A4_WIDTH_PX,
+          windowWidth:     A4_WIDTH_PX,
+        },
+        jsPDF:       { unit: "mm", format: "a4", orientation: "portrait" },
+        // หลายหน้าอัตโนมัติ — ไม่ตัดกลางกล่อง
+        pagebreak:   { mode: ["css", "legacy"] },
+      }).from(clone).save();
+
       showToast("ส่งออก PDF สำเร็จ ✓");
     } catch(err) {
-      if(err.name!=="AbortError") showToast("ส่งออกไม่สำเร็จ: "+(err.message||"ข้อผิดพลาดที่ไม่ทราบ"),"error");
-    } finally { exportingRef.current = false; setExporting(false); }
+      if(err.name !== "AbortError") showToast("ส่งออกไม่สำเร็จ: " + (err.message || "ข้อผิดพลาดที่ไม่ทราบ"), "error");
+    } finally {
+      document.body.removeChild(wrapper);
+      exportingRef.current = false;
+      setExporting(false);
+    }
   };
 
   /* ── Keyboard shortcut: Ctrl/Cmd+S to save ── */
@@ -1993,7 +2049,13 @@ export default function ResumeEditor() {
   };
 
   const previewContent = (
-    <ResumePreview resume={resume} template={template} isDark={isDark} accentOverride={templateColors[template]} />
+    <ResumePreview
+      key={`${template}-${templateColors[template]}`}
+      resume={resume}
+      template={template}
+      isDark={isDark}
+      accentOverride={templateColors[template]}
+    />
   );
 
   /* ═══════════════════ RENDER ═══════════════════ */

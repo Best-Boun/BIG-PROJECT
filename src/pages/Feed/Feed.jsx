@@ -130,7 +130,7 @@ export default function Feed() {
       setPosts(data || []);
       data.forEach((post) => loadComments(post.id));
 
-      // 🚀 ยิงพร้อมกันเลย ไม่ต้อง await
+      
       loadLikes();
       loadLikedStatus();
       setLoading(false);

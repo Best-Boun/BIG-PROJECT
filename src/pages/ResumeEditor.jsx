@@ -21,11 +21,11 @@ const SKILL_SUGGESTIONS = [
 ];
 
 const TEMPLATES = [
-  { id:"modern",  label:"ทันสมัย",  desc:"สีสันทันสมัย",    accent:"#1e3a5f" },
-  { id:"minimal", label:"เรียบ",    desc:"สะอาดเรียบร้อย",  accent:"#2d2d2d" },
-  { id:"bold",    label:"โดดเด่น",  desc:"เข้มแข็งโดดเด่น", accent:"#8b1a1a" },
-  { id:"forest",  label:"ธรรมชาติ", desc:"ธรรมชาติสดใส",    accent:"#1a4a2e" },
-  { id:"dusk",    label:"หรูหรา",   desc:"หรูหราสง่างาม",   accent:"#4a2d6b" },
+  { id:"modern",  label:"Modern",  desc:"Stripe + Avatar Hero — header รูปซ้าย แถบสี",          accent:"#1e3a5f" },
+  { id:"minimal", label:"Minimal", desc:"Centered Typography — เรียบสะอาด ตัวหนังสือเป็นหลัก",  accent:"#2d2d2d" },
+  { id:"bold",    label:"Bold",    desc:"2-Column Sidebar — sidebar สีเข้มซ้าย + content ขวา",   accent:"#8b1a1a" },
+  { id:"forest",  label:"Forest",  desc:"Timeline Style — เส้น timeline + icon bullets สดใส",    accent:"#1a4a2e" },
+  { id:"dusk",    label:"Dusk",    desc:"Luxury Gradient — header gradient + 2-column หรูหรา",   accent:"#4a2d6b" },
 ];
 
 // Backend-supported template names (must match Backend)
@@ -905,8 +905,646 @@ function ProjectsSection({ projects, onChange }) {
   );
 }
 
-const ResumePreview = React.memo(function ResumePreview({ resume, template, isDark }) {
-  const accent  = isDark ? lightenColor(getAccentColor(template)) : getAccentColor(template);
+/* ─────────────────────────────────────────────────────────────
+   Template: MODERN  — stripe left + avatar hero
+───────────────────────────────────────────────────────────── */
+function TemplateModern({ resume, accent, textPri, textSec, textTer, ruleBdr, skillBg }) {
+  return (
+    <div className="re-paper re-paper--modern" id="resume-preview-root">
+      <div className="re-paper-stripe" style={{ background: accent }} />
+      <div className="re-paper-hero">
+        <div className="re-paper-avatar" style={{ background: `${accent}12`, border: `3px solid ${accent}30` }}>
+          {resume.profileImage
+            ? <img src={resume.profileImage} alt="โปรไฟล์" crossOrigin="anonymous" />
+            : <span style={{ opacity: .3, color: accent, fontSize: "2rem" }}>👤</span>}
+        </div>
+        <div className="re-paper-meta">
+          <h1 className="re-paper-name" style={{ color: textPri }}>{resume.fullName || "ชื่อของคุณ"}</h1>
+          {resume.jobTitle && <p className="re-paper-title" style={{ color: accent }}>{resume.jobTitle}</p>}
+          {(resume.email || resume.phone || resume.location) && (
+            <div className="re-paper-contact" style={{ color: textSec }}>
+              {resume.email && <span>✉ {resume.email}</span>}
+              {resume.phone && <span>☎ {resume.phone}</span>}
+              {resume.location && <span>📍 {resume.location}</span>}
+            </div>
+          )}
+          {(resume.linkedin || resume.github || resume.website) && (
+            <div className="re-paper-social" style={{ color: textTer }}>
+              {resume.linkedin && <span>in {resume.linkedin}</span>}
+              {resume.github && <span>⌥ {resume.github}</span>}
+              {resume.website && <span>🌐 {resume.website}</span>}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="re-paper-rule" style={{ background: `${accent}20` }} />
+      <div className="re-paper-content">
+        {resume.summary && (
+          <PaperSection title="โปรไฟล์" accentColor={accent}>
+            <p className="re-paper-summary" style={{ color: textSec }}>{resume.summary}</p>
+          </PaperSection>
+        )}
+        {resume.experience.length > 0 && (
+          <PaperSection title="ประสบการณ์ทำงาน" accentColor={accent}>
+            {resume.experience.map((exp, i) => (
+              <div key={exp._id || i} className="re-exp-item" style={{ borderBottom: `1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color: textPri }}>{exp.position}</div>
+                <div className="re-exp-co" style={{ color: accent }}>{exp.company}</div>
+                {(exp.startDate || exp.endDate) && <div className="re-exp-date" style={{ color: textTer }}>{exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}</div>}
+                {exp.description && <p className="re-exp-desc" style={{ color: textSec }}>{exp.description}</p>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.education.length > 0 && (
+          <PaperSection title="ประวัติการศึกษา" accentColor={accent}>
+            {resume.education.map((edu, i) => (
+              <div key={edu._id || i} className="re-edu-item">
+                <div className="re-edu-school" style={{ color: textPri }}>{edu.school}</div>
+                {edu.degree && <div className="re-edu-degree" style={{ color: textSec }}>{edu.degree}</div>}
+                {(edu.startYear || edu.endYear) && <div className="re-edu-years" style={{ color: textTer }}>{edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}</div>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.skills.length > 0 && (
+          <PaperSection title="ทักษะความสามารถ" accentColor={accent}>
+            <div className="re-paper-skills">
+              {resume.skills.map(sk => (
+                <span key={sk} className="re-paper-skill" style={{ background: skillBg, color: accent, borderColor: `${accent}30` }}>{sk}</span>
+              ))}
+            </div>
+          </PaperSection>
+        )}
+        {resume.languages.length > 0 && (
+          <PaperSection title="ภาษาที่ใช้ได้" accentColor={accent}>
+            <div className="re-lang-grid">
+              {resume.languages.map((lang, i) => (
+                <div key={lang._id || i} className="re-lang-item">
+                  <div className="re-lang-row-p">
+                    <span className="re-lang-name" style={{ color: textPri }}>{lang.name}</span>
+                    <span className="re-lang-lvl" style={{ color: textTer }}>{lang.level}</span>
+                  </div>
+                  <div className="re-lang-track" style={{ background: ruleBdr }}>
+                    <div className="re-lang-fill" style={{ width: `${LANG_LEVEL_PCT[lang.level] || 50}%`, background: accent }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </PaperSection>
+        )}
+        {resume.certifications.length > 0 && (
+          <PaperSection title="ใบรับรอง" accentColor={accent}>
+            {resume.certifications.map((cert, i) => (
+              <div key={cert._id || i} className="re-exp-item" style={{ borderBottom: `1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color: textPri }}>{cert.name}</div>
+                {cert.issuer && <div className="re-exp-co" style={{ color: accent }}>{cert.issuer}</div>}
+                {cert.issueDate && <div className="re-exp-date" style={{ color: textTer }}>{cert.issueDate}</div>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+        {resume.projects.length > 0 && (
+          <PaperSection title="โปรเจกต์" accentColor={accent}>
+            {resume.projects.map((proj, i) => (
+              <div key={proj._id || i} className="re-exp-item" style={{ borderBottom: `1px solid ${ruleBdr}` }}>
+                <div className="re-exp-pos" style={{ color: textPri }}>{proj.name}</div>
+                {proj.techStack && <div className="re-exp-co" style={{ color: accent }}>{proj.techStack}</div>}
+                {proj.link && <div className="re-exp-date" style={{ color: textTer }}>{proj.link}</div>}
+              </div>
+            ))}
+          </PaperSection>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Template: MINIMAL  — centered, text-first, no color blocks
+───────────────────────────────────────────────────────────── */
+function TemplateMinimal({ resume, accent, textPri, textSec, textTer, ruleBdr, skillBg }) {
+  return (
+    <div className="re-paper re-paper--minimal" id="resume-preview-root" style={{ fontFamily: "'Georgia', serif" }}>
+      {/* Centered header */}
+      <div style={{ textAlign: "center", padding: "32px 40px 20px", borderBottom: `2px solid ${accent}` }}>
+        {resume.profileImage && (
+          <img src={resume.profileImage} alt="" crossOrigin="anonymous"
+            style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", marginBottom: 10, border: `2px solid ${accent}40` }} />
+        )}
+        <h1 style={{ fontSize: "1.6rem", fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: textPri, margin: "0 0 4px" }}>
+          {resume.fullName || "ชื่อของคุณ"}
+        </h1>
+        {resume.jobTitle && (
+          <p style={{ fontSize: "0.85rem", letterSpacing: 3, textTransform: "uppercase", color: accent, margin: "0 0 10px" }}>
+            {resume.jobTitle}
+          </p>
+        )}
+        <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "4px 20px", fontSize: "0.72rem", color: textSec }}>
+          {resume.email && <span>{resume.email}</span>}
+          {resume.phone && <span>{resume.phone}</span>}
+          {resume.location && <span>{resume.location}</span>}
+          {resume.linkedin && <span>LinkedIn: {resume.linkedin}</span>}
+          {resume.github && <span>GitHub: {resume.github}</span>}
+        </div>
+      </div>
+
+      <div style={{ padding: "0 40px 32px" }}>
+        {resume.summary && (
+          <div style={{ marginTop: 20 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 6, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Profile</p>
+            <p style={{ fontSize: "0.8rem", lineHeight: 1.7, color: textSec, margin: 0 }}>{resume.summary}</p>
+          </div>
+        )}
+        {resume.experience.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Experience</p>
+            {resume.experience.map((exp, i) => (
+              <div key={exp._id || i} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <strong style={{ fontSize: "0.8rem", color: textPri }}>{exp.position}</strong>
+                  {(exp.startDate || exp.endDate) && <span style={{ fontSize: "0.68rem", color: textTer }}>{exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}</span>}
+                </div>
+                <div style={{ fontSize: "0.75rem", color: textSec, fontStyle: "italic" }}>{exp.company}</div>
+                {exp.description && <p style={{ fontSize: "0.75rem", color: textSec, marginTop: 4, lineHeight: 1.6 }}>{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.education.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Education</p>
+            {resume.education.map((edu, i) => (
+              <div key={edu._id || i} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <strong style={{ fontSize: "0.8rem", color: textPri }}>{edu.school}</strong>
+                  {(edu.startYear || edu.endYear) && <span style={{ fontSize: "0.68rem", color: textTer }}>{edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}</span>}
+                </div>
+                {edu.degree && <div style={{ fontSize: "0.75rem", color: textSec, fontStyle: "italic" }}>{edu.degree}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.skills.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Skills</p>
+            <p style={{ fontSize: "0.78rem", color: textSec, lineHeight: 1.8 }}>{resume.skills.join(" · ")}</p>
+          </div>
+        )}
+        {resume.languages.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Languages</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              {resume.languages.map((lang, i) => (
+                <span key={lang._id || i} style={{ fontSize: "0.78rem", color: textSec }}>{lang.name} <span style={{ color: textTer }}>({lang.level})</span></span>
+              ))}
+            </div>
+          </div>
+        )}
+        {resume.certifications.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Certifications</p>
+            {resume.certifications.map((cert, i) => (
+              <div key={cert._id || i} style={{ marginBottom: 8 }}>
+                <strong style={{ fontSize: "0.78rem", color: textPri }}>{cert.name}</strong>
+                {cert.issuer && <span style={{ fontSize: "0.72rem", color: textSec }}> — {cert.issuer}</span>}
+                {cert.issueDate && <span style={{ fontSize: "0.68rem", color: textTer }}> ({cert.issueDate})</span>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.projects.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontSize: "0.7rem", letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 8, borderBottom: `1px solid ${accent}30`, paddingBottom: 4 }}>Projects</p>
+            {resume.projects.map((proj, i) => (
+              <div key={proj._id || i} style={{ marginBottom: 10 }}>
+                <strong style={{ fontSize: "0.8rem", color: textPri }}>{proj.name}</strong>
+                {proj.techStack && <div style={{ fontSize: "0.72rem", color: textSec, fontStyle: "italic" }}>{proj.techStack}</div>}
+                {proj.link && <div style={{ fontSize: "0.68rem", color: textTer }}>{proj.link}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Template: BOLD  — 2-column: dark sidebar left + content right
+───────────────────────────────────────────────────────────── */
+function TemplateBold({ resume, accent, textPri, textSec, textTer, ruleBdr, skillBg, isDark }) {
+  const sidebarBg = isDark ? "#1a0a0a" : accent;
+  const sidebarText = "#ffffff";
+  const sidebarMuted = "rgba(255,255,255,0.65)";
+  return (
+    <div className="re-paper re-paper--bold" id="resume-preview-root"
+      style={{ display: "flex", padding: 0, gap: 0, overflow: "hidden" }}>
+      {/* Sidebar */}
+      <div style={{ width: "36%", background: sidebarBg, padding: "32px 20px", display: "flex", flexDirection: "column", gap: 20, flexShrink: 0 }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 80, height: 80, borderRadius: "50%", margin: "0 auto 12px", overflow: "hidden", border: "3px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {resume.profileImage
+              ? <img src={resume.profileImage} alt="" crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontSize: "2rem", opacity: 0.4 }}>👤</span>}
+          </div>
+          <h1 style={{ fontSize: "1.05rem", fontWeight: 800, color: sidebarText, margin: "0 0 4px", lineHeight: 1.2 }}>{resume.fullName || "ชื่อของคุณ"}</h1>
+          {resume.jobTitle && <p style={{ fontSize: "0.72rem", color: sidebarMuted, margin: 0, letterSpacing: 1 }}>{resume.jobTitle}</p>}
+        </div>
+
+        {/* Contact */}
+        {(resume.email || resume.phone || resume.location) && (
+          <div>
+            <div style={{ fontSize: "0.62rem", letterSpacing: 2, textTransform: "uppercase", color: sidebarMuted, marginBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 4 }}>Contact</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              {resume.email && <span style={{ fontSize: "0.7rem", color: sidebarText, wordBreak: "break-all" }}>✉ {resume.email}</span>}
+              {resume.phone && <span style={{ fontSize: "0.7rem", color: sidebarText }}>☎ {resume.phone}</span>}
+              {resume.location && <span style={{ fontSize: "0.7rem", color: sidebarText }}>📍 {resume.location}</span>}
+              {resume.linkedin && <span style={{ fontSize: "0.68rem", color: sidebarMuted }}>in {resume.linkedin}</span>}
+              {resume.github && <span style={{ fontSize: "0.68rem", color: sidebarMuted }}>⌥ {resume.github}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Skills */}
+        {resume.skills.length > 0 && (
+          <div>
+            <div style={{ fontSize: "0.62rem", letterSpacing: 2, textTransform: "uppercase", color: sidebarMuted, marginBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 4 }}>Skills</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px" }}>
+              {resume.skills.map(sk => (
+                <span key={sk} style={{ fontSize: "0.66rem", background: "rgba(255,255,255,0.12)", color: sidebarText, padding: "2px 8px", borderRadius: 20 }}>{sk}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Languages */}
+        {resume.languages.length > 0 && (
+          <div>
+            <div style={{ fontSize: "0.62rem", letterSpacing: 2, textTransform: "uppercase", color: sidebarMuted, marginBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 4 }}>Languages</div>
+            {resume.languages.map((lang, i) => (
+              <div key={lang._id || i} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                  <span style={{ fontSize: "0.72rem", color: sidebarText }}>{lang.name}</span>
+                  <span style={{ fontSize: "0.64rem", color: sidebarMuted }}>{lang.level}</span>
+                </div>
+                <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2 }}>
+                  <div style={{ height: "100%", width: `${LANG_LEVEL_PCT[lang.level] || 50}%`, background: "rgba(255,255,255,0.75)", borderRadius: 2 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, padding: "28px 24px", overflowY: "auto" }}>
+        {resume.summary && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid ${accent}` }}>Profile</div>
+            <p style={{ fontSize: "0.78rem", lineHeight: 1.7, color: textSec, margin: 0 }}>{resume.summary}</p>
+          </div>
+        )}
+        {resume.experience.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 10, paddingBottom: 4, borderBottom: `2px solid ${accent}` }}>Experience</div>
+            {resume.experience.map((exp, i) => (
+              <div key={exp._id || i} style={{ marginBottom: 14, paddingLeft: 10, borderLeft: `3px solid ${accent}30` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <strong style={{ fontSize: "0.8rem", color: textPri }}>{exp.position}</strong>
+                  {(exp.startDate || exp.endDate) && <span style={{ fontSize: "0.66rem", color: textTer }}>{exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}</span>}
+                </div>
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: accent, marginBottom: 3 }}>{exp.company}</div>
+                {exp.description && <p style={{ fontSize: "0.74rem", color: textSec, margin: 0, lineHeight: 1.6 }}>{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.education.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 10, paddingBottom: 4, borderBottom: `2px solid ${accent}` }}>Education</div>
+            {resume.education.map((edu, i) => (
+              <div key={edu._id || i} style={{ marginBottom: 10, paddingLeft: 10, borderLeft: `3px solid ${accent}30` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <strong style={{ fontSize: "0.8rem", color: textPri }}>{edu.school}</strong>
+                  {(edu.startYear || edu.endYear) && <span style={{ fontSize: "0.66rem", color: textTer }}>{edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}</span>}
+                </div>
+                {edu.degree && <div style={{ fontSize: "0.74rem", color: textSec }}>{edu.degree}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.certifications.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 10, paddingBottom: 4, borderBottom: `2px solid ${accent}` }}>Certifications</div>
+            {resume.certifications.map((cert, i) => (
+              <div key={cert._id || i} style={{ marginBottom: 8, paddingLeft: 10, borderLeft: `3px solid ${accent}30` }}>
+                <strong style={{ fontSize: "0.78rem", color: textPri }}>{cert.name}</strong>
+                {cert.issuer && <div style={{ fontSize: "0.72rem", color: textSec }}>{cert.issuer}</div>}
+                {cert.issueDate && <div style={{ fontSize: "0.66rem", color: textTer }}>{cert.issueDate}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.projects.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: accent, marginBottom: 10, paddingBottom: 4, borderBottom: `2px solid ${accent}` }}>Projects</div>
+            {resume.projects.map((proj, i) => (
+              <div key={proj._id || i} style={{ marginBottom: 10, paddingLeft: 10, borderLeft: `3px solid ${accent}30` }}>
+                <strong style={{ fontSize: "0.8rem", color: textPri }}>{proj.name}</strong>
+                {proj.techStack && <div style={{ fontSize: "0.72rem", color: accent }}>{proj.techStack}</div>}
+                {proj.link && <div style={{ fontSize: "0.66rem", color: textTer }}>{proj.link}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Template: FOREST  — timeline style with dot markers
+───────────────────────────────────────────────────────────── */
+function TemplateForest({ resume, accent, textPri, textSec, textTer, ruleBdr, skillBg }) {
+  const TimelineDot = () => (
+    <div style={{ width: 10, height: 10, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 4, boxShadow: `0 0 0 3px ${accent}25` }} />
+  );
+  return (
+    <div className="re-paper re-paper--forest" id="resume-preview-root" style={{ padding: 0 }}>
+      {/* Top banner */}
+      <div style={{ background: `linear-gradient(135deg, ${accent} 0%, ${accent}cc 100%)`, padding: "28px 32px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ position: "absolute", bottom: -30, right: 60, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18, position: "relative" }}>
+          <div style={{ width: 76, height: 76, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.4)", overflow: "hidden", flexShrink: 0, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {resume.profileImage
+              ? <img src={resume.profileImage} alt="" crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontSize: "2rem", opacity: 0.5 }}>🌿</span>}
+          </div>
+          <div>
+            <h1 style={{ fontSize: "1.4rem", fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>{resume.fullName || "ชื่อของคุณ"}</h1>
+            {resume.jobTitle && <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.8)", margin: "0 0 8px" }}>{resume.jobTitle}</p>}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 14px", fontSize: "0.68rem", color: "rgba(255,255,255,0.7)" }}>
+              {resume.email && <span>✉ {resume.email}</span>}
+              {resume.phone && <span>☎ {resume.phone}</span>}
+              {resume.location && <span>📍 {resume.location}</span>}
+              {resume.linkedin && <span>in {resume.linkedin}</span>}
+              {resume.github && <span>⌥ {resume.github}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: "20px 32px 28px" }}>
+        {resume.summary && (
+          <div style={{ marginBottom: 20, background: `${accent}08`, borderRadius: 8, padding: "12px 16px", borderLeft: `4px solid ${accent}` }}>
+            <p style={{ fontSize: "0.78rem", lineHeight: 1.7, color: textSec, margin: 0 }}>{resume.summary}</p>
+          </div>
+        )}
+        {resume.skills.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 10 }}>🔧 ทักษะ</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 7px" }}>
+              {resume.skills.map(sk => (
+                <span key={sk} style={{ fontSize: "0.7rem", background: skillBg, color: accent, padding: "3px 10px", borderRadius: 4, border: `1px solid ${accent}30` }}>{sk}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {resume.experience.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 12 }}>💼 ประสบการณ์</div>
+            <div style={{ borderLeft: `2px solid ${accent}30`, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+              {resume.experience.map((exp, i) => (
+                <div key={exp._id || i} style={{ position: "relative" }}>
+                  <div style={{ position: "absolute", left: -21, top: 4, width: 10, height: 10, borderRadius: "50%", background: accent, boxShadow: `0 0 0 3px ${accent}25` }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <strong style={{ fontSize: "0.8rem", color: textPri }}>{exp.position}</strong>
+                    {(exp.startDate || exp.endDate) && <span style={{ fontSize: "0.66rem", color: textTer }}>{exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}</span>}
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: accent, marginBottom: 3 }}>{exp.company}</div>
+                  {exp.description && <p style={{ fontSize: "0.74rem", color: textSec, margin: 0, lineHeight: 1.6 }}>{exp.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {resume.education.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 12 }}>🎓 การศึกษา</div>
+            <div style={{ borderLeft: `2px solid ${accent}30`, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              {resume.education.map((edu, i) => (
+                <div key={edu._id || i} style={{ position: "relative" }}>
+                  <div style={{ position: "absolute", left: -21, top: 4, width: 10, height: 10, borderRadius: "50%", background: accent, boxShadow: `0 0 0 3px ${accent}25` }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <strong style={{ fontSize: "0.8rem", color: textPri }}>{edu.school}</strong>
+                    {(edu.startYear || edu.endYear) && <span style={{ fontSize: "0.66rem", color: textTer }}>{edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}</span>}
+                  </div>
+                  {edu.degree && <div style={{ fontSize: "0.74rem", color: textSec }}>{edu.degree}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {resume.languages.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 10 }}>🌏 ภาษา</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {resume.languages.map((lang, i) => (
+                <div key={lang._id || i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: "0.75rem", color: textPri, width: 90, flexShrink: 0 }}>{lang.name}</span>
+                  <div style={{ flex: 1, height: 5, background: ruleBdr, borderRadius: 3 }}>
+                    <div style={{ height: "100%", width: `${LANG_LEVEL_PCT[lang.level] || 50}%`, background: accent, borderRadius: 3 }} />
+                  </div>
+                  <span style={{ fontSize: "0.65rem", color: textTer, width: 70, textAlign: "right" }}>{lang.level}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {resume.certifications.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 10 }}>🏆 ใบรับรอง</div>
+            {resume.certifications.map((cert, i) => (
+              <div key={cert._id || i} style={{ marginBottom: 8, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <span style={{ color: accent, marginTop: 1 }}>▸</span>
+                <div>
+                  <strong style={{ fontSize: "0.78rem", color: textPri }}>{cert.name}</strong>
+                  {cert.issuer && <span style={{ fontSize: "0.72rem", color: textSec }}> — {cert.issuer}</span>}
+                  {cert.issueDate && <div style={{ fontSize: "0.66rem", color: textTer }}>{cert.issueDate}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {resume.projects.length > 0 && (
+          <div>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: accent, marginBottom: 10 }}>🚀 โปรเจกต์</div>
+            {resume.projects.map((proj, i) => (
+              <div key={proj._id || i} style={{ marginBottom: 10, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <span style={{ color: accent, marginTop: 1 }}>▸</span>
+                <div>
+                  <strong style={{ fontSize: "0.78rem", color: textPri }}>{proj.name}</strong>
+                  {proj.techStack && <div style={{ fontSize: "0.72rem", color: accent }}>{proj.techStack}</div>}
+                  {proj.link && <div style={{ fontSize: "0.66rem", color: textTer }}>{proj.link}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Template: DUSK  — luxury gradient header + elegant layout
+───────────────────────────────────────────────────────────── */
+function TemplateDusk({ resume, accent, textPri, textSec, textTer, ruleBdr, skillBg, isDark }) {
+  const gradEnd = isDark ? "#1a0d2e" : "#f5f0ff";
+  return (
+    <div className="re-paper re-paper--dusk" id="resume-preview-root" style={{ padding: 0, fontFamily: "'Georgia', serif" }}>
+      {/* Luxury header */}
+      <div style={{ background: `linear-gradient(160deg, ${accent} 0%, #1a0d2e 100%)`, padding: "36px 40px 28px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: "radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.07) 0%, transparent 60%)" }} />
+        <div style={{ position: "relative" }}>
+          <div style={{ width: 88, height: 88, borderRadius: "50%", margin: "0 auto 14px", border: "3px solid rgba(255,255,255,0.35)", overflow: "hidden", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {resume.profileImage
+              ? <img src={resume.profileImage} alt="" crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontSize: "2.5rem", opacity: 0.4 }}>✦</span>}
+          </div>
+          <h1 style={{ fontSize: "1.6rem", fontWeight: 400, letterSpacing: 3, color: "#fff", margin: "0 0 6px", textTransform: "uppercase" }}>{resume.fullName || "ชื่อของคุณ"}</h1>
+          {resume.jobTitle && (
+            <p style={{ fontSize: "0.78rem", letterSpacing: 4, textTransform: "uppercase", color: "rgba(255,255,255,0.65)", margin: "0 0 16px" }}>{resume.jobTitle}</p>
+          )}
+          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "4px 20px", fontSize: "0.68rem", color: "rgba(255,255,255,0.6)" }}>
+            {resume.email && <span>✉ {resume.email}</span>}
+            {resume.phone && <span>☎ {resume.phone}</span>}
+            {resume.location && <span>📍 {resume.location}</span>}
+            {resume.linkedin && <span>in {resume.linkedin}</span>}
+            {resume.github && <span>⌥ {resume.github}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Decorative divider */}
+      <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
+
+      <div style={{ padding: "24px 40px 32px", background: isDark ? "#0d0818" : "#faf8ff" }}>
+        {resume.summary && (
+          <div style={{ marginBottom: 22, textAlign: "center" }}>
+            <p style={{ fontSize: "0.8rem", lineHeight: 1.8, color: textSec, margin: 0, fontStyle: "italic", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>"{resume.summary}"</p>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 28px" }}>
+          {/* Left column */}
+          <div>
+            {resume.experience.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Experience</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                {resume.experience.map((exp, i) => (
+                  <div key={exp._id || i} style={{ marginBottom: 14 }}>
+                    <strong style={{ fontSize: "0.78rem", color: textPri, display: "block" }}>{exp.position}</strong>
+                    <span style={{ fontSize: "0.72rem", color: accent }}>{exp.company}</span>
+                    {(exp.startDate || exp.endDate) && <div style={{ fontSize: "0.64rem", color: textTer, fontStyle: "italic" }}>{exp.startDate}{exp.endDate ? ` – ${exp.endDate}` : ""}</div>}
+                    {exp.description && <p style={{ fontSize: "0.72rem", color: textSec, marginTop: 4, lineHeight: 1.6 }}>{exp.description}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {resume.education.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Education</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                {resume.education.map((edu, i) => (
+                  <div key={edu._id || i} style={{ marginBottom: 10 }}>
+                    <strong style={{ fontSize: "0.78rem", color: textPri, display: "block" }}>{edu.school}</strong>
+                    {edu.degree && <div style={{ fontSize: "0.72rem", color: textSec, fontStyle: "italic" }}>{edu.degree}</div>}
+                    {(edu.startYear || edu.endYear) && <div style={{ fontSize: "0.64rem", color: textTer }}>{edu.startYear}{edu.endYear ? ` – ${edu.endYear}` : ""}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {resume.certifications.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Certifications</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                {resume.certifications.map((cert, i) => (
+                  <div key={cert._id || i} style={{ marginBottom: 8 }}>
+                    <strong style={{ fontSize: "0.76rem", color: textPri }}>{cert.name}</strong>
+                    {cert.issuer && <div style={{ fontSize: "0.7rem", color: textSec }}>{cert.issuer}</div>}
+                    {cert.issueDate && <div style={{ fontSize: "0.64rem", color: textTer, fontStyle: "italic" }}>{cert.issueDate}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right column */}
+          <div>
+            {resume.skills.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Skills</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px" }}>
+                  {resume.skills.map(sk => (
+                    <span key={sk} style={{ fontSize: "0.68rem", color: accent, border: `1px solid ${accent}40`, padding: "2px 10px", borderRadius: 20, background: skillBg }}>{sk}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {resume.languages.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Languages</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                {resume.languages.map((lang, i) => (
+                  <div key={lang._id || i} style={{ marginBottom: 9 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                      <span style={{ fontSize: "0.74rem", color: textPri }}>{lang.name}</span>
+                      <span style={{ fontSize: "0.64rem", color: textTer, fontStyle: "italic" }}>{lang.level}</span>
+                    </div>
+                    <div style={{ height: 2, background: ruleBdr, borderRadius: 1 }}>
+                      <div style={{ height: "100%", width: `${LANG_LEVEL_PCT[lang.level] || 50}%`, background: `linear-gradient(90deg, ${accent}, ${accent}80)`, borderRadius: 1 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {resume.projects.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: "0.62rem", letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>Projects</span><div style={{ flex: 1, height: 1, background: `${accent}30` }} />
+                </div>
+                {resume.projects.map((proj, i) => (
+                  <div key={proj._id || i} style={{ marginBottom: 10 }}>
+                    <strong style={{ fontSize: "0.78rem", color: textPri, display: "block" }}>{proj.name}</strong>
+                    {proj.techStack && <div style={{ fontSize: "0.7rem", color: accent }}>{proj.techStack}</div>}
+                    {proj.link && <div style={{ fontSize: "0.64rem", color: textTer, fontStyle: "italic" }}>{proj.link}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ResumePreview — dispatcher that routes to each template
+───────────────────────────────────────────────────────────── */
+const ResumePreview = React.memo(function ResumePreview({ resume, template, isDark, accentOverride }) {
+  const baseAccent = accentOverride || getAccentColor(template);
+  const accent  = isDark ? lightenColor(baseAccent) : baseAccent;
   const textPri = isDark ? "#e8f0f9" : "#0d1b2a";
   const textSec = isDark ? "#6e8aaa" : "#5e7087";
   const textTer = isDark ? "#334a62" : "#9aaabb";
@@ -916,7 +1554,7 @@ const ResumePreview = React.memo(function ResumePreview({ resume, template, isDa
   const isEmpty = !resume.fullName && !resume.jobTitle && !resume.summary
     && !resume.skills.length && !resume.experience.length;
 
-  if(isEmpty) {
+  if (isEmpty) {
     return (
       <div className="re-paper">
         <div className="re-paper-empty">
@@ -927,120 +1565,18 @@ const ResumePreview = React.memo(function ResumePreview({ resume, template, isDa
     );
   }
 
-  return (
-    <div className={`re-paper re-paper--${template}`} id="resume-preview-root">
-      <div className="re-paper-stripe" style={{ background:accent }} />
-      <div className="re-paper-hero">
-        <div className="re-paper-avatar" style={{ background:`${accent}12`, border:`3px solid ${accent}30` }}>
-          {resume.profileImage
-            ? <img src={resume.profileImage} alt="โปรไฟล์" crossOrigin="anonymous" />
-            : <span style={{ opacity:.3, color:accent, fontSize:"2rem" }}>👤</span>}
-        </div>
-        <div className="re-paper-meta">
-          <h1 className="re-paper-name" style={{ color:textPri }}>{resume.fullName||"ชื่อของคุณ"}</h1>
-          {resume.jobTitle && <p className="re-paper-title" style={{ color:accent }}>{resume.jobTitle}</p>}
-          {/* Contact info row */}
-          {(resume.email||resume.phone||resume.location) && (
-            <div className="re-paper-contact" style={{ color:textSec, fontSize:"0.72rem", marginTop:4, display:"flex", flexWrap:"wrap", gap:"6px 14px" }}>
-              {resume.email && <span>✉ {resume.email}</span>}
-              {resume.phone && <span>☎ {resume.phone}</span>}
-              {resume.location && <span>📍 {resume.location}</span>}
-            </div>
-          )}
-          {(resume.linkedin||resume.github||resume.website) && (
-            <div className="re-paper-social" style={{ color:textTer, fontSize:"0.68rem", marginTop:2, display:"flex", flexWrap:"wrap", gap:"6px 14px" }}>
-              {resume.linkedin && <span>LinkedIn: {resume.linkedin}</span>}
-              {resume.github && <span>GitHub: {resume.github}</span>}
-              {resume.website && <span>🌐 {resume.website}</span>}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="re-paper-rule" style={{ background:`${accent}20` }} />
-      <div className="re-paper-content">
-        {resume.summary && (
-          <PaperSection title="โปรไฟล์" accentColor={accent}>
-            <p className="re-paper-summary" style={{ color:textSec }}>{resume.summary}</p>
-          </PaperSection>
-        )}
-        {resume.experience.length>0 && (
-          <PaperSection title="ประสบการณ์ทำงาน" accentColor={accent}>
-            {resume.experience.map((exp,i) => (
-              <div key={exp._id||i} className="re-exp-item" style={{ borderBottom:`1px solid ${ruleBdr}` }}>
-                <div className="re-exp-pos" style={{ color:textPri }}>{exp.position}</div>
-                <div className="re-exp-co" style={{ color:accent }}>{exp.company}</div>
-                {(exp.startDate||exp.endDate) && <div className="re-exp-date" style={{ color:textTer }}>{exp.startDate}{exp.endDate?` – ${exp.endDate}`:""}</div>}
-                {exp.description && <p className="re-exp-desc" style={{ color:textSec }}>{exp.description}</p>}
-              </div>
-            ))}
-          </PaperSection>
-        )}
-        {resume.education.length>0 && (
-          <PaperSection title="ประวัติการศึกษา" accentColor={accent}>
-            {resume.education.map((edu,i) => (
-              <div key={edu._id||i} className="re-edu-item">
-                <div className="re-edu-school" style={{ color:textPri }}>{edu.school}</div>
-                {edu.degree && <div className="re-edu-degree" style={{ color:textSec }}>{edu.degree}</div>}
-                {(edu.startYear||edu.endYear) && <div className="re-edu-years" style={{ color:textTer }}>{edu.startYear}{edu.endYear?` – ${edu.endYear}`:""}</div>}
-              </div>
-            ))}
-          </PaperSection>
-        )}
-        {resume.skills.length>0 && (
-          <PaperSection title="ทักษะความสามารถ" accentColor={accent}>
-            <div className="re-paper-skills">
-              {resume.skills.map(sk => (
-                <span key={sk} className="re-paper-skill" style={{ background:skillBg, color:accent, borderColor:`${accent}30` }}>{sk}</span>
-              ))}
-            </div>
-          </PaperSection>
-        )}
-        {resume.languages.length>0 && (
-          <PaperSection title="ภาษาที่ใช้ได้" accentColor={accent}>
-            <div className="re-lang-grid">
-              {resume.languages.map((lang,i) => (
-                <div key={lang._id||i} className="re-lang-item">
-                  <div className="re-lang-row-p">
-                    <span className="re-lang-name" style={{ color:textPri }}>{lang.name}</span>
-                    <span className="re-lang-lvl" style={{ color:textTer }}>{lang.level}</span>
-                  </div>
-                  <div className="re-lang-track" style={{ background:ruleBdr }}>
-                    <div className="re-lang-fill" style={{ width:`${LANG_LEVEL_PCT[lang.level]||50}%`, background:accent }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </PaperSection>
-        )}
-        {resume.certifications.length>0 && (
-          <PaperSection title="ใบรับรอง" accentColor={accent}>
-            {resume.certifications.map((cert,i) => (
-              <div key={cert._id||i} className="re-exp-item" style={{ borderBottom:`1px solid ${ruleBdr}` }}>
-                <div className="re-exp-pos" style={{ color:textPri }}>{cert.name}</div>
-                {cert.issuer && <div className="re-exp-co" style={{ color:accent }}>{cert.issuer}</div>}
-                {cert.issueDate && <div className="re-exp-date" style={{ color:textTer }}>{cert.issueDate}</div>}
-              </div>
-            ))}
-          </PaperSection>
-        )}
-        {resume.projects.length>0 && (
-          <PaperSection title="โปรเจกต์" accentColor={accent}>
-            {resume.projects.map((proj,i) => (
-              <div key={proj._id||i} className="re-exp-item" style={{ borderBottom:`1px solid ${ruleBdr}` }}>
-                <div className="re-exp-pos" style={{ color:textPri }}>{proj.name}</div>
-                {proj.techStack && <div className="re-exp-co" style={{ color:accent }}>{proj.techStack}</div>}
-                {proj.link && <div className="re-exp-date" style={{ color:textTer }}>{proj.link}</div>}
-              </div>
-            ))}
-          </PaperSection>
-        )}
-      </div>
-    </div>
-  );
+  const props = { resume, accent, textPri, textSec, textTer, ruleBdr, skillBg, isDark };
+
+  if (template === "minimal") return <TemplateMinimal {...props} />;
+  if (template === "bold")    return <TemplateBold    {...props} />;
+  if (template === "forest")  return <TemplateForest  {...props} />;
+  if (template === "dusk")    return <TemplateDusk    {...props} />;
+  return <TemplateModern {...props} />;
 });
 
 /* preview controls shared between panel and drawer */
-function PreviewControls({ template, setTemplate, previewZoom, setPreviewZoom, exporting, onExport }) {
+function PreviewControls({ template, setTemplate, templateColors, setTemplateColors, previewZoom, setPreviewZoom, exporting, onExport }) {
+  const currentColor = templateColors[template] || getAccentColor(template);
   return (
     <>
       <div className="re-zoom-ctrl">
@@ -1054,11 +1590,26 @@ function PreviewControls({ template, setTemplate, previewZoom, setPreviewZoom, e
             className={`re-tmpl-btn${template===t.id?" re-tmpl-btn--active":""}`}
             onClick={() => setTemplate(t.id)}
             title={t.desc}
-            style={template===t.id ? { borderColor:t.accent, color:t.accent } : {}}
+            style={template===t.id ? { borderColor: templateColors[t.id]||t.accent, color: templateColors[t.id]||t.accent } : {}}
           >
             {t.label}
           </button>
         ))}
+      </div>
+      {/* Per-template color picker */}
+      <div className="re-color-picker-wrap" title={`สีธีม (${TEMPLATES.find(t=>t.id===template)?.label})`}>
+        <span className="re-color-picker-label">🎨</span>
+        <input
+          type="color"
+          className="re-color-input"
+          value={currentColor}
+          onChange={e => setTemplateColors(prev => ({ ...prev, [template]: e.target.value }))}
+        />
+        <button
+          className="re-color-reset-btn"
+          title="คืนค่าสีเริ่มต้น"
+          onClick={() => setTemplateColors(prev => ({ ...prev, [template]: TEMPLATES.find(t=>t.id===template)?.accent || "#1e3a5f" }))}
+        >↺</button>
       </div>
       <button className="re-btn re-btn-export" onClick={onExport} disabled={exporting}>
         {exporting ? <><Spinner />กำลังส่งออก…</> : "↓ PDF"}
@@ -1074,6 +1625,7 @@ export default function ResumeEditor() {
   const [resume, setResume]           = useState(EMPTY_RESUME);
   const [resumeId, setResumeId]       = useState(null);
   const [template, setTemplate]       = useState("modern");
+  const [templateColors, setTemplateColors] = useState(() => Object.fromEntries(TEMPLATES.map(t => [t.id, t.accent])));
   const [isDark, setIsDark]           = useState(false);
   const [jobRole, setJobRole]         = useState("");
   const [activeSection, setActiveSection] = useState("profile");
@@ -1375,23 +1927,79 @@ export default function ResumeEditor() {
     if(exportingRef.current) return;
     exportingRef.current = true;
     setExporting(true);
+
+    const A4_WIDTH_PX = 794;
+
+    // Wrapper วางนอก viewport ไม่กระทบ layout จริง
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = [
+      "position:absolute",
+      "top:0",
+      "left:-9999px",
+      `width:${A4_WIDTH_PX}px`,
+      "overflow:visible",
+      "pointer-events:none",
+      "z-index:-1",
+    ].join(";");
+
+    const clone = el.cloneNode(true);
+    clone.removeAttribute("id");
+
+    // ✅ ตั้งค่าเฉพาะ width — ไม่ override padding/margin ของ template
+    // ✅ force ลบ min-height เพื่อป้องกันหน้าว่างส่วนเกิน
+    clone.style.setProperty("width",      `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("min-width",  `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("max-width",  `${A4_WIDTH_PX}px`, "important");
+    clone.style.setProperty("min-height", "0",                "important");
+    clone.style.setProperty("height",     "auto",             "important");
+    clone.style.setProperty("overflow",   "visible",          "important");
+
+    // ลบ transform/scale ที่อาจติดมาจาก preview zoom
+    clone.style.setProperty("transform",        "none", "important");
+    clone.style.setProperty("transform-origin", "unset","important");
+
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    // รอให้ browser layout clone ก่อน capture
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-      const imgs = el.querySelectorAll("img");
+
+      // รอรูปทุกรูปใน clone โหลดเสร็จ
+      const imgs = clone.querySelectorAll("img");
       await Promise.all([...imgs].map(img =>
-        img.complete ? Promise.resolve() : new Promise(r => { img.onload=r; img.onerror=r; })
+        img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
       ));
+
       await html2pdf().set({
-        margin:0,
-        filename:`${resume.fullName||"resume"}.pdf`,
-        image:       { type:"jpeg", quality:0.97 },
-        html2canvas: { scale:2, useCORS:true, allowTaint:true, letterRendering:true, scrollX:0, scrollY:0 },
-        jsPDF:       { unit:"mm", format:"a4", orientation:"portrait" },
-      }).from(el).save();
+        margin:      0,
+        filename:    `${resume.fullName || "resume"}.pdf`,
+        image:       { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale:           2,
+          useCORS:         true,
+          allowTaint:      true,
+          letterRendering: true,
+          scrollX:         0,
+          scrollY:         0,
+          width:           A4_WIDTH_PX,
+          windowWidth:     A4_WIDTH_PX,
+        },
+        jsPDF:       { unit: "mm", format: "a4", orientation: "portrait" },
+        // หลายหน้าอัตโนมัติ — ไม่ตัดกลางกล่อง
+        pagebreak:   { mode: ["css", "legacy"] },
+      }).from(clone).save();
+
       showToast("ส่งออก PDF สำเร็จ ✓");
     } catch(err) {
-      if(err.name!=="AbortError") showToast("ส่งออกไม่สำเร็จ: "+(err.message||"ข้อผิดพลาดที่ไม่ทราบ"),"error");
-    } finally { exportingRef.current = false; setExporting(false); }
+      if(err.name !== "AbortError") showToast("ส่งออกไม่สำเร็จ: " + (err.message || "ข้อผิดพลาดที่ไม่ทราบ"), "error");
+    } finally {
+      document.body.removeChild(wrapper);
+      exportingRef.current = false;
+      setExporting(false);
+    }
   };
 
   /* ── Keyboard shortcut: Ctrl/Cmd+S to save ── */
@@ -1435,12 +2043,19 @@ export default function ResumeEditor() {
     setResumeId(null);
     setJobRole("");
     setTemplate("modern");
+    setTemplateColors(Object.fromEntries(TEMPLATES.map(t => [t.id, t.accent])));
     lastSavedState.current = JSON.stringify(EMPTY_RESUME);
     showToast("ล้างข้อมูลทั้งหมดแล้ว","info");
   };
 
   const previewContent = (
-    <ResumePreview resume={resume} template={template} isDark={isDark} />
+    <ResumePreview
+      key={`${template}-${templateColors[template]}`}
+      resume={resume}
+      template={template}
+      isDark={isDark}
+      accentOverride={templateColors[template]}
+    />
   );
 
   /* ═══════════════════ RENDER ═══════════════════ */
@@ -1649,6 +2264,7 @@ export default function ResumeEditor() {
               <div className="re-topbar-right">
                 <PreviewControls
                   template={template} setTemplate={setTemplate}
+                  templateColors={templateColors} setTemplateColors={setTemplateColors}
                   previewZoom={previewZoom} setPreviewZoom={setPreviewZoom}
                   exporting={exporting} onExport={handleExportPDF}
                 />
@@ -1674,6 +2290,7 @@ export default function ResumeEditor() {
               <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
                 <PreviewControls
                   template={template} setTemplate={setTemplate}
+                  templateColors={templateColors} setTemplateColors={setTemplateColors}
                   previewZoom={previewZoom} setPreviewZoom={setPreviewZoom}
                   exporting={exporting} onExport={handleExportPDF}
                 />

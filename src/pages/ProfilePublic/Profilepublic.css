@@ -92,6 +92,7 @@
 /* — Classic — */
 .pp-header-classic { background: var(--pp-surface); }
 .pp-header-body { padding: 0 32px 28px; }
+.pp-header-classic.pp-has-cover .pp-header-body { padding-top: 20px; }
 .pp-header-classic--center .pp-header-body { display: flex; flex-direction: column; align-items: center; }
 .pp-header-classic--center .pp-contacts { justify-content: center; flex-wrap: wrap; }
 
@@ -111,14 +112,19 @@
 /* — Banner — */
 .pp-header-banner { position: relative; background: var(--pp-surface); }
 .pp-banner-cover {
-  height: 220px;
+  height: 160px;
   background-color: var(--pp-accent);
+  background-size: cover;
+  background-position: center;
 }
 .pp-banner-body {
   display: flex; align-items: flex-end; gap: 20px;
   padding: 0 32px 24px;
   margin-top: -40px;
   position: relative;
+}
+.pp-header-banner.pp-has-cover .pp-banner-body {
+  margin-top: -48px;
 }
 .pp-banner-avatar {
   border-radius: 50%; border: 4px solid;
@@ -135,6 +141,11 @@
   background: var(--pp-surface);
   padding: 20px 32px;
   border-bottom: 1px solid var(--pp-border);
+}
+.pp-header-compact.pp-has-cover {
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 20px;
 }
 .pp-compact-avatar {
   border-radius: 50%; border: 3px solid;

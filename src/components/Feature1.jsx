@@ -175,6 +175,7 @@ const DEFAULT_STYLE = {
   avatarSize:       88,
   skillStyle:       "pill",
   timelineStyle:    "line",
+  coverImage:       "",
 };
 
 /* ═══════════════════════════════════════════
@@ -263,7 +264,7 @@ function SectionRow({ sec, visible, onToggle }) {
 /* ═══════════════════════════════════════════
    PREVIEW MINI (memoized — ไม่สร้างใหม่ทุก render)
 ═══════════════════════════════════════════ */
-const PreviewMini = React.memo(function PreviewMini({ accent, darkMode, layout, sectionOrder, visibleSections }) {
+const PreviewMini = React.memo(function PreviewMini({ accent, darkMode, layout, sectionOrder, visibleSections, coverImage, headerStyle }) {
   const dark   = darkMode;
   const bg     = dark ? "#0f172a" : "#f8fafc";
   const surf   = dark ? "#1e293b" : "#ffffff";
@@ -340,8 +341,19 @@ const PreviewMini = React.memo(function PreviewMini({ accent, darkMode, layout, 
   };
 
   return (
-    <div style={{ background: bg, borderRadius: 8, padding: 12, height: "100%", minHeight: 200, transition: "all .3s ease" }}>
-      {layouts[layout] || layouts.sidebar}
+    <div style={{ background: bg, borderRadius: 8, padding: 12, height: "100%", minHeight: 200, transition: "all .3s ease", position: "relative", overflow: "hidden" }}>
+      {/* Cover image strip — แสดงเฉพาะ headerStyle = banner */}
+      {coverImage && headerStyle === "banner" && (
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "48px",
+          backgroundImage: `url(${coverImage})`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          borderRadius: "8px 8px 0 0",
+        }} />
+      )}
+      <div style={{ position: "relative", zIndex: 1, marginTop: coverImage && headerStyle === "banner" ? "36px" : 0 }}>
+        {layouts[layout] || layouts.sidebar}
+      </div>
     </div>
   );
 });
@@ -359,6 +371,8 @@ export default function ProfileEditor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isAuthed,   setIsAuthed]   = useState(false);
   const [loading,    setLoading]    = useState(true);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef(null);
   
   // Track last saved style to detect changes
   const lastSavedStyle = useRef(null);
@@ -422,6 +436,37 @@ export default function ProfileEditor() {
     setHasChanges(false);
     ping("✓ Design reset to default");
   }, [ping]);
+
+  const uploadCover = useCallback(async (file) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      ping("รูปภาพต้องไม่เกิน 10MB", true);
+      return;
+    }
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    if (!allowed.includes(file.type)) {
+      ping("รองรับเฉพาะ JPG, PNG, WebP เท่านั้น", true);
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${BASE_URL}/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+      const data = await res.json();
+      setSt("coverImage", data.imageUrl);
+      setHasChanges(true);
+      ping("✓ อัปโหลดรูปพื้นหลังสำเร็จ");
+    } catch (err) {
+      ping(`อัปโหลดไม่สำเร็จ: ${err.message}`, true);
+    } finally {
+      setUploadingCover(false);
+    }
+  }, [ping, setSt]);
 
   const dismissToast = useCallback(() => {
     // Clear auto-dismiss timeout when manually closing
@@ -490,7 +535,8 @@ export default function ProfileEditor() {
             : {};
           
           // Clean up old cover fields from loaded data (backward compatibility)
-          const { cover, coverBlur, coverImage, coverPosition, coverOverlay, showCover, ...cleanedStyle } = loadedStyle;
+          // Keep coverImage — it's now a supported feature
+          const { cover, coverBlur, coverPosition, coverOverlay, showCover, ...cleanedStyle } = loadedStyle;
           loadedStyle = cleanedStyle;
           
           // Ensure all sections are present in sectionOrder
@@ -577,6 +623,7 @@ export default function ProfileEditor() {
       avatarSize: Number.isInteger(style.avatarSize) ? Math.max(48, Math.min(140, style.avatarSize)) : 88,
       skillStyle: ["pill","badge","bar","dot"].includes(style.skillStyle) ? style.skillStyle : "pill",
       timelineStyle: ["line","compact","card"].includes(style.timelineStyle) ? style.timelineStyle : "line",
+      coverImage: typeof style.coverImage === "string" ? style.coverImage : "",
     };
 
     // Optimistic update: update UI immediately
@@ -848,6 +895,56 @@ export default function ProfileEditor() {
                   <Toggle label="โหมดมืด" sub="พื้นหลังมืด ตัวหนังสือสว่าง"
                     on={style.darkMode} onChange={v => setSt("darkMode", v)} />
                 </section>
+
+                {/* Cover image — แสดงเฉพาะ headerStyle = banner */}
+                {style.headerStyle === "banner" && (
+                <section className="pe-section">
+                  <SectionHead title="รูปพื้นหลัง" />
+                  <p className="pe-hint">รองรับ JPG, PNG, WebP (ไม่เกิน 5MB)</p>
+
+                  {/* Preview cover */}
+                  {style.coverImage && (
+                    <div style={{ position: "relative", marginBottom: "10px", borderRadius: "8px", overflow: "hidden", aspectRatio: "4/1", width: "100%" }}>
+                      <img
+                        src={style.coverImage}
+                        alt="cover preview"
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setSt("coverImage", ""); setHasChanges(true); }}
+                        title="ลบรูปพื้นหลัง"
+                        style={{
+                          position: "absolute", top: "6px", right: "6px",
+                          background: "rgba(0,0,0,0.6)", color: "#fff",
+                          border: "none", borderRadius: "50%",
+                          width: "24px", height: "24px",
+                          cursor: "pointer", fontSize: "12px",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >✕</button>
+                    </div>
+                  )}
+
+                  {/* Upload button */}
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    style={{ display: "none" }}
+                    onChange={e => { if (e.target.files?.[0]) uploadCover(e.target.files[0]); e.target.value = ""; }}
+                  />
+                  <button
+                    type="button"
+                    className="pe-btn pe-btn--ghost pe-btn--full"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingCover}
+                    aria-busy={uploadingCover}
+                  >
+                    {uploadingCover ? "⏳ กำลังอัปโหลด…" : style.coverImage ? "🖼 เปลี่ยนรูปพื้นหลัง" : "📷 อัปโหลดรูปพื้นหลัง"}
+                  </button>
+                </section>
+                )}
               </>
             )}
 
@@ -998,6 +1095,8 @@ export default function ProfileEditor() {
               layout={style.layout}
               sectionOrder={style.sectionOrder}
               visibleSections={style.visibleSections}
+              coverImage={style.coverImage}
+              headerStyle={style.headerStyle}
             />
           </div>
 

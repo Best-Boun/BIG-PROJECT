@@ -47,6 +47,9 @@ const DEFAULT_STYLE = {
   skillStyle:      "pill",
   timelineStyle:   "line",
   
+  // Cover image
+  coverImage:      "",
+
   // Legacy/computed
   avatarSize:      88,
   animation:       "fade",
@@ -175,7 +178,7 @@ function HeaderClassic({ p, st }) {
   const avatarSize = st.avatarSize || 88;
   
   return (
-    <div className={`pp-header-classic${center ? " pp-header-classic--center" : ""}`}>
+    <div className={`pp-header-classic${center ? " pp-header-classic--center" : ""}${st.coverImage ? " pp-has-cover" : ""}`}>
       <div className="pp-header-body" style={{ textAlign: center ? "center" : "left" }}>
         <div className={`pp-avatar-wrap${center ? " pp-avatar-wrap--center" : ""}`}>
           <div className="pp-avatar"
@@ -200,10 +203,13 @@ function HeaderBanner({ p, st }) {
   const avatarSize = st.avatarSize || 88;
   
   return (
-    <div className="pp-header-banner">
+    <div className={`pp-header-banner${st.coverImage ? " pp-has-cover" : ""}`}>
       <div className="pp-banner-cover"
         style={{
           backgroundColor: st.accent,
+          ...(st.coverImage
+            ? { backgroundImage: `url(${st.coverImage})` }
+            : {}),
         }}
       />
       <div className="pp-banner-body">
@@ -228,7 +234,7 @@ function HeaderCompact({ p, st }) {
   const avatarSize = st.avatarSize || 88;
   
   return (
-    <div className="pp-header-compact">
+    <div className={`pp-header-compact${st.coverImage ? " pp-has-cover" : ""}`}>
       <div className="pp-compact-avatar"
         style={{ width: avatarSize * .7, height: avatarSize * .7, borderColor: st.accent }}>
         {p.profileImage
@@ -834,6 +840,9 @@ const ProfilePublic = ({ onNavigate }) => {
       skillStyle:      ["pill","badge","bar","dot"].includes(backendStyle.skillStyle) ? backendStyle.skillStyle : DEFAULT_STYLE.skillStyle,
       timelineStyle:   ["line","compact","card"].includes(backendStyle.timelineStyle) ? backendStyle.timelineStyle : DEFAULT_STYLE.timelineStyle,
       
+      // Cover image
+      coverImage:      typeof backendStyle.coverImage === "string" ? backendStyle.coverImage : DEFAULT_STYLE.coverImage,
+
       // Legacy/computed
       avatarSize:      Number.isInteger(backendStyle.avatarSize) ? Math.max(48, Math.min(140, backendStyle.avatarSize)) : DEFAULT_STYLE.avatarSize,
       animation:       ["fade","slide","pop","none"].includes(backendStyle.animation) ? backendStyle.animation : DEFAULT_STYLE.animation,
